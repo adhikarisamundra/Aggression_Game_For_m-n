@@ -102,7 +102,8 @@
         <div id="game-screen" class="hidden lg:grid lg:grid-cols-3 lg:gap-8">
             <!-- Left Column: Game Board and Controls -->
             <div class="lg:col-span-2">
-                <div id="game-grid" class="card p-4 rounded-xl shadow-lg mb-4"></div>
+                <!-- FIX: Added the "grid" class to enable grid layout -->
+                <div id="game-grid" class="grid card p-4 rounded-xl shadow-lg mb-4"></div>
                 <div class="card p-4 rounded-xl flex items-center gap-4">
                     <div class="flex-grow">
                          <label for="troop-input" class="block text-xs font-medium text-slate-400 mb-1">Troops to Place</label>
@@ -204,7 +205,7 @@
 
             memoizationCache = {};
             selectedCell = null;
-            placeTroopsBtn.disabled = true; // FIX: Disable button at the start of the game
+            placeTroopsBtn.disabled = true;
             gameLog.innerHTML = '';
             addLogEntry('Game Started!', 'system');
 
@@ -272,21 +273,19 @@
         function handleCellClick(r, c) {
             if (gameState.turn !== humanPlayer) return;
 
-            // Deselect previous cell visually
             if(selectedCell) {
                 const prevCellEl = gameGrid.querySelector(`[data-r='${selectedCell.r}'][data-c='${selectedCell.c}']`);
                 if(prevCellEl) prevCellEl.classList.remove('selected');
             }
 
-            // Toggle selection logic
             if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
                  selectedCell = null;
-                 placeTroopsBtn.disabled = true; // FIX: Disable button on deselect
+                 placeTroopsBtn.disabled = true;
             } else {
                  selectedCell = { r, c };
                  const cellEl = gameGrid.querySelector(`[data-r='${r}'][data-c='${c}']`);
                  cellEl.classList.add('selected');
-                 placeTroopsBtn.disabled = false; // FIX: Enable button on select
+                 placeTroopsBtn.disabled = false;
             }
         }
 
@@ -315,7 +314,7 @@
             else gameState.p2_troops -= troopsToPlace;
 
             selectedCell = null;
-            placeTroopsBtn.disabled = true; // FIX: Disable button after a successful move
+            placeTroopsBtn.disabled = true;
             endTurn();
         }
         
@@ -339,11 +338,9 @@
                     if (aiPlayer === 'P1') gameState.p1_troops -= k;
                     else gameState.p2_troops -= k;
                     
-                    // The button remains disabled as it's now the human's turn
                     endTurn();
-                }, 500); // Small delay to make AI feel less instant
+                }, 500);
             } else {
-                // It's the human's turn, ensure button is disabled until they select a cell.
                 placeTroopsBtn.disabled = !selectedCell;
             }
         }
@@ -506,4 +503,4 @@
 
     </script>
 </body>
-</html>
+</ht
