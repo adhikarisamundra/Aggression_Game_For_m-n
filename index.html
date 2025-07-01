@@ -52,6 +52,13 @@
         .log-entry, .history-entry {
             animation: slideInUp 0.4s ease-out;
         }
+        .nav-tab {
+            transition: all 0.2s ease;
+        }
+        .nav-tab.active {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: .7; }
@@ -70,7 +77,15 @@
 
     <div id="main-container" class="w-full max-w-6xl mx-auto">
         <h1 class="text-4xl lg:text-5xl font-bold text-center mb-2 text-slate-100">Aggression</h1>
-        <p class="text-center text-slate-400 mb-8">A game of strategy and conquest.</p>
+        <p class="text-center text-slate-400 mb-6">A game of strategy and conquest.</p>
+
+        <!-- Main Navigation Tabs -->
+        <nav class="flex justify-center mb-6">
+            <div class="card p-1 rounded-lg flex space-x-1">
+                <button id="nav-play-game" class="nav-tab px-6 py-2 rounded-md font-semibold">Play Game</button>
+                <button id="nav-history" class="nav-tab px-6 py-2 rounded-md font-semibold">Game History</button>
+            </div>
+        </nav>
 
         <!-- Setup Screen -->
         <div id="setup-screen" class="card p-8 rounded-xl shadow-lg max-w-md mx-auto space-y-6">
@@ -96,9 +111,6 @@
                     <button id="play-p2" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Play as P2 (Go Second)</button>
                 </div>
             </div>
-            <div class="border-t border-slate-700 pt-6">
-                 <button id="view-history-btn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">View Game History</button>
-            </div>
         </div>
         
         <!-- History Screen -->
@@ -108,7 +120,7 @@
                 <!-- History entries will be added here -->
             </div>
             <div class="mt-6">
-                <button id="back-to-menu-btn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Back to Main Menu</button>
+                <button id="clear-history-btn" class="w-full bg-red-800 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Clear History</button>
             </div>
         </div>
 
@@ -150,7 +162,7 @@
             <div class="card p-8 rounded-xl shadow-2xl text-center max-w-sm w-full animate-fadeIn space-y-4">
                 <h2 id="result-title" class="text-4xl font-bold"></h2>
                 <p id="result-message" class="text-slate-300"></p>
-                <button id="play-again-btn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Play Again</button>
+                <button id="back-to-menu-modal-btn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Back to Main Menu</button>
             </div>
         </div>
 
@@ -182,22 +194,32 @@
         const resultModal = document.getElementById('result-modal');
         const resultTitle = document.getElementById('result-title');
         const resultMessage = document.getElementById('result-message');
-        const playAgainBtn = document.getElementById('play-again-btn');
-        const viewHistoryBtn = document.getElementById('view-history-btn');
-        const backToMenuBtn = document.getElementById('back-to-menu-btn');
+        const backToMenuModalBtn = document.getElementById('back-to-menu-modal-btn');
+        const navPlayGame = document.getElementById('nav-play-game');
+        const navHistory = document.getElementById('nav-history');
+        const clearHistoryBtn = document.getElementById('clear-history-btn');
         const historyLogContainer = document.getElementById('history-log-container');
 
         // --- Setup Event Listeners ---
-        document.addEventListener('DOMContentLoaded', loadGameHistory);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGameHistory();
+            showSetupScreen(); // Start on the setup screen
+        });
         document.getElementById('play-p1').addEventListener('click', () => startGame('P1'));
         document.getElementById('play-p2').addEventListener('click', () => startGame('P2'));
-        playAgainBtn.addEventListener('click', () => {
+        backToMenuModalBtn.addEventListener('click', () => {
             resultModal.classList.add('hidden');
-            gameScreen.classList.add('hidden');
-            setupScreen.classList.remove('hidden');
+            showSetupScreen();
         });
-        viewHistoryBtn.addEventListener('click', showHistoryScreen);
-        backToMenuBtn.addEventListener('click', showSetupScreen);
+        navPlayGame.addEventListener('click', showSetupScreen);
+        navHistory.addEventListener('click', showHistoryScreen);
+        clearHistoryBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all game history? This cannot be undone.')) {
+                gameHistory = [];
+                localStorage.removeItem('aggressionGameHistory');
+                populateHistoryLog();
+            }
+        });
         placeTroopsBtn.addEventListener('click', handleHumanMove);
 
 
@@ -229,6 +251,7 @@
             addLogEntry('Game Started!', 'system');
 
             setupScreen.classList.add('hidden');
+            historyScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden', 'lg:hidden');
             gameScreen.classList.add('lg:grid');
 
@@ -238,13 +261,19 @@
         
         function showHistoryScreen() {
             setupScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
             historyScreen.classList.remove('hidden');
+            navHistory.classList.add('active');
+            navPlayGame.classList.remove('active');
             populateHistoryLog();
         }
 
         function showSetupScreen() {
             historyScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
             setupScreen.classList.remove('hidden');
+            navPlayGame.classList.add('active');
+            navHistory.classList.remove('active');
         }
 
         function render() {
@@ -445,7 +474,6 @@
                 return;
             }
 
-            // Show most recent games first
             [...gameHistory].reverse().forEach(game => {
                 const entry = document.createElement('div');
                 entry.classList.add('history-entry', 'p-4', 'rounded-lg', 'border', 'flex', 'justify-between', 'items-center');
