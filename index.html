@@ -12,12 +12,13 @@
         body {
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
-            background-color: #0f172a; /* slate-900 */
-            background-image: radial-gradient(#1e293b 1px, transparent 1px);
-            background-size: 16px 16px;
+            /* CHANGE: Updated background for better contrast */
+            background-color: #1e293b; /* slate-800 */
+            background-image: radial-gradient(#334155 1px, transparent 1px);
+            background-size: 24px 24px;
         }
         .card {
-            background-color: rgba(30, 41, 59, 0.5); /* slate-800 with transparency */
+            background-color: rgba(15, 23, 42, 0.5); /* slate-900 with transparency */
             border: 1px solid #334155; /* slate-700 */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -72,13 +73,12 @@
         <h1 class="text-4xl lg:text-5xl font-bold text-center mb-2 text-slate-100">Aggression</h1>
         <p class="text-center text-slate-400 mb-8">A game of strategy and conquest.</p>
 
-        <!-- Setup Screen -->
         <div id="setup-screen" class="card p-8 rounded-xl shadow-lg max-w-md mx-auto space-y-6">
              <div>
                 <label for="grid-size" class="block text-sm font-medium text-slate-300 mb-2">Grid Size (Rows x Columns)</label>
                 <div class="flex gap-4">
-                    <input type="number" id="rows" value="3" min="1" max="7" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-                    <input type="number" id="cols" value="3" min="1" max="7" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                    <input type="number" id="rows" value="3" min="1" max="5" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                    <input type="number" id="cols" value="3" min="1" max="5" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
                 </div>
              </div>
              <div>
@@ -98,11 +98,8 @@
             </div>
         </div>
 
-        <!-- Game Screen (Hidden by default) -->
         <div id="game-screen" class="hidden lg:grid lg:grid-cols-3 lg:gap-8">
-            <!-- Left Column: Game Board and Controls -->
             <div class="lg:col-span-2">
-                <!-- FIX: Added the "grid" class to enable grid layout -->
                 <div id="game-grid" class="grid card p-4 rounded-xl shadow-lg mb-4"></div>
                 <div class="card p-4 rounded-xl flex items-center gap-4">
                     <div class="flex-grow">
@@ -113,7 +110,6 @@
                 </div>
             </div>
 
-            <!-- Right Column: Info and Log -->
             <div class="space-y-6 mt-8 lg:mt-0">
                 <div class="grid grid-cols-2 gap-4 text-center">
                     <div id="p1-panel" class="p-4 rounded-lg card transition-all duration-300 border-2 border-blue-800">
@@ -128,13 +124,11 @@
                  <div class="card p-4 rounded-xl">
                     <h3 class="font-bold mb-3 text-slate-300 border-b border-slate-700 pb-2">Game Log</h3>
                     <div id="game-log" class="space-y-2 h-96 overflow-y-auto pr-2">
-                        <!-- Log entries will be added here -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
         
-        <!-- Result Modal (Hidden by default) -->
         <div id="result-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div class="card p-8 rounded-xl shadow-2xl text-center max-w-sm w-full animate-fadeIn">
                 <h2 id="result-title" class="text-4xl font-bold mb-4"></h2>
@@ -404,31 +398,36 @@
             if (final_p2_troops > final_p1_troops) return -1;
             return (first_attacker === 'P1') ? 1 : -1;
         }
+        
         function runSimulatedAttack(grid, attacking_player) {
             if (!attacking_player) return grid;
             const defending_player = (attacking_player === 'P1') ? 'P2' : 'P1';
             const rows = grid.length;
             const cols = grid[0].length;
             const cells_to_remove = [];
+            
+            // CHANGE: Define orthogonal directions for the new attack rule.
+            const attack_directions = [
+                { dr: -1, dc: 0 }, // Up
+                { dr: 1, dc: 0 },  // Down
+                { dr: 0, dc: -1 }, // Left
+                { dr: 0, dc: 1 }   // Right
+            ];
+
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     if (grid[r][c] && grid[r][c][0] === defending_player) {
                         const defender_troops = grid[r][c][1];
                         let total_attacker_strength = 0;
-                        for (let dr = -1; dr <= 1; dr++) {
-                            for (let dc = -1; dc <= 1; dc++) {
-                                if (dr === 0 && dc === 0) continue;
-                                const nr = r + dr, nc = c + dc;
-                                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] && grid[nr][nc][0] === attacking_player) {
-                                    const is_3x3_grid = (rows === 3 && cols === 3);
-                                    const attacker_is_center = (nr === 1 && nc === 1);
-                                    const is_diagonal_attack = (dr !== 0 && dc !== 0);
-                                    if (!(is_3x3_grid && attacker_is_center && is_diagonal_attack)) {
-                                        total_attacker_strength += grid[nr][nc][1];
-                                    }
-                                }
+                        
+                        // CHANGE: Loop over orthogonal directions only.
+                        for (const dir of attack_directions) {
+                            const nr = r + dir.dr, nc = c + dir.dc;
+                            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] && grid[nr][nc][0] === attacking_player) {
+                                total_attacker_strength += grid[nr][nc][1];
                             }
                         }
+                        
                         if (total_attacker_strength > defender_troops) cells_to_remove.push({ r, c });
                     }
                 }
@@ -438,6 +437,7 @@
             cells_to_remove.forEach(({ r, c }) => { new_grid[r][c] = null; });
             return new_grid;
         }
+
         function getPossibleMoves(grid, turn_player, p1_troops, p2_troops) {
             const moves = [];
             const current_troops = turn_player === 'P1' ? p1_troops : p2_troops;
@@ -503,4 +503,4 @@
 
     </script>
 </body>
-</ht
+</html>
