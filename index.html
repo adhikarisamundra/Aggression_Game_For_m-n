@@ -12,13 +12,11 @@
         body {
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
-            /* CHANGE: Updated background to a deeper, near-black for better contrast */
             background-color: #020617; /* slate-950 */
             background-image: radial-gradient(#1e293b 1px, transparent 1px);
             background-size: 24px 24px;
         }
         .card {
-            /* CHANGE: Updated card color to stand out from the new background */
             background-color: rgba(30, 41, 59, 0.5); /* slate-800 with transparency */
             border: 1px solid #334155; /* slate-700 */
             backdrop-filter: blur(10px);
@@ -79,7 +77,6 @@
              <div>
                 <label for="grid-size" class="block text-sm font-medium text-slate-300 mb-2">Grid Size (Rows x Columns)</label>
                 <div class="flex gap-4">
-                    <!-- CHANGE: Limited grid size input -->
                     <input type="number" id="rows" value="3" min="1" max="5" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
                     <input type="number" id="cols" value="3" min="1" max="5" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
                 </div>
@@ -157,7 +154,7 @@
         let maxDepth = 4;
         let selectedCell = null;
         let turnNumber = 1;
-        let structuredGameLog = []; // For downloadable log
+        let structuredGameLog = [];
 
         // --- DOM Elements ---
         const setupScreen = document.getElementById('setup-screen');
@@ -212,7 +209,7 @@
             selectedCell = null;
             placeTroopsBtn.disabled = true;
             gameLog.innerHTML = '';
-            structuredGameLog = []; // Reset structured log
+            structuredGameLog = [];
             addLogEntry('Game Started!', 'system');
 
             setupScreen.classList.add('hidden');
@@ -390,7 +387,6 @@
                 resultMessage.textContent = `The AI was triumphant via ${condition}.`;
             }
             
-            // Setup the download button
             downloadLogBtn.onclick = () => downloadLog(winner, condition);
             resultModal.classList.remove('hidden');
         }
@@ -448,7 +444,6 @@
         }
 
         function evaluateFinalState(grid, p1_troops, p2_troops, initiative_winner_known) {
-            // This function now just calls the detailed one and returns the score
             const { winner } = getGameResultDetails();
             return winner === 'P1' ? 1 : -1;
         }
@@ -459,20 +454,25 @@
             const rows = grid.length;
             const cols = grid[0].length;
             const cells_to_remove = [];
-            const attack_directions = [{ dr: -1, dc: 0 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: 0, dc: 1 }];
-
+            
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     if (grid[r][c] && grid[r][c][0] === defending_player) {
                         const defender_troops = grid[r][c][1];
-                        let total_attacker_strength = 0;
-                        for (const dir of attack_directions) {
-                            const nr = r + dir.dr, nc = c + dir.dc;
-                            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] && grid[nr][nc][0] === attacking_player) {
-                                total_attacker_strength += grid[nr][nc][1];
-                            }
+                        
+                        // CHANGE: Calculate horizontal and vertical attacks separately
+                        const left_attacker = (c > 0 && grid[r][c-1] && grid[r][c-1][0] === attacking_player) ? grid[r][c-1][1] : 0;
+                        const right_attacker = (c < cols - 1 && grid[r][c+1] && grid[r][c+1][0] === attacking_player) ? grid[r][c+1][1] : 0;
+                        const horizontal_attack = left_attacker + right_attacker;
+
+                        const up_attacker = (r > 0 && grid[r-1][c] && grid[r-1][c][0] === attacking_player) ? grid[r-1][c][1] : 0;
+                        const down_attacker = (r < rows - 1 && grid[r+1][c] && grid[r+1][c][0] === attacking_player) ? grid[r+1][c][1] : 0;
+                        const vertical_attack = up_attacker + down_attacker;
+                        
+                        // A piece is destroyed if either pincer attack is successful
+                        if (horizontal_attack > defender_troops || vertical_attack > defender_troops) {
+                            cells_to_remove.push({ r, c });
                         }
-                        if (total_attacker_strength > defender_troops) cells_to_remove.push({ r, c });
                     }
                 }
             }
