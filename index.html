@@ -165,6 +165,18 @@
                 <button id="back-to-menu-modal-btn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Back to Main Menu</button>
             </div>
         </div>
+        
+        <!-- History Detail Modal -->
+        <div id="history-detail-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div class="card p-8 rounded-xl shadow-2xl max-w-lg w-full animate-fadeIn space-y-4">
+                <h2 class="text-2xl font-bold mb-4">Game Details</h2>
+                <div id="history-detail-content" class="text-left text-sm space-y-2 h-[60vh] overflow-y-auto pr-4"></div>
+                <div class="flex gap-4 pt-4">
+                    <button id="history-download-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Download Full Log</button>
+                    <button id="history-close-btn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Close</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -178,6 +190,7 @@
         let selectedCell = null;
         let turnNumber = 1;
         let gameHistory = [];
+        let structuredGameLog = [];
 
         // --- DOM Elements ---
         const setupScreen = document.getElementById('setup-screen');
@@ -199,11 +212,15 @@
         const navHistory = document.getElementById('nav-history');
         const clearHistoryBtn = document.getElementById('clear-history-btn');
         const historyLogContainer = document.getElementById('history-log-container');
+        const historyDetailModal = document.getElementById('history-detail-modal');
+        const historyDetailContent = document.getElementById('history-detail-content');
+        const historyDownloadBtn = document.getElementById('history-download-btn');
+        const historyCloseBtn = document.getElementById('history-close-btn');
 
         // --- Setup Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
             loadGameHistory();
-            showSetupScreen(); // Start on the setup screen
+            showSetupScreen();
         });
         document.getElementById('play-p1').addEventListener('click', () => startGame('P1'));
         document.getElementById('play-p2').addEventListener('click', () => startGame('P2'));
@@ -220,6 +237,7 @@
                 populateHistoryLog();
             }
         });
+        historyCloseBtn.addEventListener('click', () => historyDetailModal.classList.add('hidden'));
         placeTroopsBtn.addEventListener('click', handleHumanMove);
 
 
@@ -248,6 +266,7 @@
             selectedCell = null;
             placeTroopsBtn.disabled = true;
             gameLog.innerHTML = '';
+            structuredGameLog = [];
             addLogEntry('Game Started!', 'system');
 
             setupScreen.classList.add('hidden');
@@ -367,6 +386,8 @@
                  return;
             }
             
+            const moveData = { turn: turnNumber, player: humanPlayer, k: troopsToPlace, pos: {r, c} };
+            structuredGameLog.push(moveData);
             addLogEntry(`Human (${humanPlayer}) places ${troopsToPlace} troops at (${r},${c}).`, humanPlayer);
             
             gameState.grid[r][c] = [humanPlayer, troopsToPlace];
@@ -393,6 +414,8 @@
                     const { r, c } = bestMove.pos;
                     const k = bestMove.k;
                     
+                    const moveData = { turn: turnNumber, player: aiPlayer, k: k, pos: {r, c} };
+                    structuredGameLog.push(moveData);
                     addLogEntry(`AI (${aiPlayer}) places ${k} troops at (${r},${c}).`, aiPlayer);
 
                     gameState.grid[r][c] = [aiPlayer, k];
@@ -447,16 +470,19 @@
             const difficultySelect = document.getElementById('difficulty');
             const difficultyText = difficultySelect.options[difficultySelect.selectedIndex].text;
             
-            const gameSummary = {
-                date: new Date().toLocaleString(),
-                gridSize: `${gameState.rows}x${gameState.cols}`,
-                humanPlayer: humanPlayer,
-                aiDifficulty: difficultyText,
-                winner: winner,
-                winningCondition: condition
+            const fullGameLog = {
+                summary: {
+                    date: new Date().toLocaleString(),
+                    gridSize: `${gameState.rows}x${gameState.cols}`,
+                    humanPlayer: humanPlayer,
+                    aiDifficulty: difficultyText,
+                    winner: winner,
+                    winningCondition: condition
+                },
+                moves: structuredGameLog
             };
             
-            gameHistory.push(gameSummary);
+            gameHistory.push(fullGameLog);
             localStorage.setItem('aggressionGameHistory', JSON.stringify(gameHistory));
         }
 
@@ -474,24 +500,69 @@
                 return;
             }
 
-            [...gameHistory].reverse().forEach(game => {
+            [...gameHistory].reverse().forEach((game, index) => {
+                const realIndex = gameHistory.length - 1 - index; // Correct index for original array
                 const entry = document.createElement('div');
                 entry.classList.add('history-entry', 'p-4', 'rounded-lg', 'border', 'flex', 'justify-between', 'items-center');
-                const winnerColor = game.winner === 'P1' ? 'border-blue-500' : 'border-red-500';
+                const winnerColor = game.summary.winner === 'P1' ? 'border-blue-500' : 'border-red-500';
                 entry.classList.add(winnerColor);
 
                 entry.innerHTML = `
                     <div>
-                        <p class="font-bold">${game.winner} Victory</p>
-                        <p class="text-sm text-slate-400">${game.winningCondition}</p>
+                        <p class="font-bold">${game.summary.winner} Victory</p>
+                        <p class="text-sm text-slate-400">${game.summary.winningCondition}</p>
                     </div>
-                    <div class="text-right text-xs text-slate-500">
-                        <p>${game.gridSize} Grid vs ${game.aiDifficulty}</p>
-                        <p>${game.date}</p>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-500">${game.summary.gridSize} vs ${game.summary.aiDifficulty}</p>
+                        <p class="text-xs text-slate-500">${game.summary.date}</p>
                     </div>
                 `;
+                
+                const detailsButton = document.createElement('button');
+                detailsButton.textContent = 'View Details';
+                detailsButton.classList.add('ml-4', 'bg-slate-600', 'hover:bg-slate-700', 'text-white', 'font-semibold', 'py-1', 'px-3', 'rounded-md', 'text-xs');
+                detailsButton.onclick = () => showHistoryDetails(realIndex);
+                
+                const rightSide = entry.querySelector('.text-right');
+                rightSide.insertAdjacentElement('afterend', detailsButton);
+
                 historyLogContainer.appendChild(entry);
             });
+        }
+
+        function showHistoryDetails(gameIndex) {
+            const gameData = gameHistory[gameIndex];
+            if (!gameData) return;
+
+            let content = `<p><strong class="text-slate-300">Date:</strong> ${gameData.summary.date}</p>`;
+            content += `<p><strong class="text-slate-300">Grid:</strong> ${gameData.summary.gridSize}</p>`;
+            content += `<p><strong class="text-slate-300">AI Difficulty:</strong> ${gameData.summary.aiDifficulty}</p>`;
+            content += `<p><strong class="text-slate-300">Result:</strong> ${gameData.summary.winner} won by ${gameData.summary.winningCondition}</p>`;
+            content += `<h3 class="font-bold mt-4 mb-2 border-t border-slate-700 pt-2">Move History:</h3>`;
+            
+            const movesList = document.createElement('ol');
+            movesList.classList.add('list-decimal', 'list-inside', 'space-y-1');
+            gameData.moves.forEach(move => {
+                const moveItem = document.createElement('li');
+                moveItem.textContent = ` ${move.player} places ${move.k} troops at (${move.pos.r}, ${move.pos.c})`;
+                movesList.appendChild(moveItem);
+            });
+            
+            historyDetailContent.innerHTML = content;
+            historyDetailContent.appendChild(movesList);
+            
+            historyDownloadBtn.onclick = () => downloadLog(gameData);
+            historyDetailModal.classList.remove('hidden');
+        }
+
+        function downloadLog(logData) {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `aggression_log_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
         }
 
         // --- AI LOGIC (JavaScript implementation) ---
