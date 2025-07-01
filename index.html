@@ -162,6 +162,8 @@
             <div class="card p-8 rounded-xl shadow-2xl text-center max-w-sm w-full animate-fadeIn space-y-4">
                 <h2 id="result-title" class="text-4xl font-bold"></h2>
                 <p id="result-message" class="text-slate-300"></p>
+                <!-- CHANGE: Added download button directly to result modal -->
+                <button id="result-download-log-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Download Game Log</button>
                 <button id="back-to-menu-modal-btn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Back to Main Menu</button>
             </div>
         </div>
@@ -208,6 +210,7 @@
         const resultTitle = document.getElementById('result-title');
         const resultMessage = document.getElementById('result-message');
         const backToMenuModalBtn = document.getElementById('back-to-menu-modal-btn');
+        const resultDownloadLogBtn = document.getElementById('result-download-log-btn'); // New button
         const navPlayGame = document.getElementById('nav-play-game');
         const navHistory = document.getElementById('nav-history');
         const clearHistoryBtn = document.getElementById('clear-history-btn');
@@ -450,8 +453,8 @@
         
         function endGame() {
             const { winner, condition } = getGameResultDetails();
+            const fullGameLog = saveGameToHistory(winner, condition);
             addLogEntry(`Game Over. ${winner} is victorious by ${condition}!`, 'system');
-            saveGameToHistory(winner, condition);
 
             if (winner === humanPlayer) {
                 resultTitle.textContent = 'VICTORY!';
@@ -462,6 +465,9 @@
                 resultTitle.className = 'text-4xl font-bold mb-4 text-red-500';
                 resultMessage.textContent = `The AI was triumphant via ${condition}.`;
             }
+            
+            // Setup the download button on the results modal
+            resultDownloadLogBtn.onclick = () => downloadLog(fullGameLog);
             
             resultModal.classList.remove('hidden');
         }
@@ -484,6 +490,7 @@
             
             gameHistory.push(fullGameLog);
             localStorage.setItem('aggressionGameHistory', JSON.stringify(gameHistory));
+            return fullGameLog; // Return the log object to be used immediately
         }
 
         function loadGameHistory() {
@@ -501,7 +508,7 @@
             }
 
             [...gameHistory].reverse().forEach((game, index) => {
-                const realIndex = gameHistory.length - 1 - index; // Correct index for original array
+                const realIndex = gameHistory.length - 1 - index;
                 const entry = document.createElement('div');
                 entry.classList.add('history-entry', 'p-4', 'rounded-lg', 'border', 'flex', 'justify-between', 'items-center');
                 const winnerColor = game.summary.winner === 'P1' ? 'border-blue-500' : 'border-red-500';
@@ -691,4 +698,4 @@
 
     </script>
 </body>
-</html>
+</ht
