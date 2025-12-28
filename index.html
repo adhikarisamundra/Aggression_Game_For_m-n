@@ -1,519 +1,454 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AGGRESSION: ATOLL COMMAND</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- CORE VISUALS --- */
-        :root {
-            --neon-blue: #00f3ff;
-            --neon-red: #ff0055;
-            --void-bg: #050b14;
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
+import random
+import time
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--void-bg);
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.03) 0%, transparent 50%),
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            color: #e2e8f0;
-            overflow-x: hidden;
-            perspective: 1000px;
-        }
+class AggressionGame:
+    def __init__(self):
+        self.rows = 0
+        self.cols = 0
+        self.total_troops = 0
+        self.grid = {}  # Dictionary to store grid state: (r, c) -> {'player': p, 'count': n}
+        self.p1_troops_remaining = 0
+        self.p2_troops_remaining = 0
+        self.current_turn = 1  # 1 for Player 1, 2 for Player 2
+        self.ai_opponent = None # None, "Weak", "Strategic", "Smart"
+        self.player_names = {1: "Player 1", 2: "Player 2"}
 
-        .font-hud { font-family: 'Orbitron', sans-serif; letter-spacing: 0.1em; }
+    def setup_game(self):
+        """Initializes game parameters with user input and safety caps."""
+        print("--- Game Setup ---")
         
-        /* --- 3D GEOMETRY --- */
-        .manifold-container {
-            transform-style: preserve-3d;
-            perspective: 1000px;
-        }
+        # 1. Grid Dimensions (Limited to 8x8 for algorithmic complexity reasons)
+        while True:
+            try:
+                r = int(input("Enter number of rows (m) [2-8]: "))
+                c = int(input("Enter number of columns (n) [2-8]: "))
+                if 2 <= r <= 8 and 2 <= c <= 8:
+                    self.rows, self.cols = r, c
+                    break
+                print("Dimensions must be between 2 and 8.")
+            except ValueError:
+                print("Invalid input. Please enter integers.")
 
-        #manifold-grid {
-            transform: rotateX(25deg) scale(0.95);
-            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            transform-style: preserve-3d;
-        }
+        # 2. Troop Count 
+        # Default is m*n, but user can change. 
+        # We cap this to prevent integer overflow or excessively long games.
+        default_troops = self.rows * self.cols
+        print(f"Standard troop count is {default_troops} (rows * cols).")
+        while True:
+            try:
+                choice = input(f"Use standard count? (y/n): ").lower()
+                if choice == 'y':
+                    self.total_troops = default_troops
+                    break
+                elif choice == 'n':
+                    # Cap troops at 3x grid size
+                    max_troops = self.rows * self.cols * 3
+                    t = int(input(f"Enter total troops per player [1-{max_troops}]: "))
+                    if 1 <= t <= max_troops:
+                        self.total_troops = t
+                        break
+                    print(f"Please keep troops between 1 and {max_troops}.")
+            except ValueError:
+                print("Invalid input.")
 
-        .atoll {
-            aspect-ratio: 1;
-            position: relative;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid #1e293b;
-            transition: all 0.2s ease;
-            transform-style: preserve-3d;
-            cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        }
+        self.p1_troops_remaining = self.total_troops
+        self.p2_troops_remaining = self.total_troops
 
-        .atoll:hover {
-            transform: translateZ(15px);
-            border-color: var(--neon-blue);
-            z-index: 50;
-            background: rgba(30, 41, 59, 0.8);
-        }
+        # 3. Game Mode Selection
+        print("\n--- Opponent Selection ---")
+        print("1. Human vs Human")
+        print("2. Human vs AI")
+        while True:
+            mode = input("Choose mode (1 or 2): ")
+            if mode == '1':
+                self.ai_opponent = None
+                break
+            elif mode == '2':
+                self.choose_ai_difficulty()
+                self.player_names[2] = f"AI ({self.ai_opponent})"
+                break
 
-        .atoll.occupied { transform: translateZ(8px); }
+        # Initialize empty grid
+        for r in range(self.rows):
+            for c in range(self.cols):
+                self.grid[(r, c)] = None # None means empty/unclaimed
 
-        .atoll.p1 {
-            background: rgba(0, 243, 255, 0.15);
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-            color: var(--neon-blue);
-            text-shadow: 0 0 5px var(--neon-blue);
-        }
+        # Start the game loop
+        self.play_placement_phase()
 
-        .atoll.p2 {
-            background: rgba(255, 0, 85, 0.15);
-            border: 2px solid var(--neon-red);
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);
-            color: var(--neon-red);
-            text-shadow: 0 0 5px var(--neon-red);
-        }
-
-        /* --- UI COMPONENTS --- */
-        .glass-panel {
-            background: rgba(10, 15, 30, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, rgba(0,243,255,0.1), rgba(0,243,255,0.05));
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .btn-primary:hover {
-            background: var(--neon-blue);
-            color: #000;
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
-        }
-
-        /* --- UTILS --- */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    def choose_ai_difficulty(self):
+        """Allows user to select AI based on description."""
+        print("\nSelect AI Difficulty:")
+        print("1. Weak AI (Random):") 
+        print("   - Makes moves completely randomly.")
+        print("   - No strategy; good for learning the mechanics.")
         
-        .view-section { display: none; opacity: 0; transition: opacity 0.5s; }
-        .view-active { display: flex; opacity: 1; animation: fadeIn 0.5s forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body class="min-h-screen text-slate-300">
-
-    <section id="view-briefing" class="view-section view-active min-h-screen flex-col items-center justify-center p-6">
-        <div class="max-w-4xl w-full glass-panel rounded-2xl p-8 border-t-4 border-t-cyan-500">
-            <header class="text-center mb-10">
-                <h1 class="font-hud text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 mb-2">
-                    AGGRESSION
-                </h1>
-                <p class="text-slate-500 text-sm tracking-[0.4em]">TACTICAL CONQUEST PROTOCOL</p>
-            </header>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                <div class="space-y-6">
-                    <h2 class="font-hud text-xl text-cyan-400 border-b border-slate-700 pb-2">TACTICAL BRIEF</h2>
-                    
-                    <div class="flex gap-4">
-                        <div class="font-hud text-2xl text-slate-600">01</div>
-                        <div>
-                            <strong class="text-white block uppercase text-sm mb-1">Deployment Phase</strong>
-                            <p class="text-sm text-slate-400">Deploy scalar units to empty Atolls. You have limited reserves. Plan carefully.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <div class="font-hud text-2xl text-slate-600">02</div>
-                        <div>
-                            <strong class="text-white block uppercase text-sm mb-1">Assault Phase</strong>
-                            <p class="text-sm text-slate-400">After deployment, combat begins. If <span class="text-cyan-400">Your Density</span> &gt; <span class="text-red-400">Enemy Density</span>, the enemy is purged.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <h2 class="font-hud text-xl text-red-400 border-b border-slate-700 pb-2">PARAMETERS</h2>
-                    <ul class="space-y-2 text-sm text-slate-400">
-                        <li>• <span class="text-white">Win Condition:</span> Control majority of Atolls.</li>
-                        <li>• <span class="text-white">Tiebreaker:</span> Efficiency (Highest Remaining Reserves).</li>
-                    </ul>
-                    <div class="mt-4 p-4 bg-slate-900 rounded border border-slate-700 font-mono text-xs">
-                        <p class="text-green-400">> SYSTEMS ONLINE</p>
-                        <p class="text-cyan-400">> READY FOR TRAINING...</p>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="App.initTraining()" class="btn-primary w-full py-5 rounded text-xl font-bold font-hud">
-                INITIALIZE TRAINING SIMULATION
-            </button>
-        </div>
-    </section>
-
-    <section id="view-hud" class="view-section min-h-screen flex-col lg:flex-row p-4 gap-4">
+        print("2. Strategic AI (Clustering):")
+        print("   - Tries to group troops together to build strongholds.")
+        print("   - Prioritizes attacking the largest enemy stacks.")
         
-        <aside class="w-full lg:w-1/4 flex flex-col gap-4">
-            <div class="glass-panel p-4 rounded-xl flex justify-between items-center">
-                <h2 class="font-hud text-cyan-400">CMD CENTER</h2>
-                <button onclick="App.endGame('ABORTED')" class="text-xs border border-slate-600 px-3 py-1 rounded hover:bg-slate-800">ABORT</button>
-            </div>
+        print("3. Smart AI (Threat Assessment):")
+        print("   - Analyzes which of its own units are threatened.")
+        print("   - Attacks enemies that pose the biggest danger to its territory.")
+        
+        while True:
+            choice = input("Enter choice (1-3): ")
+            if choice == '1':
+                self.ai_opponent = "Weak"
+                break
+            elif choice == '2':
+                self.ai_opponent = "Strategic"
+                break
+            elif choice == '3':
+                self.ai_opponent = "Smart"
+                break
 
-            <div class="glass-panel p-6 rounded-xl flex-1 flex flex-col gap-6">
-                <div class="text-center p-2 bg-slate-900 border border-slate-700 rounded">
-                    <span class="text-[10px] uppercase text-slate-500 block">Status</span>
-                    <span id="phase-display" class="font-hud text-xl text-yellow-400 animate-pulse">DEPLOYMENT</span>
-                </div>
+    def print_grid(self):
+        """Visualizes the current board state."""
+        print(f"\n--- Board State (Rows: {self.rows}, Cols: {self.cols}) ---")
+        # Column headers
+        print("   ", end="")
+        for c in range(self.cols):
+            print(f" {c}  ", end="")
+        print()
+        
+        for r in range(self.rows):
+            print(f"{r} |", end="")
+            for c in range(self.cols):
+                cell = self.grid.get((r, c))
+                if cell is None:
+                    print(" .  ", end="")
+                else:
+                    # Format: P1:5 or P2:10
+                    p_label = f"P{cell['player']}"
+                    count = cell['count']
+                    # Simple color coding using ANSI escape codes for terminal
+                    color = "\033[94m" if cell['player'] == 1 else "\033[91m"
+                    reset = "\033[0m"
+                    print(f"{color}{p_label}:{count:<2}{reset}", end="") 
+            print("|")
 
-                <div>
-                    <label class="text-[10px] uppercase text-cyan-500">Blue Reserves</label>
-                    <div id="p1-res" class="text-4xl font-hud font-bold text-white">00</div>
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase text-red-500">Red Reserves</label>
-                    <div id="p2-res" class="text-4xl font-hud font-bold text-white">00</div>
-                </div>
+    # --- PLACEMENT PHASE LOGIC ---
 
-                <div id="deployment-controls" class="mt-auto border-t border-slate-700 pt-4">
-                    <div class="flex justify-between items-end mb-2">
-                        <label class="text-xs font-bold text-slate-400">DENSITY</label>
-                        <span id="slider-val" class="font-hud text-xl text-cyan-400">1</span>
-                    </div>
-                    <input type="range" id="troop-slider" min="1" max="5" value="1" class="w-full accent-cyan-400">
-                </div>
+    def play_placement_phase(self):
+        """Manages the loop of placing troops until both run out."""
+        print("\n--- Phase 1: Placement ---")
+        print(f"Rules: Place troops (1 to remaining). You stop when out of troops.")
+        
+        # Randomly decide who starts placement
+        if random.choice([True, False]):
+            self.current_turn = 1
+        else:
+            self.current_turn = 2
+        print(f"{self.player_names[self.current_turn]} starts placement.")
 
-                <div id="attack-controls" class="hidden mt-auto border-t border-slate-700 pt-4 text-center">
-                    <p class="text-xs text-cyan-300">Target an owned Atoll to fire.</p>
-                </div>
-            </div>
-        </aside>
-
-        <main class="w-full lg:w-1/2 flex flex-col relative z-10">
-            <div id="tutorial-msg" class="hidden mb-4 p-3 bg-yellow-900/40 border border-yellow-500 rounded text-yellow-200 text-sm font-mono text-center">
-                TRAINING: Deploy 3+ units next to the Red Atoll to purge it.
-            </div>
+        while self.p1_troops_remaining > 0 or self.p2_troops_remaining > 0:
+            self.print_grid()
+            current_troops = self.p1_troops_remaining if self.current_turn == 1 else self.p2_troops_remaining
             
-            <div class="flex-1 flex items-center justify-center manifold-container">
-                <div id="manifold-grid" class="grid gap-2 p-6 bg-slate-900/60 border border-white/5 rounded-xl shadow-2xl backdrop-blur-sm">
-                    </div>
-            </div>
-        </main>
+            # Skip turn if out of troops
+            if current_troops <= 0:
+                print(f"{self.player_names[self.current_turn]} is out of troops. Skipping.")
+                self.switch_turn()
+                continue
 
-        <aside class="w-full lg:w-1/4 flex flex-col h-[400px] lg:h-auto">
-            <div class="glass-panel rounded-xl flex flex-col h-full overflow-hidden">
-                <div class="p-3 border-b border-slate-700 bg-slate-900/50">
-                    <h3 class="font-hud text-xs text-slate-400 uppercase">Tactical Feed</h3>
-                </div>
+            print(f"\n{self.player_names[self.current_turn]}'s Turn.")
+            print(f"Troops remaining: {current_troops}")
+
+            if self.is_ai_turn():
+                move = self.get_ai_placement_move()
+                print(f"AI decides to place {move['amount']} at ({move['r']}, {move['c']}).")
+                self.execute_placement(move['r'], move['c'], move['amount'])
+            else:
+                self.get_human_placement_move(current_troops)
+            
+            self.switch_turn()
+
+        print("\nAll troops placed. Transitioning to Attack Phase...")
+        self.play_attack_phase()
+
+    def get_human_placement_move(self, max_troops):
+        while True:
+            try:
+                in_str = input("Enter placement (row col amount): ")
+                parts = list(map(int, in_str.split()))
+                if len(parts) != 3:
+                    print("Format: row col amount")
+                    continue
+                r, c, amount = parts
                 
-                <div id="game-log" class="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-[10px] bg-slate-950/30">
-                    </div>
-
-                <div class="p-3 border-t border-slate-700 bg-slate-900/80">
-                    <h4 class="text-[10px] text-slate-500 uppercase mb-2">Archives</h4>
-                    <div id="history-list" class="space-y-1 max-h-24 overflow-y-auto"></div>
-                </div>
-            </div>
-        </aside>
-    </section>
-
-    <script>
-        const App = {
-            state: {
-                phase: 'DEPLOY', 
-                m: 5, n: 5,
-                p1Res: 0, p2Res: 0,
-                turn: 'P1',
-                grid: [],
-                isTutorial: false,
-                p1Done: false,
-                p2Done: false,
-                timer: null,
-                isBusy: false // PREVENTS CLICK SPAMMING CRASHES
-            },
-
-            // --- NAVIGATION ---
-            switchView: (id) => {
-                document.querySelectorAll('.view-section').forEach(el => {
-                    el.classList.remove('view-active');
-                    setTimeout(() => el.style.display = 'none', 500);
-                });
-                const t = document.getElementById(id);
-                t.style.display = 'flex';
-                void t.offsetWidth; // Force Reflow
-                t.classList.add('view-active');
-                window.scrollTo(0,0);
-            },
-
-            // --- INIT ---
-            initTraining: () => {
-                App.resetState();
-                const s = App.state;
-                s.isTutorial = true;
-                s.m = 4; s.n = 4;
+                # Validation
+                if not (0 <= r < self.rows and 0 <= c < self.cols):
+                    print("Coordinates out of bounds.")
+                    continue
+                if amount < 1 or amount > max_troops:
+                    print(f"Invalid amount. You have {max_troops} left.")
+                    continue
                 
-                // Set Reserves
-                s.p1Res = 16;
-                s.p2Res = 16;
-                s.grid = Array(s.m).fill().map(() => Array(s.n).fill(null));
+                cell = self.grid.get((r, c))
+                # Can only place on empty spots or own territory
+                if cell is not None and cell['player'] != self.current_turn:
+                    print("Cannot place on opponent's territory!")
+                    continue
+                
+                self.execute_placement(r, c, amount)
+                break
+            except ValueError:
+                print("Invalid input.")
 
-                // Pre-place Enemy
-                s.grid[1][1] = { owner: 'P2', val: 2 };
+    def execute_placement(self, r, c, amount):
+        cell = self.grid.get((r, c))
+        if cell is None:
+            self.grid[(r, c)] = {'player': self.current_turn, 'count': amount}
+        else:
+            self.grid[(r, c)]['count'] += amount
+            
+        if self.current_turn == 1:
+            self.p1_troops_remaining -= amount
+        else:
+            self.p2_troops_remaining -= amount
 
-                document.getElementById('tutorial-msg').classList.remove('hidden');
-                App.log("TRAINING SIMULATION INITIALIZED", "SYS");
-                App.updateUI();
-                App.render();
-                App.switchView('view-hud');
-            },
+    # --- ATTACK PHASE LOGIC ---
 
-            resetState: () => {
-                if(App.state.timer) clearTimeout(App.state.timer); // STOP ANY PENDING AI
-                const s = App.state;
-                s.phase = 'DEPLOY';
-                s.turn = 'P1';
-                s.p1Done = false;
-                s.p2Done = false;
-                s.isBusy = false;
-                document.getElementById('game-log').innerHTML = '';
-                document.getElementById('phase-display').innerText = "DEPLOYMENT";
-                document.getElementById('phase-display').className = "font-hud text-xl text-yellow-400 animate-pulse";
-                document.getElementById('deployment-controls').classList.remove('hidden');
-                document.getElementById('attack-controls').classList.add('hidden');
-                App.loadHistory();
-            },
+    def play_attack_phase(self):
+        """Manages the attack loop."""
+        print("\n--- Phase 2: Attack ---")
+        print("Rules: Attack a target. If (Sum of your surrounding troops) > (Target troops), target is neutralized.")
+        
+        # The person who placed first starts the attack phase (rule interpretation)
+        # For simplicity in code, we just reset to P1, but you can randomize.
+        self.current_turn = 1 
+        consecutive_passes = 0
 
-            // --- INPUT ---
-            handleInput: (r, c) => {
-                const s = App.state;
-                if (s.isBusy || s.turn !== 'P1') return;
+        while True:
+            self.print_grid()
+            
+            print(f"\n{self.player_names[self.current_turn]}'s Turn.")
+            print("Enter target coordinates to attack, or 'p' to pass.")
+            
+            move_made = False
+            
+            if self.is_ai_turn():
+                time.sleep(1) # Small delay for realism
+                target = self.get_ai_attack_move()
+                if target is None:
+                    print("AI chooses to Pass.")
+                    consecutive_passes += 1
+                else:
+                    print(f"AI attacks ({target[0]}, {target[1]})!")
+                    self.execute_attack(target[0], target[1])
+                    move_made = True
+                    consecutive_passes = 0
+            else:
+                user_in = input("Target (row col) or 'p': ").lower()
+                if user_in == 'p':
+                    consecutive_passes += 1
+                else:
+                    try:
+                        r, c = map(int, user_in.split())
+                        if self.validate_attack(r, c):
+                            self.execute_attack(r, c)
+                            move_made = True
+                            consecutive_passes = 0
+                        else:
+                            continue # Ask again
+                    except ValueError:
+                        print("Invalid input.")
+                        continue
 
-                if (s.phase === 'DEPLOY') {
-                    if (s.p1Done) return;
-                    if (s.grid[r][c] !== null) {
-                        App.log("SECTOR ALREADY OCCUPIED", "ERR");
-                        return;
-                    }
-                    const val = parseInt(document.getElementById('troop-slider').value);
-                    if (val > s.p1Res) {
-                        App.log("INSUFFICIENT RESERVES", "ERR");
-                        return;
-                    }
-                    App.executeDeploy(r, c, 'P1', val);
+            # Win Condition Check: If 2 passes in a row, game ends.
+            if consecutive_passes >= 2:
+                print("\nBoth players passed. Game Over.")
+                break
+                
+            self.switch_turn()
+            
+        self.determine_winner()
+
+    def validate_attack(self, r, c):
+        if not (0 <= r < self.rows and 0 <= c < self.cols):
+            print("Out of bounds.")
+            return False
+        
+        target_cell = self.grid.get((r, c))
+        if target_cell is None:
+            print("Cannot attack empty space.")
+            return False
+        if target_cell['player'] == self.current_turn:
+            print("Cannot attack your own territory.")
+            return False
+            
+        # Calculate attack power
+        power = self.calculate_attack_power(r, c, self.current_turn)
+        print(f"Attack Power (Sum of neighbors): {power} vs Target Defense: {target_cell['count']}")
+        
+        if power > target_cell['count']:
+            return True
+        else:
+            print("Attack failed! Insufficient surrounding power.")
+            return False
+
+    def calculate_attack_power(self, target_r, target_c, attacker_id):
+        power = 0
+        # Check all 8 surrounding neighbors (Kings move)
+        for dr in [-1, 0, 1]:
+            for dc in [-1, 0, 1]:
+                if dr == 0 and dc == 0: continue
+                nr, nc = target_r + dr, target_c + dc
+                if (nr, nc) in self.grid and self.grid[(nr, nc)] is not None:
+                    if self.grid[(nr, nc)]['player'] == attacker_id:
+                        power += self.grid[(nr, nc)]['count']
+        return power
+
+    def execute_attack(self, r, c):
+        # Neutralized territory becomes empty (None)
+        print(f"Attack successful! Territory at ({r},{c}) neutralized (removed).")
+        self.grid[(r, c)] = None
+
+    def determine_winner(self):
+        p1_area = 0
+        p2_area = 0
+        for cell in self.grid.values():
+            if cell is not None:
+                if cell['player'] == 1:
+                    p1_area += 1
+                else:
+                    p2_area += 1
+        
+        print("\n--- Final Score ---")
+        print(f"Player 1 Area Controlled: {p1_area}")
+        print(f"Player 2 Area Controlled: {p2_area}")
+        
+        if p1_area > p2_area:
+            print("Player 1 Wins!")
+        elif p2_area > p1_area:
+            print("Player 2 Wins!")
+        else:
+            print("It's a Tie!")
+
+    # --- AI LOGIC IMPLEMENTATION ---
+
+    def is_ai_turn(self):
+        return self.current_turn == 2 and self.ai_opponent is not None
+
+    def get_ai_placement_move(self):
+        remaining = self.p2_troops_remaining
+        
+        # 1. WEAK AI: Pure Random
+        if self.ai_opponent == "Weak":
+            # Picks random coord
+            r = random.randint(0, self.rows - 1)
+            c = random.randint(0, self.cols - 1)
+            # Random amount
+            amt = random.randint(1, min(remaining, 5))
+            
+            # Ensure valid spot (empty or own)
+            valid = False
+            attempts = 0
+            while not valid and attempts < 100:
+                cell = self.grid.get((r,c))
+                if cell is None or cell['player'] == 2:
+                    valid = True
+                else:
+                    r = random.randint(0, self.rows - 1)
+                    c = random.randint(0, self.cols - 1)
+                attempts += 1
+            
+            if not valid: # Fallback if grid is full of enemy (unlikely in setup)
+                 amt = remaining 
+            
+            return {'r': r, 'c': c, 'amount': amt}
+
+        # 2. STRATEGIC & SMART AI (Placement Logic)
+        # Both prefer clustering, but Smart is more aggressive.
+        else:
+            best_score = -999
+            best_move = (0, 0)
+            
+            for r in range(self.rows):
+                for c in range(self.cols):
+                    cell = self.grid.get((r, c))
+                    if cell is not None and cell['player'] == 1: continue 
                     
-                    if (!s.p2Done) {
-                        s.isBusy = true; // Lock input
-                        s.timer = setTimeout(App.aiTurn, 600);
-                    }
-                } 
-                else if (s.phase === 'ATTACK') {
-                    const cell = s.grid[r][c];
-                    if (cell && cell.owner === 'P1') {
-                        App.executeAttack(r, c, 'P1');
-                        s.isBusy = true; // Lock input
-                        s.timer = setTimeout(App.aiTurn, 1000);
-                    }
-                }
-            },
-
-            // --- DEPLOY PHASE ---
-            executeDeploy: (r, c, p, val) => {
-                const s = App.state;
-                s.grid[r][c] = { owner: p, val: val };
-                if (p === 'P1') s.p1Res -= val; else s.p2Res -= val;
-                
-                App.log(`${p} DEPLOYED ${val} TO [${r},${c}]`, "LOG");
-                App.render();
-                App.updateUI();
-
-                if (p === 'P1' && s.p1Res === 0) {
-                    s.p1Done = true;
-                    App.log("BLUE FORCE RESERVES EMPTY", "SYS");
-                }
-                if (p === 'P2' && s.p2Res === 0) {
-                    s.p2Done = true;
-                    App.log("RED FORCE RESERVES EMPTY", "SYS");
-                }
-
-                if (s.p1Done && s.p2Done) {
-                    setTimeout(App.startAttack, 800);
-                } else if (p === 'P2' && s.p2Done && !s.p1Done) {
-                    s.turn = 'P1';
-                    s.isBusy = false;
-                }
-            },
-
-            // --- ATTACK PHASE ---
-            startAttack: () => {
-                const s = App.state;
-                s.phase = 'ATTACK';
-                s.turn = 'P1'; // Simplify: P1 always starts Attack phase in training
-                s.isBusy = false;
-                document.getElementById('phase-display').innerText = "ASSAULT PHASE";
-                document.getElementById('phase-display').className = "font-hud text-xl text-red-500 animate-pulse";
-                document.getElementById('deployment-controls').classList.add('hidden');
-                document.getElementById('attack-controls').classList.remove('hidden');
-                App.log("PHASE SHIFT: WEAPONS FREE", "SYS");
-            },
-
-            executeAttack: (r, c, attacker) => {
-                const s = App.state;
-                const cell = s.grid[r][c];
-                const enemy = attacker === 'P1' ? 'P2' : 'P1';
-                let hits = 0;
-
-                [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr, dc]) => {
-                    const nr = r+dr, nc = c+dc;
-                    if(nr>=0 && nr<s.m && nc>=0 && nc<s.n) {
-                        const t = s.grid[nr][nc];
-                        if (t && t.owner === enemy) {
-                            if (cell.val > t.val) {
-                                s.grid[nr][nc] = null;
-                                hits++;
-                                App.log(`HOSTILE PURGED AT [${nr},${nc}]`, "CMBT");
-                            }
-                        }
-                    }
-                });
-
-                if(hits === 0) App.log(`${attacker} FIRED - NO EFFECT`, "LOG");
-                App.render();
-                App.checkWin();
-            },
-
-            // --- AI LOGIC (SIMPLIFIED & SAFE) ---
-            aiTurn: () => {
-                const s = App.state;
-                s.turn = 'P2';
-
-                if (s.phase === 'DEPLOY') {
-                    if (s.p2Done) { s.turn = 'P1'; s.isBusy = false; return; }
-
-                    // Find empty cells
-                    let empties = [];
-                    for(let r=0; r<s.m; r++) for(let c=0; c<s.n; c++) 
-                        if(!s.grid[r][c]) empties.push({r,c});
-
-                    if (empties.length > 0) {
-                        const move = empties[Math.floor(Math.random() * empties.length)];
-                        // Smart-ish AI: Deploy 1-4, but capped by reserves
-                        const maxDeploy = s.isTutorial ? 2 : 4;
-                        const val = Math.min(s.p2Res, Math.floor(Math.random() * maxDeploy) + 1);
-                        App.executeDeploy(move.r, move.c, 'P2', val);
-                    } else {
-                        s.p2Done = true; // Board full
-                    }
-
-                    // If P1 is NOT done, give turn back. If P1 IS done, AI keeps going.
-                    if (!s.p1Done) {
-                        s.turn = 'P1';
-                        s.isBusy = false;
-                    } else if (!s.p2Done) {
-                        s.timer = setTimeout(App.aiTurn, 500); // AI Continues
-                    }
-
-                } else if (s.phase === 'ATTACK') {
-                    // Find P2 unit with killing potential
-                    let attackers = [];
-                    for(let r=0; r<s.m; r++) for(let c=0; c<s.n; c++) {
-                        if (s.grid[r][c] && s.grid[r][c].owner === 'P2') attackers.push({r,c});
-                    }
-
-                    if (attackers.length > 0) {
-                        const choice = attackers[Math.floor(Math.random() * attackers.length)];
-                        App.executeAttack(choice.r, choice.c, 'P2');
-                    }
+                    score = 0
+                    # Check neighbors for friends
+                    friendly_power = self.calculate_attack_power(r, c, 2)
+                    score += friendly_power
                     
-                    s.turn = 'P1';
-                    s.isBusy = false;
-                }
-            },
+                    if cell is None: score += 2 # Slight preference for claiming new ground
+                    
+                    # Random noise to vary games
+                    score += random.random()
+                    
+                    if score > best_score:
+                        best_score = score
+                        best_move = (r, c)
+            
+            amt = min(remaining, random.randint(3, 6))
+            return {'r': best_move[0], 'c': best_move[1], 'amount': amt}
 
-            // --- WIN CHECK ---
-            checkWin: () => {
-                const flat = App.state.grid.flat();
-                const p1Count = flat.filter(x => x && x.owner === 'P1').length;
-                const p2Count = flat.filter(x => x && x.owner === 'P2').length;
+    def get_ai_attack_move(self):
+        possible_attacks = []
+        
+        # Identify all valid attacks against Player 1
+        for r in range(self.rows):
+            for c in range(self.cols):
+                cell = self.grid.get((r, c))
+                # Target must be enemy
+                if cell is not None and cell['player'] == 1:
+                    power = self.calculate_attack_power(r, c, 2)
+                    if power > cell['count']:
+                        possible_attacks.append( {'r':r, 'c':c, 'target_val': cell['count']} )
+
+        if not possible_attacks:
+            return None
+
+        # 1. WEAK AI: Random valid attack
+        if self.ai_opponent == "Weak":
+            choice = random.choice(possible_attacks)
+            return (choice['r'], choice['c'])
+
+        # 2. STRATEGIC AI: Greedy approach
+        # Targets the largest enemy stack it can defeat to remove max troops from board.
+        if self.ai_opponent == "Strategic":
+            best_attack = max(possible_attacks, key=lambda x: x['target_val'])
+            return (best_attack['r'], best_attack['c'])
+
+        # 3. SMART AI: Threat Reduction
+        # Targets the enemy that is exerting the most pressure on AI's own troops.
+        if self.ai_opponent == "Smart":
+            best_attack = None
+            max_threat_removed = -1
+            
+            for att in possible_attacks:
+                r, c = att['r'], att['c']
+                # Calculate how much power this specific enemy unit has against ME
+                # (i.e., how many of my units are neighbors to this enemy?)
+                threat_level = self.calculate_attack_power(r, c, 1) # reusing function: this calculates P1 neighbors around P1 unit
+                # Actually, we need to know P1's attack power against P2.
+                # Let's count P2 neighbors around this P1 target.
                 
-                // End if someone is wiped out
-                if (p1Count === 0 || p2Count === 0) {
-                    App.endGame(p1Count > p2Count ? 'VICTORY' : 'DEFEAT');
-                }
-            },
-
-            endGame: (result) => {
-                alert(`MISSION ENDED: ${result}`);
-                const h = JSON.parse(localStorage.getItem('atoll_log') || '[]');
-                h.push({ d: new Date().toLocaleTimeString(), r: result });
-                localStorage.setItem('atoll_log', JSON.stringify(h));
-                App.switchView('view-briefing');
-            },
-
-            // --- RENDER ---
-            render: () => {
-                const s = App.state;
-                const el = document.getElementById('manifold-grid');
-                el.style.gridTemplateColumns = `repeat(${s.n}, 1fr)`;
-                el.innerHTML = '';
+                # If I remove this P1 unit, I save my neighbors from its influence.
+                threat_score = 0
+                for dr in [-1, 0, 1]:
+                    for dc in [-1, 0, 1]:
+                         if dr==0 and dc==0: continue
+                         nr, nc = r+dr, c+dc
+                         if (nr, nc) in self.grid and self.grid[(nr, nc)] and self.grid[(nr, nc)]['player'] == 2:
+                             threat_score += 1
                 
-                s.grid.forEach((row, r) => {
-                    row.forEach((cell, c) => {
-                        const d = document.createElement('div');
-                        d.className = 'atoll rounded flex items-center justify-center font-bold text-xl';
-                        if (cell) {
-                            d.classList.add('occupied', cell.owner === 'P1' ? 'p1' : 'p2');
-                            d.innerText = cell.val;
-                        }
-                        d.onclick = () => App.handleInput(r, c);
-                        el.appendChild(d);
-                    });
-                });
-            },
+                # Combine value of target + threat removal
+                total_val = att['target_val'] + (threat_score * 2)
+                
+                if total_val > max_threat_removed:
+                    max_threat_removed = total_val
+                    best_attack = att
+            
+            return (best_attack['r'], best_attack['c'])
 
-            updateUI: () => {
-                document.getElementById('p1-res').innerText = App.state.p1Res;
-                document.getElementById('p2-res').innerText = App.state.p2Res;
-                const slider = document.getElementById('troop-slider');
-                slider.max = App.state.p1Res > 0 ? App.state.p1Res : 1;
-                if(parseInt(slider.value) > slider.max) slider.value = slider.max;
-                document.getElementById('slider-val').innerText = slider.value;
-            },
+    def switch_turn(self):
+        self.current_turn = 1 if self.current_turn == 2 else 2
 
-            log: (msg, type) => {
-                const el = document.getElementById('game-log');
-                const div = document.createElement('div');
-                const colors = { "SYS": "text-green-400", "ERR": "text-yellow-400", "CMBT": "text-red-400", "LOG": "text-slate-400" };
-                div.className = `border-l-2 border-slate-700 pl-2 ${colors[type] || 'text-slate-300'}`;
-                div.innerText = `> ${msg}`;
-                el.prepend(div);
-            },
-
-            loadHistory: () => {
-                const h = JSON.parse(localStorage.getItem('atoll_log') || '[]');
-                document.getElementById('history-list').innerHTML = h.map(x => `
-                    <div class="flex justify-between text-[10px] p-1 bg-slate-800 rounded mb-1">
-                        <span class="text-slate-400">${x.d}</span>
-                        <span class="${x.r==='VICTORY'?'text-cyan-400':'text-red-400'}">${x.r}</span>
-                    </div>
-                `).reverse().join('');
-            }
-        };
-
-        // Slider UI
-        document.getElementById('troop-slider').oninput = (e) => {
-            document.getElementById('slider-val').innerText = e.target.value;
-        };
-    </script>
-</body>
-</html>
+if __name__ == "__main__":
+    game = AggressionGame()
+    game.setup_game()
