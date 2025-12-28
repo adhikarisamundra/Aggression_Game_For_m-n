@@ -3,243 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aggression: Tactical Command</title>
+    <title>Aggression | Tactical Data Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --p1-color: #3b82f6; /* Bright Blue */
-            --p2-color: #ef4444; /* Bright Red */
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0f172a;
-            color: #f1f5f9;
-        }
-        h1 { font-family: 'Orbitron', sans-serif; }
+        :root { --p1: #60a5fa; --p2: #f87171; --bg: #020617; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #e2e8f0; overflow-x: hidden; }
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
         
-        .grid-cell {
-            aspect-ratio: 1/1;
-            transition: all 0.15s ease;
-            border: 1px solid #334155;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        /* High-Definition Grid UI */
+        .cell { aspect-ratio: 1; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #1e293b; position: relative; cursor: pointer; }
+        .cell:hover { background: #1e293b; z-index: 10; transform: scale(1.05); }
+        .cell-p1 { background: var(--p1) !important; box-shadow: 0 0 20px rgba(96, 165, 250, 0.4); border: 2px solid white; color: black; }
+        .cell-p2 { background: var(--p2) !important; box-shadow: 0 0 20px rgba(248, 113, 113, 0.4); border: 2px solid white; color: black; }
+        
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid #334155; }
+        .screen { display: none; animation: fadeIn 0.5s ease-out forwards; }
+        .active-screen { display: block; }
 
-        /* High Visibility Team Styles */
-        .p1-owned {
-            background-color: var(--p1-color) !important;
-            color: white !important;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(59, 130, 246, 0.4);
-            border: 2px solid #60a5fa;
-        }
-        .p2-owned {
-            background-color: var(--p2-color) !important;
-            color: white !important;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(239, 68, 68, 0.4);
-            border: 2px solid #f87171;
-        }
-
-        .active-turn-p1 { border: 4px solid var(--p1-color); animation: pulse-p1 2s infinite; }
-        .active-turn-p2 { border: 4px solid var(--p2-color); animation: pulse-p2 2s infinite; }
-
-        @keyframes pulse-p1 { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
-        @keyframes pulse-p2 { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Highlight for Tutorial */
+        .guide-highlight { outline: 4px solid #fbbf24; animation: pulse 1s infinite; z-index: 50; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-4">
+<body>
 
-    <div class="w-full max-w-5xl">
-        <header class="text-center mb-8">
-            <h1 class="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-red-500">AGGRESSION</h1>
-            <p class="text-slate-400 uppercase tracking-widest text-xs mt-2">Global Conquest Simulator</p>
-        </header>
-
-        <div id="setup" class="glass p-6 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div>
-                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Map Dimensions (Max 10)</label>
-                <div class="flex gap-2">
-                    <input type="number" id="m-size" value="6" min="3" max="10" class="w-full bg-slate-900 border border-slate-700 p-2 rounded">
-                    <span class="py-2">×</span>
-                    <input type="number" id="n-size" value="6" min="3" max="10" class="w-full bg-slate-900 border border-slate-700 p-2 rounded">
-                </div>
+    <div id="screen-rules" class="screen active-screen min-h-screen flex items-center justify-center p-6">
+        <div class="max-w-3xl glass p-8 rounded-3xl shadow-2xl">
+            <h1 class="font-cyber text-4xl mb-6 text-sky-400">MISSION PARAMETERS</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <section>
+                    <h2 class="font-bold text-lg mb-2 text-white border-b border-sky-900 pb-1">Win Conditions</h2>
+                    <ul class="text-sm space-y-2 text-slate-400">
+                        <li>• <b class="text-slate-200">Area Control:</b> Occupy more tiles than the enemy.</li>
+                        <li>• <b class="text-slate-200">Total Annihilation:</b> Wipe the enemy off the board.</li>
+                        <li>• <b class="text-slate-200">Tiebreakers:</b> If tiles are equal, the player with more troops in reserve wins.</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2 class="font-bold text-lg mb-2 text-white border-b border-sky-900 pb-1">Combat Mechanics</h2>
+                    <p class="text-sm text-slate-400">Placement is everything. If you place a unit next to an enemy with <span class="text-sky-400">fewer troops</span>, their unit is instantly destroyed.</p>
+                </section>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">AI Intensity</label>
-                <select id="ai-lvl" class="w-full bg-slate-900 border border-slate-700 p-2 rounded text-sm">
-                    <option value="2">Scout (Easy)</option>
-                    <option value="4">Commander (Normal)</option>
-                    <option value="6">Warlord (Hard)</option>
-                </select>
-            </div>
-            <div class="flex items-end">
-                <button onclick="initGame()" class="w-full bg-white text-black font-bold py-2 rounded hover:bg-sky-400 transition-colors">INITIALIZE WAR</button>
-            </div>
+            <button onclick="startTutorial()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-xl transition-all font-cyber tracking-widest">INITIATE TRAINING</button>
         </div>
+    </div>
 
-        <div id="game-ui" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div class="lg:col-span-1 space-y-4">
-                <div id="p1-card" class="glass p-4 rounded-xl border-l-8 border-blue-500">
-                    <h3 class="text-blue-400 font-bold">PLAYER 1</h3>
-                    <div class="text-3xl font-black" id="p1-reserve">0</div>
-                    <div class="text-xs text-slate-500">RESERVE TROOPS</div>
+    <div id="screen-game" class="screen p-4 lg:p-10">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-3 space-y-6">
+                <div id="status-display" class="glass p-6 rounded-2xl">
+                    <h3 id="game-mode-label" class="font-cyber text-xs text-yellow-500 mb-4 tracking-tighter">LIVE COMBAT</h3>
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase">Blue Force</p>
+                            <p id="p1-res" class="text-4xl font-black text-sky-400">0</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-slate-500 uppercase">Red Force</p>
+                            <p id="p2-res" class="text-4xl font-black text-red-400">0</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500">DEPLOYMENT CONCENTRATION</label>
+                        <input type="range" id="t-slider" class="w-full accent-sky-500">
+                        <div id="t-val" class="text-center font-bold">1</div>
+                    </div>
                 </div>
-                <div id="p2-card" class="glass p-4 rounded-xl border-l-8 border-red-500">
-                    <h3 class="text-red-400 font-bold">PLAYER 2 (AI)</h3>
-                    <div class="text-3xl font-black" id="p2-reserve">0</div>
-                    <div class="text-xs text-slate-500">RESERVE TROOPS</div>
-                </div>
-                <div class="glass p-4 rounded-xl">
-                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Deployment Size</label>
-                    <input type="range" id="troop-slider" min="1" max="10" value="1" class="w-full">
-                    <div id="slider-val" class="text-center font-bold text-xl mt-2">1</div>
+                
+                <div class="glass p-4 rounded-xl max-h-64 overflow-y-auto">
+                    <h4 class="text-xs font-bold mb-2">SESSION ANALYTICS</h4>
+                    <div id="game-log" class="text-[10px] space-y-1 font-mono"></div>
                 </div>
             </div>
 
-            <div class="lg:col-span-3">
-                <div id="board" class="grid gap-1 bg-slate-800 p-1 rounded-lg shadow-2xl"></div>
+            <div class="lg:col-span-6">
+                <div id="board" class="grid gap-1.5 p-2 bg-slate-900 rounded-xl shadow-inner border border-slate-800"></div>
+                <div id="tutorial-msg" class="mt-4 p-4 bg-yellow-900/30 border border-yellow-700 rounded-lg text-sm text-yellow-200 hidden"></div>
+            </div>
+
+            <div class="lg:col-span-3 space-y-4">
+                <div class="glass p-4 rounded-2xl">
+                    <h3 class="font-cyber text-xs mb-4">BLACK BOX ARCHIVE</h3>
+                    <div id="history-list" class="space-y-2 overflow-y-auto max-h-[70vh]"></div>
+                    <button onclick="clearHistory()" class="mt-4 text-[10px] text-red-500 hover:underline">WIPE ARCHIVES</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let grid = [];
-        let m, n, p1Res, p2Res, turn;
-        let aiDepth = 4;
+        let gameState = {
+            m: 6, n: 6, p1Res: 0, p2Res: 0, turn: 'P1', 
+            grid: [], isTutorial: false, moves: []
+        };
+
+        const board = document.getElementById('board');
+        const log = document.getElementById('game-log');
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(id).classList.add('active-screen');
+        }
+
+        function startTutorial() {
+            gameState.isTutorial = true;
+            gameState.m = 4; gameState.n = 4;
+            initGame();
+            showScreen('screen-game');
+            document.getElementById('game-mode-label').innerText = "TRAINING SIMULATION";
+            document.getElementById('tutorial-msg').classList.remove('hidden');
+            document.getElementById('tutorial-msg').innerText = "Goal: Capture the red tile. Select 5 troops and place them next to it.";
+            
+            // Hardcode a red piece for the player to capture
+            gameState.grid[1][1] = { owner: 'P2', count: 2 };
+            render();
+        }
 
         function initGame() {
-            m = Math.min(parseInt(document.getElementById('m-size').value), 10);
-            n = Math.min(parseInt(document.getElementById('n-size').value), 10);
-            aiDepth = parseInt(document.getElementById('ai-lvl').value);
-            
-            p1Res = m * n;
-            p2Res = m * n;
-            turn = 'P1';
-            grid = Array(m).fill().map(() => Array(n).fill(null));
-
-            document.getElementById('setup').classList.add('hidden');
-            document.getElementById('game-ui').classList.remove('hidden');
-            
-            const slider = document.getElementById('troop-slider');
-            slider.max = p1Res;
-            slider.value = 1;
-            
+            gameState.p1Res = gameState.m * gameState.n;
+            gameState.p2Res = gameState.m * gameState.n;
+            gameState.grid = Array(gameState.m).fill().map(() => Array(gameState.n).fill(null));
+            gameState.moves = [];
+            document.getElementById('t-slider').max = gameState.p1Res;
             render();
+            loadHistory();
         }
 
         function render() {
-            const board = document.getElementById('board');
-            board.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+            board.style.gridTemplateColumns = `repeat(${gameState.n}, 1fr)`;
             board.innerHTML = '';
-
-            for (let r = 0; r < m; r++) {
-                for (let c = 0; c < n; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'grid-cell rounded-sm text-sm lg:text-base';
-                    
-                    if (grid[r][c]) {
-                        cell.classList.add(grid[r][c].owner === 'P1' ? 'p1-owned' : 'p2-owned');
-                        cell.innerText = grid[r][c].count;
+            
+            gameState.grid.forEach((row, r) => {
+                row.forEach((cell, c) => {
+                    const div = document.createElement('div');
+                    div.className = 'cell flex items-center justify-center font-bold rounded-sm';
+                    if(cell) {
+                        div.classList.add(cell.owner === 'P1' ? 'cell-p1' : 'cell-p2');
+                        div.innerText = cell.count;
                     } else {
-                        cell.classList.add('bg-slate-900/80');
-                        cell.onclick = () => handleMove(r, c);
+                        div.onclick = () => handleMove(r, c);
                     }
-                    board.appendChild(cell);
-                }
-            }
+                    board.appendChild(div);
+                });
+            });
 
-            document.getElementById('p1-reserve').innerText = p1Res;
-            document.getElementById('p2-reserve').innerText = p2Res;
-            document.getElementById('p1-card').className = turn === 'P1' ? 'glass p-4 rounded-xl border-l-8 border-blue-500 active-turn-p1' : 'glass p-4 rounded-xl border-l-8 border-blue-500 opacity-50';
-            document.getElementById('p2-card').className = turn === 'P2' ? 'glass p-4 rounded-xl border-l-8 border-red-500 active-turn-p2' : 'glass p-4 rounded-xl border-l-8 border-red-500 opacity-50';
+            document.getElementById('p1-res').innerText = gameState.p1Res;
+            document.getElementById('p2-res').innerText = gameState.p2Res;
+            document.getElementById('t-val').innerText = document.getElementById('t-slider').value;
         }
 
-        // Updated Slider Display
-        document.getElementById('troop-slider').oninput = function() {
-            document.getElementById('slider-val').innerText = this.value;
-        };
+        document.getElementById('t-slider').oninput = render;
 
         function handleMove(r, c) {
-            if (turn !== 'P1' || grid[r][c] !== null) return;
-
-            const count = parseInt(document.getElementById('troop-slider').value);
-            if (count > p1Res) return;
-
-            executeMove('P1', r, c, count);
+            if (gameState.turn !== 'P1') return;
+            const count = parseInt(document.getElementById('t-slider').value);
             
-            if (p1Res + p2Res > 0) {
-                turn = 'P2';
-                render();
-                setTimeout(aiMove, 600);
-            } else {
-                checkEndGame();
+            executeAction('P1', r, c, count);
+            
+            if (!checkEnd()) {
+                gameState.turn = 'P2';
+                setTimeout(aiLogic, 600);
             }
         }
 
-        function executeMove(player, r, c, count) {
-            grid[r][c] = { owner: player, count: count };
-            if (player === 'P1') p1Res -= count;
-            else p2Res -= count;
+        function executeAction(player, r, c, count) {
+            gameState.grid[r][c] = { owner: player, count: count };
+            player === 'P1' ? gameState.p1Res -= count : gameState.p2Res -= count;
             
-            // Strategic Algorithm: The Capture Logic
-            processCombat(r, c);
-            render();
-        }
-
-        function processCombat(r, c) {
-            const attacker = grid[r][c];
-            const neighbors = [[r-1,c], [r+1,c], [r,c-1], [r,c+1]];
-            
-            neighbors.forEach(([nr, nc]) => {
-                if (nr >= 0 && nr < m && nc >= 0 && nc < n && grid[nr][nc]) {
-                    const defender = grid[nr][nc];
-                    if (defender.owner !== attacker.owner) {
-                        // Combat Rule: If attacker has more troops than defender, defender is wiped out
-                        if (attacker.count > defender.count) {
-                            grid[nr][nc] = null; 
-                        }
+            // Combat logic
+            const targets = [[r-1,c], [r+1,c], [r,c-1], [r,c+1]];
+            targets.forEach(([nr, nc]) => {
+                if(nr >=0 && nr < gameState.m && nc >=0 && nc < gameState.n) {
+                    const defender = gameState.grid[nr][nc];
+                    if(defender && defender.owner !== player && count > defender.count) {
+                        gameState.grid[nr][nc] = null;
+                        addLog(`${player} NEUTRALIZED enemy at [${nr},${nc}]`);
                     }
                 }
             });
+
+            gameState.moves.push({player, r, c, count, time: Date.now()});
+            addLog(`${player} deployed ${count} to [${r},${c}]`);
+            render();
         }
 
-        function aiMove() {
-            // Simplified AI: Finds the highest value cell near enemies or takes random
-            let bestMove = null;
-            let maxTroops = Math.min(p2Res, Math.floor(Math.random() * 5) + 1);
-
-            // Scans for empty cells
-            let empties = [];
-            for(let r=0; r<m; r++) {
-                for(let c=0; c<n; c++) {
-                    if(!grid[r][c]) empties.push([r,c]);
+        function aiLogic() {
+            let moveMade = false;
+            // Simple logic: Tutorial AI is dumb, Live AI is aggressive
+            for(let r=0; r < gameState.m; r++) {
+                for(let c=0; c < gameState.n; c++) {
+                    if(!gameState.grid[r][c] && !moveMade) {
+                        const count = gameState.isTutorial ? 1 : Math.min(gameState.p2Res, 3);
+                        executeAction('P2', r, c, count);
+                        moveMade = true;
+                    }
                 }
             }
-
-            if(empties.length > 0) {
-                const choice = empties[Math.floor(Math.random() * empties.length)];
-                executeMove('P2', choice[0], choice[1], maxTroops);
-            }
-
-            turn = 'P1';
-            document.getElementById('troop-slider').max = p1Res;
-            render();
-            checkEndGame();
+            gameState.turn = 'P1';
+            checkEnd();
         }
 
-        function checkEndGame() {
-            const isFull = grid.flat().every(cell => cell !== null);
-            if (isFull || (p1Res === 0 && p2Res === 0)) {
-                let p1Tiles = grid.flat().filter(c => c?.owner === 'P1').length;
-                let p2Tiles = grid.flat().filter(c => c?.owner === 'P2').length;
-                alert(`War Over! \nPlayer 1: ${p1Tiles} Tiles\nAI: ${p2Tiles} Tiles\nWinner: ${p1Tiles > p2Tiles ? 'Player 1' : 'AI'}`);
+        function addLog(msg) {
+            const entry = document.createElement('div');
+            entry.className = "border-l border-sky-800 pl-2 py-1 text-slate-500 uppercase tracking-tighter";
+            entry.innerText = `> ${msg}`;
+            log.prepend(entry);
+        }
+
+        function checkEnd() {
+            const isFull = gameState.grid.flat().every(c => c !== null);
+            if(isFull || (gameState.p1Res <= 0 && gameState.p2Res <= 0)) {
+                saveToHistory();
+                alert("COMBAT CEASED. Analyze logs for results.");
                 location.reload();
+                return true;
             }
+            return false;
+        }
+
+        // PERSISTENCE ENGINE
+        function saveToHistory() {
+            const history = JSON.parse(localStorage.getItem('aggression_history') || '[]');
+            history.push({
+                date: new Date().toLocaleString(),
+                moves: gameState.moves,
+                mode: gameState.isTutorial ? 'Training' : 'Combat'
+            });
+            localStorage.setItem('aggression_history', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const container = document.getElementById('history-list');
+            const history = JSON.parse(localStorage.getItem('aggression_history') || '[]');
+            container.innerHTML = history.map((h, i) => `
+                <div class="p-3 bg-slate-800/50 rounded-lg border border-slate-700 text-[10px]">
+                    <p class="text-sky-400 font-bold">${h.mode} #${i+1}</p>
+                    <p class="text-slate-500">${h.date}</p>
+                    <p class="text-slate-300 mt-1">${h.moves.length} Manuevers Logged</p>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('aggression_history');
+            loadHistory();
         }
     </script>
 </body>
