@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* --- THEME CONFIGURATION --- */
+        /* --- CORE VISUALS --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-red: #ff0055;
@@ -26,19 +26,19 @@
             background-size: 100% 100%, 40px 40px, 40px 40px;
             color: #e2e8f0;
             overflow-x: hidden;
-            perspective: 1200px;
+            perspective: 1000px;
         }
 
         .font-hud { font-family: 'Orbitron', sans-serif; letter-spacing: 0.1em; }
         
-        /* --- 3D BOARD --- */
+        /* --- 3D GEOMETRY --- */
         .manifold-container {
             transform-style: preserve-3d;
             perspective: 1000px;
         }
 
         #manifold-grid {
-            transform: rotateX(20deg) scale(0.95);
+            transform: rotateX(25deg) scale(0.95);
             transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform-style: preserve-3d;
         }
@@ -48,24 +48,25 @@
             position: relative;
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid #1e293b;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             transform-style: preserve-3d;
             cursor: pointer;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
         }
 
         .atoll:hover {
-            transform: translateZ(20px);
+            transform: translateZ(15px);
             border-color: var(--neon-blue);
             z-index: 50;
+            background: rgba(30, 41, 59, 0.8);
         }
 
-        .atoll.occupied { transform: translateZ(10px); }
+        .atoll.occupied { transform: translateZ(8px); }
 
         .atoll.p1 {
             background: rgba(0, 243, 255, 0.15);
             border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
             color: var(--neon-blue);
             text-shadow: 0 0 5px var(--neon-blue);
         }
@@ -73,18 +74,12 @@
         .atoll.p2 {
             background: rgba(255, 0, 85, 0.15);
             border: 2px solid var(--neon-red);
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);
             color: var(--neon-red);
             text-shadow: 0 0 5px var(--neon-red);
         }
 
-        /* Highlight own units during Attack Phase */
-        .phase-attack .atoll.p1:hover {
-            cursor: crosshair;
-            box-shadow: 0 0 30px var(--neon-blue);
-        }
-
-        /* --- UI ELEMENTS --- */
+        /* --- UI COMPONENTS --- */
         .glass-panel {
             background: rgba(10, 15, 30, 0.85);
             backdrop-filter: blur(12px);
@@ -107,7 +102,7 @@
             box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
         }
 
-        /* --- LOG & SCROLLBARS --- */
+        /* --- UTILS --- */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
@@ -130,43 +125,34 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                 <div class="space-y-6">
-                    <h2 class="font-hud text-xl text-cyan-400 border-b border-slate-700 pb-2">MISSION PHASES</h2>
+                    <h2 class="font-hud text-xl text-cyan-400 border-b border-slate-700 pb-2">TACTICAL BRIEF</h2>
                     
                     <div class="flex gap-4">
                         <div class="font-hud text-2xl text-slate-600">01</div>
                         <div>
                             <strong class="text-white block uppercase text-sm mb-1">Deployment Phase</strong>
-                            <p class="text-sm text-slate-400">Deploy scalar units to empty Atolls. Reserves are finite. You must place all units before engaging.</p>
+                            <p class="text-sm text-slate-400">Deploy scalar units to empty Atolls. You have limited reserves. Plan carefully.</p>
                         </div>
                     </div>
 
                     <div class="flex gap-4">
                         <div class="font-hud text-2xl text-slate-600">02</div>
                         <div>
-                            <strong class="text-white block uppercase text-sm mb-1">Attack Phase</strong>
-                            <p class="text-sm text-slate-400">Once deployed, select your active Atolls to attack. If <span class="text-cyan-400">Your Density</span> > <span class="text-red-400">Enemy Neighbor</span>, the enemy is purged.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <div class="font-hud text-2xl text-slate-600">03</div>
-                        <div>
-                            <strong class="text-white block uppercase text-sm mb-1">Initiative Protocol</strong>
-                            <p class="text-sm text-slate-400">The commander who exhausts their reserves first seizes the initiative to strike first in the Attack Phase.</p>
+                            <strong class="text-white block uppercase text-sm mb-1">Assault Phase</strong>
+                            <p class="text-sm text-slate-400">After deployment, combat begins. If <span class="text-cyan-400">Your Density</span> &gt; <span class="text-red-400">Enemy Density</span>, the enemy is purged.</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="space-y-6">
-                    <h2 class="font-hud text-xl text-red-400 border-b border-slate-700 pb-2">SYSTEM PARAMETERS</h2>
+                    <h2 class="font-hud text-xl text-red-400 border-b border-slate-700 pb-2">PARAMETERS</h2>
                     <ul class="space-y-2 text-sm text-slate-400">
-                        <li>• <span class="text-white">Win Condition:</span> Control the majority of the Manifold.</li>
-                        <li>• <span class="text-white">Grid Topology:</span> Discrete Coordinate Plane.</li>
-                        <li>• <span class="text-white">Combat Logic:</span> Deterministic Scalar Comparison.</li>
+                        <li>• <span class="text-white">Win Condition:</span> Control majority of Atolls.</li>
+                        <li>• <span class="text-white">Tiebreaker:</span> Efficiency (Highest Remaining Reserves).</li>
                     </ul>
                     <div class="mt-4 p-4 bg-slate-900 rounded border border-slate-700 font-mono text-xs">
                         <p class="text-green-400">> SYSTEMS ONLINE</p>
-                        <p class="text-cyan-400">> WAITING FOR INPUT...</p>
+                        <p class="text-cyan-400">> READY FOR TRAINING...</p>
                     </div>
                 </div>
             </div>
@@ -182,12 +168,12 @@
         <aside class="w-full lg:w-1/4 flex flex-col gap-4">
             <div class="glass-panel p-4 rounded-xl flex justify-between items-center">
                 <h2 class="font-hud text-cyan-400">CMD CENTER</h2>
-                <button onclick="App.switchView('view-briefing')" class="text-xs border border-slate-600 px-3 py-1 rounded hover:bg-slate-800">EXIT</button>
+                <button onclick="App.endGame('ABORTED')" class="text-xs border border-slate-600 px-3 py-1 rounded hover:bg-slate-800">ABORT</button>
             </div>
 
             <div class="glass-panel p-6 rounded-xl flex-1 flex flex-col gap-6">
                 <div class="text-center p-2 bg-slate-900 border border-slate-700 rounded">
-                    <span class="text-[10px] uppercase text-slate-500 block">Current Phase</span>
+                    <span class="text-[10px] uppercase text-slate-500 block">Status</span>
                     <span id="phase-display" class="font-hud text-xl text-yellow-400 animate-pulse">DEPLOYMENT</span>
                 </div>
 
@@ -208,15 +194,15 @@
                     <input type="range" id="troop-slider" min="1" max="5" value="1" class="w-full accent-cyan-400">
                 </div>
 
-                <div id="attack-controls" class="hidden mt-auto border-t border-slate-700 pt-4">
-                    <p class="text-xs text-center text-cyan-300">Select an owned Atoll to discharge scalar wave.</p>
+                <div id="attack-controls" class="hidden mt-auto border-t border-slate-700 pt-4 text-center">
+                    <p class="text-xs text-cyan-300">Target an owned Atoll to fire.</p>
                 </div>
             </div>
         </aside>
 
         <main class="w-full lg:w-1/2 flex flex-col relative z-10">
             <div id="tutorial-msg" class="hidden mb-4 p-3 bg-yellow-900/40 border border-yellow-500 rounded text-yellow-200 text-sm font-mono text-center">
-                TRAINING: Deploy units. Once reserves deplete, phase shifts to ATTACK.
+                TRAINING: Deploy 3+ units next to the Red Atoll to purge it.
             </div>
             
             <div class="flex-1 flex items-center justify-center manifold-container">
@@ -225,10 +211,10 @@
             </div>
         </main>
 
-        <aside class="w-full lg:w-1/4 flex flex-col h-[500px] lg:h-auto">
+        <aside class="w-full lg:w-1/4 flex flex-col h-[400px] lg:h-auto">
             <div class="glass-panel rounded-xl flex flex-col h-full overflow-hidden">
                 <div class="p-3 border-b border-slate-700 bg-slate-900/50">
-                    <h3 class="font-hud text-xs text-slate-400 uppercase">Mission Log</h3>
+                    <h3 class="font-hud text-xs text-slate-400 uppercase">Tactical Feed</h3>
                 </div>
                 
                 <div id="game-log" class="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-[10px] bg-slate-950/30">
@@ -240,22 +226,21 @@
                 </div>
             </div>
         </aside>
-
     </section>
 
     <script>
         const App = {
             state: {
-                phase: 'DEPLOY', // DEPLOY or ATTACK
+                phase: 'DEPLOY', 
                 m: 5, n: 5,
                 p1Res: 0, p2Res: 0,
                 turn: 'P1',
                 grid: [],
                 isTutorial: false,
-                gameOver: false,
                 p1Done: false,
                 p2Done: false,
-                initiative: null // Who goes first in Attack phase
+                timer: null,
+                isBusy: false // PREVENTS CLICK SPAMMING CRASHES
             },
 
             // --- NAVIGATION ---
@@ -266,174 +251,135 @@
                 });
                 const t = document.getElementById(id);
                 t.style.display = 'flex';
-                // Force reflow
-                void t.offsetWidth;
+                void t.offsetWidth; // Force Reflow
                 t.classList.add('view-active');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo(0,0);
             },
 
-            // --- SETUP ---
+            // --- INIT ---
             initTraining: () => {
+                App.resetState();
                 const s = App.state;
                 s.isTutorial = true;
                 s.m = 4; s.n = 4;
-                App.initGame();
-                document.getElementById('tutorial-msg').classList.remove('hidden');
                 
-                // Pre-place a weak enemy
+                // Set Reserves
+                s.p1Res = 16;
+                s.p2Res = 16;
+                s.grid = Array(s.m).fill().map(() => Array(s.n).fill(null));
+
+                // Pre-place Enemy
                 s.grid[1][1] = { owner: 'P2', val: 2 };
+
+                document.getElementById('tutorial-msg').classList.remove('hidden');
+                App.log("TRAINING SIMULATION INITIALIZED", "SYS");
+                App.updateUI();
                 App.render();
                 App.switchView('view-hud');
-                App.log("TRAINING SIMULATION STARTED", "SYS");
             },
 
-            initGame: () => {
+            resetState: () => {
+                if(App.state.timer) clearTimeout(App.state.timer); // STOP ANY PENDING AI
                 const s = App.state;
                 s.phase = 'DEPLOY';
-                s.gameOver = false;
                 s.turn = 'P1';
                 s.p1Done = false;
                 s.p2Done = false;
-                s.initiative = null;
-                
-                // Reserves calculation
-                const totalCells = s.m * s.n;
-                s.p1Res = Math.floor(totalCells * 1.2);
-                s.p2Res = Math.floor(totalCells * 1.2);
-
-                s.grid = Array(s.m).fill().map(() => Array(s.n).fill(null));
-
+                s.isBusy = false;
                 document.getElementById('game-log').innerHTML = '';
-                document.getElementById('tutorial-msg').classList.add('hidden');
-                App.updateUI();
+                document.getElementById('phase-display').innerText = "DEPLOYMENT";
+                document.getElementById('phase-display').className = "font-hud text-xl text-yellow-400 animate-pulse";
+                document.getElementById('deployment-controls').classList.remove('hidden');
+                document.getElementById('attack-controls').classList.add('hidden');
                 App.loadHistory();
-                App.render();
             },
 
-            // --- INPUT HANDLING ---
-            handleCellClick: (r, c) => {
+            // --- INPUT ---
+            handleInput: (r, c) => {
                 const s = App.state;
-                if (s.gameOver) return;
+                if (s.isBusy || s.turn !== 'P1') return;
 
                 if (s.phase === 'DEPLOY') {
-                    if (s.turn === 'P1' && !s.p1Done) {
-                        const cell = s.grid[r][c];
-                        if (cell === null) {
-                            const val = parseInt(document.getElementById('troop-slider').value);
-                            if (val > s.p1Res) {
-                                App.log("INSUFFICIENT RESERVES", "ERR");
-                            } else {
-                                App.executeDeploy(r, c, 'P1', val);
-                                if (!s.p2Done) {
-                                    s.turn = 'P2';
-                                    setTimeout(App.aiDeploy, 600);
-                                }
-                            }
-                        } else {
-                            App.log("ATOLL OCCUPIED", "ERR");
-                        }
+                    if (s.p1Done) return;
+                    if (s.grid[r][c] !== null) {
+                        App.log("SECTOR ALREADY OCCUPIED", "ERR");
+                        return;
                     }
-                } else if (s.phase === 'ATTACK') {
-                    if (s.turn === 'P1') {
-                        const cell = s.grid[r][c];
-                        if (cell && cell.owner === 'P1') {
-                            App.executeAttack(r, c, 'P1');
-                            s.turn = 'P2';
-                            setTimeout(App.aiAttack, 1000);
-                        }
+                    const val = parseInt(document.getElementById('troop-slider').value);
+                    if (val > s.p1Res) {
+                        App.log("INSUFFICIENT RESERVES", "ERR");
+                        return;
+                    }
+                    App.executeDeploy(r, c, 'P1', val);
+                    
+                    if (!s.p2Done) {
+                        s.isBusy = true; // Lock input
+                        s.timer = setTimeout(App.aiTurn, 600);
+                    }
+                } 
+                else if (s.phase === 'ATTACK') {
+                    const cell = s.grid[r][c];
+                    if (cell && cell.owner === 'P1') {
+                        App.executeAttack(r, c, 'P1');
+                        s.isBusy = true; // Lock input
+                        s.timer = setTimeout(App.aiTurn, 1000);
                     }
                 }
             },
 
-            // --- PHASE 1: DEPLOYMENT LOGIC ---
+            // --- DEPLOY PHASE ---
             executeDeploy: (r, c, p, val) => {
                 const s = App.state;
                 s.grid[r][c] = { owner: p, val: val };
                 if (p === 'P1') s.p1Res -= val; else s.p2Res -= val;
                 
-                App.log(`${p} DEPLOYED ${val} UNITS AT [${r},${c}]`, "LOG");
+                App.log(`${p} DEPLOYED ${val} TO [${r},${c}]`, "LOG");
                 App.render();
                 App.updateUI();
 
-                // Check Completion
                 if (p === 'P1' && s.p1Res === 0) {
                     s.p1Done = true;
-                    if (s.initiative === null) s.initiative = 'P1';
-                    App.log("BLUE FORCE RESERVES DEPLETED", "SYS");
+                    App.log("BLUE FORCE RESERVES EMPTY", "SYS");
                 }
                 if (p === 'P2' && s.p2Res === 0) {
                     s.p2Done = true;
-                    if (s.initiative === null) s.initiative = 'P2';
-                    App.log("RED FORCE RESERVES DEPLETED", "SYS");
+                    App.log("RED FORCE RESERVES EMPTY", "SYS");
                 }
 
-                // Phase Transition
-                const boardFull = s.grid.flat().every(x => x !== null);
-                if ((s.p1Done && s.p2Done) || boardFull) {
-                    App.startAttackPhase();
-                }
-            },
-
-            aiDeploy: () => {
-                const s = App.state;
-                if (s.p2Done) {
+                if (s.p1Done && s.p2Done) {
+                    setTimeout(App.startAttack, 800);
+                } else if (p === 'P2' && s.p2Done && !s.p1Done) {
                     s.turn = 'P1';
-                    return;
+                    s.isBusy = false;
                 }
-
-                // Find empty spots
-                let empties = [];
-                for(let r=0; r<s.m; r++) for(let c=0; c<s.n; c++) if(!s.grid[r][c]) empties.push({r,c});
-
-                if (empties.length > 0) {
-                    const spot = empties[Math.floor(Math.random() * empties.length)];
-                    const maxVal = s.isTutorial ? 1 : 3;
-                    const val = Math.min(s.p2Res, Math.floor(Math.random() * maxVal) + 1);
-                    App.executeDeploy(spot.r, spot.c, 'P2', val);
-                } else {
-                    // Board full
-                    s.p2Done = true; 
-                    App.startAttackPhase();
-                }
-
-                if (!s.p1Done) s.turn = 'P1';
-                else setTimeout(App.aiDeploy, 500); // P1 done, keep going
             },
 
-            startAttackPhase: () => {
+            // --- ATTACK PHASE ---
+            startAttack: () => {
                 const s = App.state;
                 s.phase = 'ATTACK';
-                // Whoever finished first goes first
-                s.turn = s.initiative || 'P1';
-                
-                App.log("=== PHASE SHIFT: ASSAULT ===", "SYS");
-                App.log(`${s.turn} HAS INITIATIVE`, "SYS");
-                
+                s.turn = 'P1'; // Simplify: P1 always starts Attack phase in training
+                s.isBusy = false;
                 document.getElementById('phase-display').innerText = "ASSAULT PHASE";
                 document.getElementById('phase-display').className = "font-hud text-xl text-red-500 animate-pulse";
                 document.getElementById('deployment-controls').classList.add('hidden');
                 document.getElementById('attack-controls').classList.remove('hidden');
-                
-                document.body.classList.add('phase-attack');
-                
-                if (s.turn === 'P2') setTimeout(App.aiAttack, 1000);
+                App.log("PHASE SHIFT: WEAPONS FREE", "SYS");
             },
 
-            // --- PHASE 2: ATTACK LOGIC ---
             executeAttack: (r, c, attacker) => {
                 const s = App.state;
                 const cell = s.grid[r][c];
                 const enemy = attacker === 'P1' ? 'P2' : 'P1';
                 let hits = 0;
 
-                const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-                dirs.forEach(([dr, dc]) => {
+                [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr, dc]) => {
                     const nr = r+dr, nc = c+dc;
-                    if (nr>=0 && nr<s.m && nc>=0 && nc<s.n) {
-                        const target = s.grid[nr][nc];
-                        if (target && target.owner === enemy) {
-                            if (cell.val > target.val) {
-                                s.grid[nr][nc] = null; // PURGE
+                    if(nr>=0 && nr<s.m && nc>=0 && nc<s.n) {
+                        const t = s.grid[nr][nc];
+                        if (t && t.owner === enemy) {
+                            if (cell.val > t.val) {
+                                s.grid[nr][nc] = null;
                                 hits++;
                                 App.log(`HOSTILE PURGED AT [${nr},${nc}]`, "CMBT");
                             }
@@ -441,70 +387,80 @@
                     }
                 });
 
-                if (hits === 0) App.log(`${attacker} FIRED FROM [${r},${c}] - NO EFFECT`, "LOG");
-                else App.log(`${attacker} NEUTRALIZED ${hits} TARGETS`, "CMBT");
-
+                if(hits === 0) App.log(`${attacker} FIRED - NO EFFECT`, "LOG");
                 App.render();
                 App.checkWin();
             },
 
-            aiAttack: () => {
+            // --- AI LOGIC (SIMPLIFIED & SAFE) ---
+            aiTurn: () => {
                 const s = App.state;
-                if(s.gameOver) return;
+                s.turn = 'P2';
 
-                // AI looks for a unit that can kill something
-                let candidates = [];
-                for(let r=0; r<s.m; r++){
-                    for(let c=0; c<s.n; c++){
-                        const cell = s.grid[r][c];
-                        if (cell && cell.owner === 'P2') {
-                            // Check kill potential
-                            let potential = 0;
-                            [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr, dc]) => {
-                                const nr = r+dr, nc = c+dc;
-                                if(nr>=0 && nr<s.m && nc>=0 && nc<s.n) {
-                                    const t = s.grid[nr][nc];
-                                    if(t && t.owner === 'P1' && cell.val > t.val) potential++;
-                                }
-                            });
-                            candidates.push({r, c, pot: potential});
-                        }
+                if (s.phase === 'DEPLOY') {
+                    if (s.p2Done) { s.turn = 'P1'; s.isBusy = false; return; }
+
+                    // Find empty cells
+                    let empties = [];
+                    for(let r=0; r<s.m; r++) for(let c=0; c<s.n; c++) 
+                        if(!s.grid[r][c]) empties.push({r,c});
+
+                    if (empties.length > 0) {
+                        const move = empties[Math.floor(Math.random() * empties.length)];
+                        // Smart-ish AI: Deploy 1-4, but capped by reserves
+                        const maxDeploy = s.isTutorial ? 2 : 4;
+                        const val = Math.min(s.p2Res, Math.floor(Math.random() * maxDeploy) + 1);
+                        App.executeDeploy(move.r, move.c, 'P2', val);
+                    } else {
+                        s.p2Done = true; // Board full
                     }
+
+                    // If P1 is NOT done, give turn back. If P1 IS done, AI keeps going.
+                    if (!s.p1Done) {
+                        s.turn = 'P1';
+                        s.isBusy = false;
+                    } else if (!s.p2Done) {
+                        s.timer = setTimeout(App.aiTurn, 500); // AI Continues
+                    }
+
+                } else if (s.phase === 'ATTACK') {
+                    // Find P2 unit with killing potential
+                    let attackers = [];
+                    for(let r=0; r<s.m; r++) for(let c=0; c<s.n; c++) {
+                        if (s.grid[r][c] && s.grid[r][c].owner === 'P2') attackers.push({r,c});
+                    }
+
+                    if (attackers.length > 0) {
+                        const choice = attackers[Math.floor(Math.random() * attackers.length)];
+                        App.executeAttack(choice.r, choice.c, 'P2');
+                    }
+                    
+                    s.turn = 'P1';
+                    s.isBusy = false;
                 }
-
-                // Sort by potential, descending
-                candidates.sort((a, b) => b.pot - a.pot);
-
-                if (candidates.length > 0) {
-                    const choice = candidates[0]; // Pick best
-                    App.executeAttack(choice.r, choice.c, 'P2');
-                } else {
-                    App.log("AI SKIPS ATTACK", "LOG");
-                }
-
-                s.turn = 'P1';
             },
 
+            // --- WIN CHECK ---
             checkWin: () => {
-                const s = App.state;
-                const flat = s.grid.flat();
-                const p1Units = flat.filter(x => x && x.owner === 'P1').length;
-                const p2Units = flat.filter(x => x && x.owner === 'P2').length;
-                const empty = flat.filter(x => x === null).length;
-
-                // Win if opponent wiped out, or no attacks possible (simplified: if empty counts high, maybe not ended)
-                // Classic Aggression ends when "no more moves". Here we just check wipeout for simplicity
-                // Or simplified: End game if one side has 0 units
-                if (p1Units === 0 || p2Units === 0) {
-                    s.gameOver = true;
-                    let result = p1Units > p2Units ? "VICTORY" : "DEFEAT";
-                    alert(`SIMULATION ENDED\nResult: ${result}`);
-                    App.saveHistory(result);
-                    App.switchView('view-briefing');
+                const flat = App.state.grid.flat();
+                const p1Count = flat.filter(x => x && x.owner === 'P1').length;
+                const p2Count = flat.filter(x => x && x.owner === 'P2').length;
+                
+                // End if someone is wiped out
+                if (p1Count === 0 || p2Count === 0) {
+                    App.endGame(p1Count > p2Count ? 'VICTORY' : 'DEFEAT');
                 }
             },
 
-            // --- RENDER & UTILS ---
+            endGame: (result) => {
+                alert(`MISSION ENDED: ${result}`);
+                const h = JSON.parse(localStorage.getItem('atoll_log') || '[]');
+                h.push({ d: new Date().toLocaleTimeString(), r: result });
+                localStorage.setItem('atoll_log', JSON.stringify(h));
+                App.switchView('view-briefing');
+            },
+
+            // --- RENDER ---
             render: () => {
                 const s = App.state;
                 const el = document.getElementById('manifold-grid');
@@ -514,44 +470,33 @@
                 s.grid.forEach((row, r) => {
                     row.forEach((cell, c) => {
                         const d = document.createElement('div');
-                        d.className = 'atoll rounded flex items-center justify-center font-bold text-lg';
+                        d.className = 'atoll rounded flex items-center justify-center font-bold text-xl';
                         if (cell) {
                             d.classList.add('occupied', cell.owner === 'P1' ? 'p1' : 'p2');
                             d.innerText = cell.val;
                         }
-                        d.onclick = () => App.handleCellClick(r, c);
+                        d.onclick = () => App.handleInput(r, c);
                         el.appendChild(d);
                     });
                 });
             },
 
             updateUI: () => {
-                const s = App.state;
-                document.getElementById('p1-res').innerText = s.p1Res;
-                document.getElementById('p2-res').innerText = s.p2Res;
-                
+                document.getElementById('p1-res').innerText = App.state.p1Res;
+                document.getElementById('p2-res').innerText = App.state.p2Res;
                 const slider = document.getElementById('troop-slider');
-                const max = s.p1Res > 0 ? s.p1Res : 1;
-                slider.max = max;
-                if(parseInt(slider.value) > max) slider.value = max;
+                slider.max = App.state.p1Res > 0 ? App.state.p1Res : 1;
+                if(parseInt(slider.value) > slider.max) slider.value = slider.max;
                 document.getElementById('slider-val').innerText = slider.value;
             },
 
             log: (msg, type) => {
                 const el = document.getElementById('game-log');
                 const div = document.createElement('div');
-                const col = { "SYS": "text-green-400", "ERR": "text-yellow-400", "CMBT": "text-red-400", "LOG": "text-slate-400" };
-                div.className = `border-l-2 border-slate-700 pl-2 ${col[type] || 'text-slate-300'}`;
+                const colors = { "SYS": "text-green-400", "ERR": "text-yellow-400", "CMBT": "text-red-400", "LOG": "text-slate-400" };
+                div.className = `border-l-2 border-slate-700 pl-2 ${colors[type] || 'text-slate-300'}`;
                 div.innerText = `> ${msg}`;
                 el.prepend(div);
-            },
-
-            saveHistory: (res) => {
-                const h = JSON.parse(localStorage.getItem('atoll_log') || '[]');
-                h.push({ d: new Date().toLocaleTimeString(), r: res });
-                if(h.length > 5) h.shift();
-                localStorage.setItem('atoll_log', JSON.stringify(h));
-                App.loadHistory();
             },
 
             loadHistory: () => {
@@ -565,7 +510,7 @@
             }
         };
 
-        // Slider Listener
+        // Slider UI
         document.getElementById('troop-slider').oninput = (e) => {
             document.getElementById('slider-val').innerText = e.target.value;
         };
