@@ -3,699 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aggression: The Game</title>
+    <title>Aggression: Tactical Command</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --p1-color: #3b82f6; /* Bright Blue */
+            --p2-color: #ef4444; /* Bright Red */
+        }
         body {
             font-family: 'Inter', sans-serif;
-            touch-action: manipulation;
-            background-color: #020617; /* slate-950 */
-            background-image: radial-gradient(#1e293b 1px, transparent 1px);
-            background-size: 24px 24px;
+            background: #0f172a;
+            color: #f1f5f9;
         }
-        .card {
-            background-color: rgba(30, 41, 59, 0.5); /* slate-800 with transparency */
-            border: 1px solid #334155; /* slate-700 */
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
+        h1 { font-family: 'Orbitron', sans-serif; }
+        
         .grid-cell {
-            transition: all 0.2s ease-in-out;
-            aspect-ratio: 1 / 1;
+            aspect-ratio: 1/1;
+            transition: all 0.15s ease;
+            border: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .grid-cell:not(.occupied):hover {
-            background-color: #334155; /* slate-700 */
+
+        /* High Visibility Team Styles */
+        .p1-owned {
+            background-color: var(--p1-color) !important;
+            color: white !important;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(59, 130, 246, 0.4);
+            border: 2px solid #60a5fa;
         }
-        .p1-piece {
-            background-color: #2563eb; /* blue-600 */
-            color: white;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-            animation: fadeIn 0.3s ease-out;
+        .p2-owned {
+            background-color: var(--p2-color) !important;
+            color: white !important;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(239, 68, 68, 0.4);
+            border: 2px solid #f87171;
         }
-        .p2-piece {
-            background-color: #dc2626; /* red-600 */
-            color: white;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
-            animation: fadeIn 0.3s ease-out;
-        }
-        .selected {
-             outline: 4px solid #f59e0b; /* amber-500 */
-             outline-offset: -2px;
-             box-shadow: 0 0 20px #f59e0b;
-        }
-        .ai-thinking {
-            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .log-entry, .history-entry {
-            animation: slideInUp 0.4s ease-out;
-        }
-        .nav-tab {
-            transition: all 0.2s ease;
-        }
-        .nav-tab.active {
-            background-color: #0f172a;
-            color: #e2e8f0;
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: .7; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.8); }
-          to { opacity: 1; transform: scale(1); }
-        }
-         @keyframes slideInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
+
+        .active-turn-p1 { border: 4px solid var(--p1-color); animation: pulse-p1 2s infinite; }
+        .active-turn-p2 { border: 4px solid var(--p2-color); animation: pulse-p2 2s infinite; }
+
+        @keyframes pulse-p1 { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
+        @keyframes pulse-p2 { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
-<body class="text-slate-200 flex flex-col items-center justify-center min-h-screen p-4">
+<body class="min-h-screen flex flex-col items-center p-4">
 
-    <div id="main-container" class="w-full max-w-6xl mx-auto">
-        <h1 class="text-4xl lg:text-5xl font-bold text-center mb-2 text-slate-100">Aggression</h1>
-        <p class="text-center text-slate-400 mb-6">A game of strategy and conquest.</p>
+    <div class="w-full max-w-5xl">
+        <header class="text-center mb-8">
+            <h1 class="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-red-500">AGGRESSION</h1>
+            <p class="text-slate-400 uppercase tracking-widest text-xs mt-2">Global Conquest Simulator</p>
+        </header>
 
-        <!-- Main Navigation Tabs -->
-        <nav class="flex justify-center mb-6">
-            <div class="card p-1 rounded-lg flex space-x-1">
-                <button id="nav-play-game" class="nav-tab px-6 py-2 rounded-md font-semibold">Play Game</button>
-                <button id="nav-history" class="nav-tab px-6 py-2 rounded-md font-semibold">Game History</button>
-            </div>
-        </nav>
-
-        <!-- Setup Screen -->
-        <div id="setup-screen" class="card p-8 rounded-xl shadow-lg max-w-md mx-auto space-y-6">
-             <div>
-                <label for="grid-size" class="block text-sm font-medium text-slate-300 mb-2">Grid Size (Rows x Columns)</label>
-                <div class="flex gap-4">
-                    <input type="number" id="rows" value="3" min="1" max="5" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-                    <input type="number" id="cols" value="3" min="1" max="5" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        <div id="setup" class="glass p-6 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Map Dimensions (Max 10)</label>
+                <div class="flex gap-2">
+                    <input type="number" id="m-size" value="6" min="3" max="10" class="w-full bg-slate-900 border border-slate-700 p-2 rounded">
+                    <span class="py-2">×</span>
+                    <input type="number" id="n-size" value="6" min="3" max="10" class="w-full bg-slate-900 border border-slate-700 p-2 rounded">
                 </div>
-             </div>
-             <div>
-                <label for="difficulty" class="block text-sm font-medium text-slate-300 mb-2">AI Difficulty</label>
-                <select id="difficulty" class="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-                    <option value="2">Easy (Casual Opponent)</option>
-                    <option value="4" selected>Challenging (Strategic AI)</option>
-                    <option value="Infinity">Complex (Master Strategist)</option>
-                </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Choose Your Side</label>
-                <div class="grid grid-cols-2 gap-4">
-                    <button id="play-p1" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Play as P1 (Go First)</button>
-                    <button id="play-p2" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Play as P2 (Go Second)</button>
-                </div>
+                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">AI Intensity</label>
+                <select id="ai-lvl" class="w-full bg-slate-900 border border-slate-700 p-2 rounded text-sm">
+                    <option value="2">Scout (Easy)</option>
+                    <option value="4">Commander (Normal)</option>
+                    <option value="6">Warlord (Hard)</option>
+                </select>
             </div>
-        </div>
-        
-        <!-- History Screen -->
-        <div id="history-screen" class="hidden card p-8 rounded-xl shadow-lg max-w-2xl mx-auto">
-            <h2 class="text-2xl font-bold text-center mb-6">Game History</h2>
-            <div id="history-log-container" class="space-y-3 h-[60vh] overflow-y-auto pr-4">
-                <!-- History entries will be added here -->
-            </div>
-            <div class="mt-6">
-                <button id="clear-history-btn" class="w-full bg-red-800 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Clear History</button>
+            <div class="flex items-end">
+                <button onclick="initGame()" class="w-full bg-white text-black font-bold py-2 rounded hover:bg-sky-400 transition-colors">INITIALIZE WAR</button>
             </div>
         </div>
 
-        <!-- Game Screen (Hidden by default) -->
-        <div id="game-screen" class="hidden lg:grid lg:grid-cols-3 lg:gap-8">
-            <!-- Left Column: Game Board and Controls -->
-            <div class="lg:col-span-2">
-                <div id="game-grid" class="grid card p-4 rounded-xl shadow-lg mb-4"></div>
-                <div class="card p-4 rounded-xl flex items-center gap-4">
-                    <div class="flex-grow">
-                         <label for="troop-input" class="block text-xs font-medium text-slate-400 mb-1">Troops to Place</label>
-                         <input type="number" id="troop-input" min="1" value="1" class="w-full bg-slate-900 text-white p-3 rounded-lg border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-                    </div>
-                    <button id="place-troops-btn" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg h-full mt-5 transition-transform hover:scale-105 disabled:bg-slate-500 disabled:cursor-not-allowed">Place Troops</button>
+        <div id="game-ui" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div class="lg:col-span-1 space-y-4">
+                <div id="p1-card" class="glass p-4 rounded-xl border-l-8 border-blue-500">
+                    <h3 class="text-blue-400 font-bold">PLAYER 1</h3>
+                    <div class="text-3xl font-black" id="p1-reserve">0</div>
+                    <div class="text-xs text-slate-500">RESERVE TROOPS</div>
+                </div>
+                <div id="p2-card" class="glass p-4 rounded-xl border-l-8 border-red-500">
+                    <h3 class="text-red-400 font-bold">PLAYER 2 (AI)</h3>
+                    <div class="text-3xl font-black" id="p2-reserve">0</div>
+                    <div class="text-xs text-slate-500">RESERVE TROOPS</div>
+                </div>
+                <div class="glass p-4 rounded-xl">
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Deployment Size</label>
+                    <input type="range" id="troop-slider" min="1" max="10" value="1" class="w-full">
+                    <div id="slider-val" class="text-center font-bold text-xl mt-2">1</div>
                 </div>
             </div>
 
-            <!-- Right Column: Info and Log -->
-            <div class="space-y-6 mt-8 lg:mt-0">
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div id="p1-panel" class="p-4 rounded-lg card transition-all duration-300 border-2 border-blue-800">
-                        <div class="text-sm text-blue-300">Player 1</div>
-                        <div class="text-2xl font-bold"><span id="p1-troops"></span> Troops</div>
-                    </div>
-                    <div id="p2-panel" class="p-4 rounded-lg card transition-all duration-300 border-2 border-red-800">
-                        <div class="text-sm text-red-300">Player 2</div>
-                        <div class="text-2xl font-bold"><span id="p2-troops"></span> Troops</div>
-                    </div>
-                </div>
-                 <div class="card p-4 rounded-xl">
-                    <h3 class="font-bold mb-3 text-slate-300 border-b border-slate-700 pb-2">Game Log</h3>
-                    <div id="game-log" class="space-y-2 h-96 overflow-y-auto pr-2"></div>
-                </div>
+            <div class="lg:col-span-3">
+                <div id="board" class="grid gap-1 bg-slate-800 p-1 rounded-lg shadow-2xl"></div>
             </div>
         </div>
-        
-        <!-- Result Modal (Hidden by default) -->
-        <div id="result-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div class="card p-8 rounded-xl shadow-2xl text-center max-w-sm w-full animate-fadeIn space-y-4">
-                <h2 id="result-title" class="text-4xl font-bold"></h2>
-                <p id="result-message" class="text-slate-300"></p>
-                <!-- CHANGE: Added download button directly to result modal -->
-                <button id="result-download-log-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Download Game Log</button>
-                <button id="back-to-menu-modal-btn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">Back to Main Menu</button>
-            </div>
-        </div>
-        
-        <!-- History Detail Modal -->
-        <div id="history-detail-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div class="card p-8 rounded-xl shadow-2xl max-w-lg w-full animate-fadeIn space-y-4">
-                <h2 class="text-2xl font-bold mb-4">Game Details</h2>
-                <div id="history-detail-content" class="text-left text-sm space-y-2 h-[60vh] overflow-y-auto pr-4"></div>
-                <div class="flex gap-4 pt-4">
-                    <button id="history-download-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Download Full Log</button>
-                    <button id="history-close-btn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Close</button>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <script>
-        // --- Game State and Config ---
-        let gameState = {};
-        let memoizationCache = {};
-        let humanPlayer = '';
-        let aiPlayer = '';
-        let maxDepth = 4;
-        let selectedCell = null;
-        let turnNumber = 1;
-        let gameHistory = [];
-        let structuredGameLog = [];
+        let grid = [];
+        let m, n, p1Res, p2Res, turn;
+        let aiDepth = 4;
 
-        // --- DOM Elements ---
-        const setupScreen = document.getElementById('setup-screen');
-        const historyScreen = document.getElementById('history-screen');
-        const gameScreen = document.getElementById('game-screen');
-        const gameGrid = document.getElementById('game-grid');
-        const p1Panel = document.getElementById('p1-panel');
-        const p2Panel = document.getElementById('p2-panel');
-        const p1TroopsEl = document.getElementById('p1-troops');
-        const p2TroopsEl = document.getElementById('p2-troops');
-        const troopInput = document.getElementById('troop-input');
-        const placeTroopsBtn = document.getElementById('place-troops-btn');
-        const gameLog = document.getElementById('game-log');
-        const resultModal = document.getElementById('result-modal');
-        const resultTitle = document.getElementById('result-title');
-        const resultMessage = document.getElementById('result-message');
-        const backToMenuModalBtn = document.getElementById('back-to-menu-modal-btn');
-        const resultDownloadLogBtn = document.getElementById('result-download-log-btn'); // New button
-        const navPlayGame = document.getElementById('nav-play-game');
-        const navHistory = document.getElementById('nav-history');
-        const clearHistoryBtn = document.getElementById('clear-history-btn');
-        const historyLogContainer = document.getElementById('history-log-container');
-        const historyDetailModal = document.getElementById('history-detail-modal');
-        const historyDetailContent = document.getElementById('history-detail-content');
-        const historyDownloadBtn = document.getElementById('history-download-btn');
-        const historyCloseBtn = document.getElementById('history-close-btn');
-
-        // --- Setup Event Listeners ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadGameHistory();
-            showSetupScreen();
-        });
-        document.getElementById('play-p1').addEventListener('click', () => startGame('P1'));
-        document.getElementById('play-p2').addEventListener('click', () => startGame('P2'));
-        backToMenuModalBtn.addEventListener('click', () => {
-            resultModal.classList.add('hidden');
-            showSetupScreen();
-        });
-        navPlayGame.addEventListener('click', showSetupScreen);
-        navHistory.addEventListener('click', showHistoryScreen);
-        clearHistoryBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to clear all game history? This cannot be undone.')) {
-                gameHistory = [];
-                localStorage.removeItem('aggressionGameHistory');
-                populateHistoryLog();
-            }
-        });
-        historyCloseBtn.addEventListener('click', () => historyDetailModal.classList.add('hidden'));
-        placeTroopsBtn.addEventListener('click', handleHumanMove);
-
-
-        function startGame(playerChoice) {
-            const rows = parseInt(document.getElementById('rows').value);
-            const cols = parseInt(document.getElementById('cols').value);
-            const difficulty = document.getElementById('difficulty').value;
-            maxDepth = difficulty === 'Infinity' ? Infinity : parseInt(difficulty);
+        function initGame() {
+            m = Math.min(parseInt(document.getElementById('m-size').value), 10);
+            n = Math.min(parseInt(document.getElementById('n-size').value), 10);
+            aiDepth = parseInt(document.getElementById('ai-lvl').value);
             
-            humanPlayer = playerChoice;
-            aiPlayer = (humanPlayer === 'P1') ? 'P2' : 'P1';
-            turnNumber = 1;
+            p1Res = m * n;
+            p2Res = m * n;
+            turn = 'P1';
+            grid = Array(m).fill().map(() => Array(n).fill(null));
 
-            const totalTroops = rows * cols;
-            gameState = {
-                rows: rows,
-                cols: cols,
-                grid: Array(rows).fill(null).map(() => Array(cols).fill(null)),
-                p1_troops: totalTroops,
-                p2_troops: totalTroops,
-                turn: 'P1',
-                initiative_winner: null
-            };
-
-            memoizationCache = {};
-            selectedCell = null;
-            placeTroopsBtn.disabled = true;
-            gameLog.innerHTML = '';
-            structuredGameLog = [];
-            addLogEntry('Game Started!', 'system');
-
-            setupScreen.classList.add('hidden');
-            historyScreen.classList.add('hidden');
-            gameScreen.classList.remove('hidden', 'lg:hidden');
-            gameScreen.classList.add('lg:grid');
-
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            
+            const slider = document.getElementById('troop-slider');
+            slider.max = p1Res;
+            slider.value = 1;
+            
             render();
-            gameLoop();
-        }
-        
-        function showHistoryScreen() {
-            setupScreen.classList.add('hidden');
-            gameScreen.classList.add('hidden');
-            historyScreen.classList.remove('hidden');
-            navHistory.classList.add('active');
-            navPlayGame.classList.remove('active');
-            populateHistoryLog();
-        }
-
-        function showSetupScreen() {
-            historyScreen.classList.add('hidden');
-            gameScreen.classList.add('hidden');
-            setupScreen.classList.remove('hidden');
-            navPlayGame.classList.add('active');
-            navHistory.classList.remove('active');
         }
 
         function render() {
-            gameGrid.innerHTML = '';
-            gameGrid.style.gridTemplateColumns = `repeat(${gameState.cols}, 1fr)`;
-            gameGrid.style.gap = '0.5rem';
-            for (let r = 0; r < gameState.rows; r++) {
-                for (let c = 0; c < gameState.cols; c++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('grid-cell', 'flex', 'items-center', 'justify-center', 'text-xl', 'font-bold', 'rounded-lg', 'cursor-pointer', 'bg-slate-900/50');
-                    cell.dataset.r = r;
-                    cell.dataset.c = c;
+            const board = document.getElementById('board');
+            board.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+            board.innerHTML = '';
 
-                    const cellData = gameState.grid[r][c];
-                    if (cellData) {
-                        cell.classList.add('occupied');
-                        cell.classList.add(cellData[0] === 'P1' ? 'p1-piece' : 'p2-piece');
-                        cell.textContent = cellData[1];
+            for (let r = 0; r < m; r++) {
+                for (let c = 0; c < n; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell rounded-sm text-sm lg:text-base';
+                    
+                    if (grid[r][c]) {
+                        cell.classList.add(grid[r][c].owner === 'P1' ? 'p1-owned' : 'p2-owned');
+                        cell.innerText = grid[r][c].count;
                     } else {
-                        cell.addEventListener('click', () => handleCellClick(r, c));
+                        cell.classList.add('bg-slate-900/80');
+                        cell.onclick = () => handleMove(r, c);
                     }
-                    gameGrid.appendChild(cell);
+                    board.appendChild(cell);
                 }
             }
-            
-            p1TroopsEl.textContent = gameState.p1_troops;
-            p2TroopsEl.textContent = gameState.p2_troops;
-            const troopsLeft = gameState.turn === 'P1' ? gameState.p1_troops : gameState.p2_troops;
-            troopInput.max = troopsLeft;
-            if (parseInt(troopInput.value) > troopsLeft) {
-                troopInput.value = troopsLeft;
-            }
-            if (parseInt(troopInput.value) < 1) {
-                troopInput.value = 1;
-            }
 
-            p1Panel.classList.toggle('ai-thinking', gameState.turn === 'P1' && aiPlayer === 'P1');
-            p2Panel.classList.toggle('ai-thinking', gameState.turn === 'P2' && aiPlayer === 'P2');
+            document.getElementById('p1-reserve').innerText = p1Res;
+            document.getElementById('p2-reserve').innerText = p2Res;
+            document.getElementById('p1-card').className = turn === 'P1' ? 'glass p-4 rounded-xl border-l-8 border-blue-500 active-turn-p1' : 'glass p-4 rounded-xl border-l-8 border-blue-500 opacity-50';
+            document.getElementById('p2-card').className = turn === 'P2' ? 'glass p-4 rounded-xl border-l-8 border-red-500 active-turn-p2' : 'glass p-4 rounded-xl border-l-8 border-red-500 opacity-50';
         }
 
-        function addLogEntry(message, player) {
-            const entry = document.createElement('div');
-            entry.classList.add('log-entry', 'text-sm', 'p-2', 'rounded-md');
-            if (player === 'P1') {
-                entry.classList.add('bg-blue-900/50', 'text-blue-200');
-            } else if (player === 'P2') {
-                entry.classList.add('bg-red-900/50', 'text-red-200');
-            } else {
-                entry.classList.add('bg-slate-700', 'text-slate-300', 'italic');
-            }
-            entry.textContent = message;
-            gameLog.appendChild(entry);
-            gameLog.scrollTop = gameLog.scrollHeight;
-        }
+        // Updated Slider Display
+        document.getElementById('troop-slider').oninput = function() {
+            document.getElementById('slider-val').innerText = this.value;
+        };
 
-        function handleCellClick(r, c) {
-            if (gameState.turn !== humanPlayer) return;
+        function handleMove(r, c) {
+            if (turn !== 'P1' || grid[r][c] !== null) return;
 
-            if(selectedCell) {
-                const prevCellEl = gameGrid.querySelector(`[data-r='${selectedCell.r}'][data-c='${selectedCell.c}']`);
-                if(prevCellEl) prevCellEl.classList.remove('selected');
-            }
+            const count = parseInt(document.getElementById('troop-slider').value);
+            if (count > p1Res) return;
 
-            if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
-                 selectedCell = null;
-                 placeTroopsBtn.disabled = true;
-            } else {
-                 selectedCell = { r, c };
-                 const cellEl = gameGrid.querySelector(`[data-r='${r}'][data-c='${c}']`);
-                 cellEl.classList.add('selected');
-                 placeTroopsBtn.disabled = false;
-            }
-        }
-
-        function handleHumanMove() {
-            if (!selectedCell || gameState.turn !== humanPlayer) {
-                 addLogEntry('Please select an empty cell first.', 'system');
-                 return;
-            }
-            const troopsToPlace = parseInt(troopInput.value);
-            const troopsLeft = gameState.turn === 'P1' ? gameState.p1_troops : gameState.p2_troops;
-
-            if (isNaN(troopsToPlace) || troopsToPlace < 1 || troopsToPlace > troopsLeft) {
-                addLogEntry(`Invalid troop amount. Must be between 1 and ${troopsLeft}.`, 'system');
-                return;
-            }
+            executeMove('P1', r, c, count);
             
-            const { r, c } = selectedCell;
-            if (gameState.grid[r][c] !== null) {
-                 addLogEntry('Cell is already occupied.', 'system');
-                 return;
-            }
-            
-            const moveData = { turn: turnNumber, player: humanPlayer, k: troopsToPlace, pos: {r, c} };
-            structuredGameLog.push(moveData);
-            addLogEntry(`Human (${humanPlayer}) places ${troopsToPlace} troops at (${r},${c}).`, humanPlayer);
-            
-            gameState.grid[r][c] = [humanPlayer, troopsToPlace];
-            if (humanPlayer === 'P1') gameState.p1_troops -= troopsToPlace;
-            else gameState.p2_troops -= troopsToPlace;
-
-            selectedCell = null;
-            placeTroopsBtn.disabled = true;
-            endTurn();
-        }
-        
-        async function gameLoop() {
-            const troopsLeft = gameState.turn === 'P1' ? gameState.p1_troops : gameState.p2_troops;
-            if (troopsLeft === 0) {
-                 addLogEntry(`${gameState.turn} has no troops, turn skipped.`, 'system');
-                 endTurn();
-                 return;
-            }
-             
-            if (gameState.turn === aiPlayer) {
-                placeTroopsBtn.disabled = true;
-                setTimeout(() => {
-                    const [_, bestMove] = findBestAIMove(gameState.grid, gameState.p1_troops, gameState.p2_troops, aiPlayer, -Infinity, Infinity, gameState.initiative_winner, 0, maxDepth);
-                    const { r, c } = bestMove.pos;
-                    const k = bestMove.k;
-                    
-                    const moveData = { turn: turnNumber, player: aiPlayer, k: k, pos: {r, c} };
-                    structuredGameLog.push(moveData);
-                    addLogEntry(`AI (${aiPlayer}) places ${k} troops at (${r},${c}).`, aiPlayer);
-
-                    gameState.grid[r][c] = [aiPlayer, k];
-                    if (aiPlayer === 'P1') gameState.p1_troops -= k;
-                    else gameState.p2_troops -= k;
-                    
-                    endTurn();
-                }, 500);
-            } else {
-                placeTroopsBtn.disabled = !selectedCell;
-            }
-        }
-        
-        function endTurn() {
-            if (!gameState.initiative_winner) {
-                if (gameState.p1_troops === 0) gameState.initiative_winner = 'P1';
-                else if (gameState.p2_troops === 0) gameState.initiative_winner = 'P2';
-            }
-            
-            const isGameOver = (gameState.p1_troops === 0 && gameState.p2_troops === 0) || gameState.grid.flat().every(cell => cell !== null);
-            if (isGameOver) {
+            if (p1Res + p2Res > 0) {
+                turn = 'P2';
                 render();
-                endGame();
-                return;
-            }
-            
-            gameState.turn = (gameState.turn === 'P1') ? 'P2' : 'P1';
-            turnNumber++;
-            render();
-            gameLoop();
-        }
-        
-        function endGame() {
-            const { winner, condition } = getGameResultDetails();
-            const fullGameLog = saveGameToHistory(winner, condition);
-            addLogEntry(`Game Over. ${winner} is victorious by ${condition}!`, 'system');
-
-            if (winner === humanPlayer) {
-                resultTitle.textContent = 'VICTORY!';
-                resultTitle.className = 'text-4xl font-bold mb-4 text-sky-400';
-                resultMessage.textContent = `You conquered the board by ${condition}.`;
+                setTimeout(aiMove, 600);
             } else {
-                resultTitle.textContent = 'DEFEAT';
-                resultTitle.className = 'text-4xl font-bold mb-4 text-red-500';
-                resultMessage.textContent = `The AI was triumphant via ${condition}.`;
-            }
-            
-            // Setup the download button on the results modal
-            resultDownloadLogBtn.onclick = () => downloadLog(fullGameLog);
-            
-            resultModal.classList.remove('hidden');
-        }
-
-        function saveGameToHistory(winner, condition) {
-            const difficultySelect = document.getElementById('difficulty');
-            const difficultyText = difficultySelect.options[difficultySelect.selectedIndex].text;
-            
-            const fullGameLog = {
-                summary: {
-                    date: new Date().toLocaleString(),
-                    gridSize: `${gameState.rows}x${gameState.cols}`,
-                    humanPlayer: humanPlayer,
-                    aiDifficulty: difficultyText,
-                    winner: winner,
-                    winningCondition: condition
-                },
-                moves: structuredGameLog
-            };
-            
-            gameHistory.push(fullGameLog);
-            localStorage.setItem('aggressionGameHistory', JSON.stringify(gameHistory));
-            return fullGameLog; // Return the log object to be used immediately
-        }
-
-        function loadGameHistory() {
-            const savedHistory = localStorage.getItem('aggressionGameHistory');
-            if (savedHistory) {
-                gameHistory = JSON.parse(savedHistory);
+                checkEndGame();
             }
         }
 
-        function populateHistoryLog() {
-            historyLogContainer.innerHTML = '';
-            if (gameHistory.length === 0) {
-                historyLogContainer.innerHTML = `<p class="text-slate-400 text-center">No games played yet.</p>`;
-                return;
-            }
-
-            [...gameHistory].reverse().forEach((game, index) => {
-                const realIndex = gameHistory.length - 1 - index;
-                const entry = document.createElement('div');
-                entry.classList.add('history-entry', 'p-4', 'rounded-lg', 'border', 'flex', 'justify-between', 'items-center');
-                const winnerColor = game.summary.winner === 'P1' ? 'border-blue-500' : 'border-red-500';
-                entry.classList.add(winnerColor);
-
-                entry.innerHTML = `
-                    <div>
-                        <p class="font-bold">${game.summary.winner} Victory</p>
-                        <p class="text-sm text-slate-400">${game.summary.winningCondition}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-slate-500">${game.summary.gridSize} vs ${game.summary.aiDifficulty}</p>
-                        <p class="text-xs text-slate-500">${game.summary.date}</p>
-                    </div>
-                `;
-                
-                const detailsButton = document.createElement('button');
-                detailsButton.textContent = 'View Details';
-                detailsButton.classList.add('ml-4', 'bg-slate-600', 'hover:bg-slate-700', 'text-white', 'font-semibold', 'py-1', 'px-3', 'rounded-md', 'text-xs');
-                detailsButton.onclick = () => showHistoryDetails(realIndex);
-                
-                const rightSide = entry.querySelector('.text-right');
-                rightSide.insertAdjacentElement('afterend', detailsButton);
-
-                historyLogContainer.appendChild(entry);
-            });
-        }
-
-        function showHistoryDetails(gameIndex) {
-            const gameData = gameHistory[gameIndex];
-            if (!gameData) return;
-
-            let content = `<p><strong class="text-slate-300">Date:</strong> ${gameData.summary.date}</p>`;
-            content += `<p><strong class="text-slate-300">Grid:</strong> ${gameData.summary.gridSize}</p>`;
-            content += `<p><strong class="text-slate-300">AI Difficulty:</strong> ${gameData.summary.aiDifficulty}</p>`;
-            content += `<p><strong class="text-slate-300">Result:</strong> ${gameData.summary.winner} won by ${gameData.summary.winningCondition}</p>`;
-            content += `<h3 class="font-bold mt-4 mb-2 border-t border-slate-700 pt-2">Move History:</h3>`;
+        function executeMove(player, r, c, count) {
+            grid[r][c] = { owner: player, count: count };
+            if (player === 'P1') p1Res -= count;
+            else p2Res -= count;
             
-            const movesList = document.createElement('ol');
-            movesList.classList.add('list-decimal', 'list-inside', 'space-y-1');
-            gameData.moves.forEach(move => {
-                const moveItem = document.createElement('li');
-                moveItem.textContent = ` ${move.player} places ${move.k} troops at (${move.pos.r}, ${move.pos.c})`;
-                movesList.appendChild(moveItem);
-            });
+            // Strategic Algorithm: The Capture Logic
+            processCombat(r, c);
+            render();
+        }
+
+        function processCombat(r, c) {
+            const attacker = grid[r][c];
+            const neighbors = [[r-1,c], [r+1,c], [r,c-1], [r,c+1]];
             
-            historyDetailContent.innerHTML = content;
-            historyDetailContent.appendChild(movesList);
-            
-            historyDownloadBtn.onclick = () => downloadLog(gameData);
-            historyDetailModal.classList.remove('hidden');
-        }
-
-        function downloadLog(logData) {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logData, null, 2));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `aggression_log_${Date.now()}.json`);
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-        }
-
-        // --- AI LOGIC (JavaScript implementation) ---
-        function getGameResultDetails() {
-            let final_grid = gameState.grid.map(row => [...row]);
-            let first_attacker = gameState.initiative_winner ? gameState.initiative_winner : 'P2';
-            let second_attacker = (first_attacker === 'P1') ? 'P2' : 'P1';
-            final_grid = runSimulatedAttack(final_grid, first_attacker);
-            final_grid = runSimulatedAttack(final_grid, second_attacker);
-            let p1_cells = 0, p2_cells = 0, final_p1_troops = 0, final_p2_troops = 0;
-            final_grid.forEach(row => {
-                row.forEach(cell => {
-                    if (cell) {
-                        const [player, troops] = cell;
-                        if (player === 'P1') { p1_cells++; final_p1_troops += troops; }
-                        else { p2_cells++; final_p2_troops += troops; }
-                    }
-                });
-            });
-            if (p1_cells > p2_cells) return { winner: 'P1', condition: 'Area Control' };
-            if (p2_cells > p1_cells) return { winner: 'P2', condition: 'Area Control' };
-            if (final_p1_troops > final_p2_troops) return { winner: 'P1', condition: 'Troop Count Tiebreaker' };
-            if (final_p2_troops > final_p1_troops) return { winner: 'P2', condition: 'Troop Count Tiebreaker' };
-            return { winner: first_attacker, condition: 'Initiative Tiebreaker' };
-        }
-
-        function evaluateFinalState(grid, p1_troops, p2_troops, initiative_winner_known) {
-            const { winner } = getGameResultDetails();
-            return winner === 'P1' ? 1 : -1;
-        }
-        
-        function runSimulatedAttack(grid, attacking_player) {
-            if (!attacking_player) return grid;
-            const defending_player = (attacking_player === 'P1') ? 'P2' : 'P1';
-            const rows = grid.length;
-            const cols = grid[0].length;
-            const cells_to_remove = [];
-            
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    if (grid[r][c] && grid[r][c][0] === defending_player) {
-                        const defender_troops = grid[r][c][1];
-                        
-                        const left_attacker = (c > 0 && grid[r][c-1] && grid[r][c-1][0] === attacking_player) ? grid[r][c-1][1] : 0;
-                        const right_attacker = (c < cols - 1 && grid[r][c+1] && grid[r][c+1][0] === attacking_player) ? grid[r][c+1][1] : 0;
-                        const horizontal_attack = left_attacker + right_attacker;
-
-                        const up_attacker = (r > 0 && grid[r-1][c] && grid[r-1][c][0] === attacking_player) ? grid[r-1][c][1] : 0;
-                        const down_attacker = (r < rows - 1 && grid[r+1][c] && grid[r+1][c][0] === attacking_player) ? grid[r+1][c][1] : 0;
-                        const vertical_attack = up_attacker + down_attacker;
-                        
-                        if (horizontal_attack > defender_troops || vertical_attack > defender_troops) {
-                            cells_to_remove.push({ r, c });
+            neighbors.forEach(([nr, nc]) => {
+                if (nr >= 0 && nr < m && nc >= 0 && nc < n && grid[nr][nc]) {
+                    const defender = grid[nr][nc];
+                    if (defender.owner !== attacker.owner) {
+                        // Combat Rule: If attacker has more troops than defender, defender is wiped out
+                        if (attacker.count > defender.count) {
+                            grid[nr][nc] = null; 
                         }
                     }
                 }
-            }
-            if (cells_to_remove.length === 0) return grid;
-            let new_grid = grid.map(row => [...row]);
-            cells_to_remove.forEach(({ r, c }) => { new_grid[r][c] = null; });
-            return new_grid;
+            });
         }
 
-        function getPossibleMoves(grid, turn_player, p1_troops, p2_troops) {
-            const moves = [];
-            const current_troops = turn_player === 'P1' ? p1_troops : p2_troops;
-            if (current_troops === 0) return [];
-            const troops_to_place_options = new Set([1]);
-            if (current_troops > 1) {
-                troops_to_place_options.add(current_troops);
-                if (current_troops <= 6) { for (let i = 2; i < current_troops; i++) troops_to_place_options.add(i); }
-                else { troops_to_place_options.add(Math.floor(current_troops / 2)); }
-            }
-            for (let r = 0; r < grid.length; r++) {
-                for (let c = 0; c < grid[0].length; c++) {
-                    if (grid[r][c] === null) {
-                        troops_to_place_options.forEach(k => { if (k <= current_troops) moves.push({ k, pos: { r, c } }); });
-                    }
+        function aiMove() {
+            // Simplified AI: Finds the highest value cell near enemies or takes random
+            let bestMove = null;
+            let maxTroops = Math.min(p2Res, Math.floor(Math.random() * 5) + 1);
+
+            // Scans for empty cells
+            let empties = [];
+            for(let r=0; r<m; r++) {
+                for(let c=0; c<n; c++) {
+                    if(!grid[r][c]) empties.push([r,c]);
                 }
             }
-            return moves;
-        }
-        function findBestAIMove(grid, p1_troops, p2_troops, turn_player, alpha, beta, initiative_winner, depth, max_depth) {
-            const board_full = grid.flat().every(cell => cell !== null);
-            if ((p1_troops === 0 && p2_troops === 0) || board_full || depth === max_depth) {
-                return [evaluateFinalState(grid, p1_troops, p2_troops, initiative_winner), null];
+
+            if(empties.length > 0) {
+                const choice = empties[Math.floor(Math.random() * empties.length)];
+                executeMove('P2', choice[0], choice[1], maxTroops);
             }
-            const canonical_key = JSON.stringify([grid, p1_troops, p2_troops, turn_player, depth]);
-            if (memoizationCache[canonical_key]) return memoizationCache[canonical_key];
-            const possible_moves = getPossibleMoves(grid, turn_player, p1_troops, p2_troops);
-            possible_moves.sort((a, b) => a.k - b.k);
-            if (possible_moves.length === 0) {
-                const [score, _] = findBestAIMove(grid, p1_troops, p2_troops, turn_player === 'P1' ? 'P2' : 'P1', alpha, beta, initiative_winner, depth + 1, max_depth);
-                return [score, null];
-            }
-            let best_move_for_this_state = possible_moves[0];
-            const is_maximizing_player = (turn_player === 'P1');
-            let best_value = is_maximizing_player ? -Infinity : Infinity;
-            for (const move of possible_moves) {
-                const { r, c } = move.pos;
-                const k = move.k;
-                grid[r][c] = [turn_player, k];
-                let new_p1_troops = p1_troops, new_p2_troops = p2_troops, new_initiative_winner = initiative_winner;
-                if (turn_player === 'P1') {
-                    new_p1_troops -= k;
-                    if (new_p1_troops === 0 && !initiative_winner) new_initiative_winner = 'P1';
-                } else {
-                    new_p2_troops -= k;
-                    if (new_p2_troops === 0 && !initiative_winner) new_initiative_winner = 'P2';
-                }
-                const [value, _] = findBestAIMove(grid, new_p1_troops, new_p2_troops, turn_player === 'P1' ? 'P2' : 'P1', alpha, beta, new_initiative_winner, depth + 1, max_depth);
-                grid[r][c] = null; // Backtrack
-                if (is_maximizing_player) {
-                    if (value > best_value) { best_value = value; best_move_for_this_state = move; }
-                    alpha = Math.max(alpha, best_value);
-                } else {
-                    if (value < best_value) { best_value = value; best_move_for_this_state = move; }
-                    beta = Math.min(beta, best_value);
-                }
-                if (beta <= alpha) break;
-            }
-            const result = [best_value, best_move_for_this_state];
-            memoizationCache[canonical_key] = result;
-            return result;
+
+            turn = 'P1';
+            document.getElementById('troop-slider').max = p1Res;
+            render();
+            checkEndGame();
         }
 
+        function checkEndGame() {
+            const isFull = grid.flat().every(cell => cell !== null);
+            if (isFull || (p1Res === 0 && p2Res === 0)) {
+                let p1Tiles = grid.flat().filter(c => c?.owner === 'P1').length;
+                let p2Tiles = grid.flat().filter(c => c?.owner === 'P2').length;
+                alert(`War Over! \nPlayer 1: ${p1Tiles} Tiles\nAI: ${p2Tiles} Tiles\nWinner: ${p1Tiles > p2Tiles ? 'Player 1' : 'AI'}`);
+                location.reload();
+            }
+        }
     </script>
 </body>
-</ht
+</html>
