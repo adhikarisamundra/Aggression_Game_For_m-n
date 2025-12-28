@@ -3,244 +3,570 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aggression | Discrete Conquest Simulator</title>
+    <title>AGGRESSION: ATOLL COMMAND</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --p1: #3b82f6; --p2: #ef4444; --bg: #030712; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #f8fafc; overflow-x: hidden; perspective: 1000px; }
-        .font-cyber { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+        /* --- VISUAL CORE: CYBER-COMMANDER THEME --- */
+        :root {
+            --neon-blue: #00f3ff; /* Player 1 (Cyan) */
+            --neon-red: #ff0055;  /* AI (Crimson) */
+            --void-bg: #050b14;   /* Slate-950/Black mix */
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
 
-        /* 3D Hover Effects */
-        .glass-card {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--void-bg);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.03) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            perspective: 1200px; /* Essential for 3D Geometry */
+        }
+
+        .font-hud { font-family: 'Orbitron', sans-serif; letter-spacing: 0.1em; }
+        
+        /* --- 3D GEOMETRY & PHYSICS --- */
+        .manifold-container {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* The Grid Board */
+        #manifold-grid {
+            transform: rotateX(20deg) scale(0.95); /* Initial tactical tilt */
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform-style: preserve-3d;
         }
-        .glass-card:hover {
-            transform: rotateX(2deg) rotateY(-2deg) translateZ(10px);
-            border-color: rgba(59, 130, 246, 0.5);
+
+        /* Individual Atolls (Cells) */
+        .atoll {
+            aspect-ratio: 1;
+            position: relative;
+            background: rgba(15, 23, 42, 0.6); /* Slate-900 transparent */
+            border: 1px solid #1e293b;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Spring physics */
+            transform-style: preserve-3d;
+            cursor: crosshair;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
         }
 
-        /* Grid Cell 3D Interaction */
-        .cell { 
-            aspect-ratio: 1; 
-            transition: all 0.3s ease; 
-            border: 1px solid #1e293b; 
-            transform: translateZ(0);
+        /* Hover Physics: Lift and Glow */
+        .atoll:hover:not(.occupied) {
+            transform: translateZ(40px) scale(1.05);
+            border-color: var(--neon-blue);
+            box-shadow: 
+                0 0 15px rgba(0, 243, 255, 0.2),
+                inset 0 0 20px rgba(0, 243, 255, 0.05);
+            background: rgba(15, 23, 42, 0.9);
+            z-index: 50;
         }
-        .cell:hover { 
-            transform: translateZ(20px) scale(1.1); 
-            z-index: 50; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+
+        /* Occupied States */
+        .atoll.occupied {
+            transform: translateZ(15px); /* Permanently elevated */
         }
-        .cell-p1 { background: var(--p1); border: 2px solid #93c5fd; box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
-        .cell-p2 { background: var(--p2); border: 2px solid #fca5a5; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
 
-        /* Screen Transitions */
-        .screen { display: none; min-height: 100vh; width: 100%; opacity: 0; }
-        .active-screen { display: flex; animation: slideIn 0.5s forwards; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .atoll.p1 {
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
 
-        input[type=range] { appearance: none; background: #1e293b; height: 4px; border-radius: 2px; }
-        input[type=range]::-webkit-slider-thumb { appearance: none; height: 16px; width: 16px; background: var(--p1); border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px var(--p1); }
+        .atoll.p2 {
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid var(--neon-red);
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+            color: var(--neon-red);
+            text-shadow: 0 0 5px var(--neon-red);
+        }
+
+        /* --- UI COMPONENTS --- */
+        .glass-panel {
+            background: rgba(10, 15, 30, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(0,243,255,0.1), rgba(0,243,255,0.05));
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
+        }
+
+        /* Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--neon-blue);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #1e293b;
+            border-radius: 2px;
+        }
+
+        /* Navigation State Machine */
+        .view-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .view-active {
+            display: flex; /* or block depending on layout */
+            opacity: 1;
+            animation: bootUp 0.6s forwards;
+        }
+
+        @keyframes bootUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar for logs */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body>
+<body class="min-h-screen text-slate-300">
 
-    <div id="screen-rules" class="screen active-screen items-center justify-center p-6">
-        <div class="max-w-4xl glass-card p-12 rounded-3xl shadow-2xl">
-            <h1 class="font-cyber text-4xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-red-400 text-center">AGGRESSION: DISCRETE CONQUEST</h1>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 text-sm leading-relaxed mb-10">
-                <div class="space-y-4">
-                    <h2 class="text-blue-400 font-bold tracking-widest border-b border-blue-900 pb-2">AXIOMS OF ENGAGEMENT</h2>
-                    <p class="text-slate-400">The game board functions as a <span class="text-white">Coordinate Plane</span> where each node $(x,y)$ can host a scalar value (Troops).</p>
-                    <p class="text-slate-400">Neutralization occurs when a placement $V_1$ is adjacent to $V_2$ and $V_1 > V_2$. This results in the immediate removal of the lesser value.</p>
+    <section id="view-briefing" class="view-section view-active min-h-screen flex-col items-center justify-center p-6 relative z-10">
+        
+        <div class="absolute inset-0 z-[-1] opacity-20 pointer-events-none" 
+             style="background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+        <div class="max-w-4xl w-full glass-panel rounded-2xl p-8 md:p-12 border-t-4 border-t-cyan-500">
+            <header class="text-center mb-12">
+                <h1 class="font-hud text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 mb-4 animate-pulse">
+                    AGGRESSION
+                </h1>
+                <p class="text-slate-400 text-sm tracking-[0.3em] uppercase">ATOLL COMMAND // PROTOCOL V2.0</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div class="space-y-6">
+                    <h2 class="font-hud text-xl text-cyan-400 border-b border-slate-700 pb-2">TACTICAL DOCTRINE</h2>
+                    
+                    <div class="flex gap-4 items-start">
+                        <div class="bg-slate-800 p-2 rounded text-cyan-400 font-bold">01</div>
+                        <div>
+                            <strong class="text-white block uppercase text-xs mb-1">Scalar Deployment</strong>
+                            <p class="text-sm leading-relaxed text-slate-400">Assign specific troop densities to empty Atoll coordinates on the manifold.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 items-start">
+                        <div class="bg-slate-800 p-2 rounded text-red-400 font-bold">02</div>
+                        <div>
+                            <strong class="text-white block uppercase text-xs mb-1">Adjacency Neutralization</strong>
+                            <p class="text-sm leading-relaxed text-slate-400">
+                                If <span class="text-cyan-400">Your Density</span> > <span class="text-red-400">Enemy Neighbor</span>, the enemy node is <span class="text-red-500 font-bold">PURGED</span>.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div class="space-y-4">
-                    <h2 class="text-red-400 font-bold tracking-widest border-b border-red-900 pb-2">VICTORY CONDITIONS</h2>
-                    <ul class="text-slate-400 space-y-2">
-                        <li>• <span class="text-white">Area Dominance:</span> Possession of $>50\%$ of available coordinate nodes.</li>
-                        <li>• <span class="text-white">Resource Exhaustion:</span> Opponent lacks remaining scalar units for legal moves.</li>
-                        <li>• <span class="text-white">Efficiency Tiebreaker:</span> If nodes are equal, the higher total sum of unit reserves wins.</li>
+
+                <div class="space-y-6">
+                    <h2 class="font-hud text-xl text-red-400 border-b border-slate-700 pb-2">VICTORY PARAMETERS</h2>
+                    <ul class="space-y-3 text-sm text-slate-400">
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-cyan-400 rounded-full"></span>
+                            <span><strong class="text-white">Area Dominance:</strong> Control >50% of the Manifold.</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-cyan-400 rounded-full"></span>
+                            <span><strong class="text-white">Attritional Victory:</strong> Enemy reserves depleted.</span>
+                        </li>
                     </ul>
+                    
+                    <div class="mt-8 p-4 bg-slate-900/50 rounded border border-slate-700">
+                        <p class="text-xs text-slate-500 uppercase mb-1">System Status</p>
+                        <p class="font-mono text-green-400 text-xs">> ALL SYSTEMS NOMINAL</p>
+                        <p class="font-mono text-cyan-400 text-xs">> WAITING FOR COMMANDER INPUT...</p>
+                    </div>
                 </div>
             </div>
 
-            <button onclick="navigateTo('screen-game', true)" class="w-full bg-blue-600 hover:bg-blue-500 py-5 rounded-2xl font-cyber text-lg transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">INITIATE TRAINING SEQUENCE</button>
+            <button onclick="App.initTraining()" class="group btn-primary w-full py-6 rounded text-xl font-bold font-hud">
+                <span class="relative z-10 group-hover:tracking-widest transition-all">INITIALIZE TRAINING SEQUENCE</span>
+            </button>
         </div>
-    </div>
+    </section>
 
-    <div id="screen-game" class="screen flex-col p-4 lg:p-12">
-        <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10">
-            
-            <div class="lg:col-span-3 space-y-6">
-                <button onclick="navigateTo('screen-rules')" class="text-xs text-blue-400 hover:text-white transition-colors flex items-center gap-2 mb-4">
-                    <span>←</span> RETURN TO PARAMETERS
+
+    <section id="view-hud" class="view-section min-h-screen flex-col lg:flex-row p-2 lg:p-6 gap-4 relative overflow-hidden">
+        
+        <aside class="w-full lg:w-1/4 flex flex-col gap-4 z-20">
+            <div class="glass-panel p-4 rounded-xl flex justify-between items-center">
+                <h2 class="font-hud text-cyan-400 text-lg">CMD CENTER</h2>
+                <button onclick="App.switchView('view-briefing')" class="text-xs text-slate-500 hover:text-white transition-colors uppercase tracking-widest border border-slate-700 px-3 py-1 rounded">
+                    Abort
                 </button>
-
-                <div class="glass-card p-6 rounded-2xl border-l-4 border-blue-500">
-                    <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Scalar Reserve (Blue Force)</p>
-                    <div id="p1-res" class="text-5xl font-black text-blue-400">0</div>
-                </div>
-
-                <div class="glass-card p-6 rounded-2xl border-l-4 border-red-500">
-                    <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Scalar Reserve (Red Force)</p>
-                    <div id="p2-res" class="text-5xl font-black text-red-400">0</div>
-                </div>
-
-                <div class="glass-card p-6 rounded-2xl">
-                    <p class="text-[10px] font-bold mb-4 uppercase">Deployment Magnitude: <span id="t-val" class="text-blue-400 text-lg">1</span></p>
-                    <input type="range" id="t-slider" min="1" value="1" class="w-full">
-                </div>
             </div>
 
-            <div class="lg:col-span-6">
-                <div id="tutorial-note" class="hidden bg-blue-900/30 border border-blue-500 p-4 rounded-xl mb-6 text-sm text-blue-200 animate-pulse">
-                    ANALYSIS: Target Red Node has value 2. Deploy 3+ units adjacent to neutralize.
+            <div class="glass-panel p-6 rounded-xl flex-1 flex flex-col gap-6">
+                
+                <div class="border-l-2 border-cyan-500 pl-4 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-cyan-500/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
+                    <label class="block text-[10px] uppercase tracking-widest text-cyan-500 mb-1">Blue Force Reserves</label>
+                    <div id="p1-res" class="text-4xl font-hud font-bold text-white">00</div>
                 </div>
-                <div id="board" class="grid gap-2 bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-2xl" style="transform: rotateX(5deg);"></div>
+
+                <div class="border-l-2 border-red-500 pl-4 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-red-500/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
+                    <label class="block text-[10px] uppercase tracking-widest text-red-500 mb-1">AI Threat Reserves</label>
+                    <div id="p2-res" class="text-4xl font-hud font-bold text-white">00</div>
+                </div>
+
+                <div class="mt-auto pt-6 border-t border-slate-800">
+                    <div class="flex justify-between items-end mb-4">
+                        <label class="text-xs uppercase font-bold text-slate-400">Troop Density</label>
+                        <span id="slider-val" class="font-hud text-2xl text-cyan-400">1</span>
+                    </div>
+                    <input type="range" id="troop-slider" min="1" max="10" value="1" class="w-full">
+                    <div class="flex justify-between text-[10px] text-slate-600 mt-2 font-mono">
+                        <span>MIN</span>
+                        <span>MAX</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+
+        <main class="w-full lg:w-1/2 flex flex-col relative z-10 perspective-container">
+            <div id="tutorial-hud" class="hidden mb-4 p-4 bg-yellow-900/40 border border-yellow-500/50 rounded text-yellow-200 text-sm font-mono animate-pulse">
+                <strong class="block text-yellow-400 uppercase text-xs mb-1">⚠️ Training Objective</strong>
+                Target the Enemy Node (Val: 2). Deploy a Density of 3+ adjacent to it to execute neutralization.
             </div>
 
-            <div class="lg:col-span-3">
-                <div class="glass-card p-6 rounded-2xl h-full">
-                    <h3 class="font-cyber text-xs mb-6 text-slate-400">LOG ARCHIVE</h3>
-                    <div id="history-list" class="space-y-3 overflow-y-auto max-h-[60vh] text-[10px] font-mono"></div>
+            <div class="flex-1 flex items-center justify-center manifold-container">
+                <div id="manifold-grid" class="grid gap-3 p-6 bg-slate-900/40 border border-white/5 rounded-xl shadow-2xl backdrop-blur-sm">
+                    </div>
+            </div>
+        </main>
+
+
+        <aside class="w-full lg:w-1/4 flex flex-col z-20 h-[300px] lg:h-auto">
+            <div class="glass-panel p-0 rounded-xl flex-1 flex flex-col overflow-hidden">
+                <div class="p-4 border-b border-slate-800 bg-slate-900/50">
+                    <h3 class="font-hud text-xs text-slate-400 uppercase tracking-widest">Black Box Archive</h3>
+                </div>
+                
+                <div id="game-log" class="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-[10px]">
+                    </div>
+
+                <div class="p-4 border-t border-slate-800 bg-slate-900/80">
+                    <h4 class="text-[10px] text-slate-500 uppercase mb-2">Previous Operations</h4>
+                    <div id="history-list" class="space-y-1 max-h-32 overflow-y-auto">
+                        </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </aside>
+
+    </section>
 
     <script>
-        let state = { m: 5, n: 5, p1: 0, p2: 0, turn: 'P1', grid: [], isTutorial: false };
+        const App = {
+            state: {
+                m: 6, n: 6,
+                p1Res: 0, p2Res: 0,
+                turn: 'P1',
+                grid: [], // 2D array
+                isTutorial: false,
+                gameOver: false
+            },
 
-        function navigateTo(id, training = false) {
-            // Smooth reset to top
-            window.scrollTo(0, 0);
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-            document.getElementById(id).classList.add('active-screen');
-
-            if(training) startTutorial();
-        }
-
-        function startTutorial() {
-            state.isTutorial = true;
-            state.m = 4; state.n = 4;
-            init();
-            document.getElementById('tutorial-note').classList.remove('hidden');
-            state.grid[1][1] = { owner: 'P2', count: 2 }; 
-            render();
-        }
-
-        function init() {
-            state.p1 = state.m * state.n;
-            state.p2 = state.m * state.n;
-            state.grid = Array(state.m).fill().map(() => Array(state.n).fill(null));
-            document.getElementById('t-slider').max = state.p1;
-            render();
-            loadHistory();
-        }
-
-        function render() {
-            const board = document.getElementById('board');
-            board.style.gridTemplateColumns = `repeat(${state.n}, 1fr)`;
-            board.innerHTML = '';
-            
-            state.grid.forEach((row, r) => {
-                row.forEach((cell, c) => {
-                    const div = document.createElement('div');
-                    div.className = 'cell flex items-center justify-center font-bold rounded-lg text-lg';
-                    if(cell) {
-                        div.classList.add(cell.owner === 'P1' ? 'cell-p1' : 'cell-p2');
-                        div.innerText = cell.count;
-                    } else {
-                        div.onclick = () => handleInput(r, c);
-                    }
-                    board.appendChild(div);
+            // --- NAVIGATION ---
+            switchView: (viewId) => {
+                document.querySelectorAll('.view-section').forEach(el => {
+                    el.classList.remove('view-active');
+                    setTimeout(() => el.style.display = 'none', 500);
                 });
-            });
+                
+                const target = document.getElementById(viewId);
+                target.style.display = 'flex';
+                // Force reflow
+                void target.offsetWidth;
+                target.classList.add('view-active');
 
-            document.getElementById('p1-res').innerText = state.p1;
-            document.getElementById('p2-res').innerText = state.p2;
-            document.getElementById('t-val').innerText = document.getElementById('t-slider').value;
-        }
+                // AUTO-SCROLL to top as requested
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
 
-        document.getElementById('t-slider').oninput = render;
+            // --- INITIALIZATION ---
+            initTraining: () => {
+                App.state.isTutorial = true;
+                App.state.m = 4;
+                App.state.n = 4;
+                App.initGame();
+                
+                // Tutorial Specific Setup
+                document.getElementById('tutorial-hud').classList.remove('hidden');
+                // Force a weak enemy at [1][1]
+                App.state.grid[1][1] = { owner: 'P2', value: 2 };
+                App.render();
+                App.log("TRAINING SEQUENCE INITIATED", "SYS");
+                App.switchView('view-hud');
+            },
 
-        function handleInput(r, c) {
-            if (state.turn !== 'P1') return;
-            const val = parseInt(document.getElementById('t-slider').value);
-            processAction(r, c, 'P1', val);
-            
-            if (!evalEnd()) {
-                state.turn = 'P2';
-                setTimeout(aiEngine, 800);
-            }
-        }
+            initGame: () => {
+                const s = App.state;
+                s.gameOver = false;
+                s.turn = 'P1';
+                // Calculate reserves based on grid size
+                s.p1Res = Math.floor((s.m * s.n) * 1.5); 
+                s.p2Res = Math.floor((s.m * s.n) * 1.5);
 
-        function processAction(r, c, p, val) {
-            state.grid[r][c] = { owner: p, count: val };
-            p === 'P1' ? state.p1 -= val : state.p2 -= val;
-            
-            // Adjacency Neutralization Algorithm
-            [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr, nc]) => {
-                if(nr>=0 && nr<state.m && nc>=0 && nc<state.n) {
-                    let target = state.grid[nr][nc];
-                    if(target && target.owner !== p && val > target.count) {
-                        state.grid[nr][nc] = null;
-                        log(`NEUTRALIZED NODE [${nr},${nc}]`, p);
-                    }
+                // Reset Grid
+                s.grid = Array(s.m).fill().map(() => Array(s.n).fill(null));
+
+                // UI Reset
+                document.getElementById('tutorial-hud').classList.add('hidden');
+                document.getElementById('game-log').innerHTML = '';
+                App.updateSliderMax();
+                App.loadHistory();
+                App.render();
+            },
+
+            // --- CORE LOGIC ---
+            handleInput: (r, c) => {
+                const s = App.state;
+                if (s.gameOver || s.turn !== 'P1') return;
+
+                const val = parseInt(document.getElementById('troop-slider').value);
+                
+                // Validation
+                if (val > s.p1Res) {
+                    App.log("INSUFFICIENT RESERVES", "ERR");
+                    return;
                 }
-            });
-            render();
-        }
 
-        function aiEngine() {
-            for(let r=0; r<state.m; r++) {
-                for(let c=0; c<state.n; c++) {
-                    if(!state.grid[r][c]) {
-                        processAction(r, c, 'P2', state.isTutorial ? 1 : Math.floor(Math.random() * 3) + 1);
-                        state.turn = 'P1';
-                        evalEnd();
-                        return;
-                    }
+                App.executeMove(r, c, 'P1', val);
+
+                if (!App.checkWinCondition()) {
+                    s.turn = 'P2';
+                    // Delay AI for dramatic effect
+                    setTimeout(App.aiTurn, 800);
                 }
+            },
+
+            executeMove: (r, c, player, value) => {
+                const s = App.state;
+                
+                // 1. Place Scalar
+                s.grid[r][c] = { owner: player, value: value };
+                
+                // 2. Deduct Reserves
+                if (player === 'P1') s.p1Res -= value;
+                else s.p2Res -= value;
+
+                // 3. Adjacency Neutralization Protocol
+                const directions = [[-1,0], [1,0], [0,-1], [0,1]]; // N, S, W, E
+                let neutralized = false;
+
+                directions.forEach(([dr, dc]) => {
+                    const nr = r + dr, nc = c + dc;
+                    // Check bounds
+                    if (nr >= 0 && nr < s.m && nc >= 0 && nc < s.n) {
+                        const neighbor = s.grid[nr][nc];
+                        // If neighbor exists, is enemy, and our value is strictly greater
+                        if (neighbor && neighbor.owner !== player && value > neighbor.value) {
+                            s.grid[nr][nc] = null; // PURGE
+                            neutralized = true;
+                            App.log(`${player} PURGED NODE [${nr},${nc}]`, "CMBT");
+                        }
+                    }
+                });
+
+                if (!neutralized) {
+                    App.log(`${player} DEPLOYED ${value} AT [${r},${c}]`, "LOG");
+                }
+
+                App.render();
+                App.updateSliderMax();
+            },
+
+            aiTurn: () => {
+                const s = App.state;
+                // Simple AI: Find first empty spot
+                // In a real advanced version, use Minimax, but here we keep it functional
+                let moved = false;
+                
+                // Try to find a tactical spot (adjacent to P1)
+                for (let r = 0; r < s.m; r++) {
+                    for (let c = 0; c < s.n; c++) {
+                        if (s.grid[r][c] === null) {
+                            // Tutorial mode AI is weak (always places 1)
+                            // Normal mode places random 1-5
+                            const val = s.isTutorial ? 1 : Math.min(s.p2Res, Math.floor(Math.random() * 4) + 1);
+                            App.executeMove(r, c, 'P2', val);
+                            moved = true;
+                            break;
+                        }
+                    }
+                    if (moved) break;
+                }
+
+                s.turn = 'P1';
+                App.checkWinCondition();
+            },
+
+            checkWinCondition: () => {
+                const s = App.state;
+                const flatGrid = s.grid.flat();
+                const isFull = flatGrid.every(cell => cell !== null);
+                const noReserves = s.p1Res <= 0 && s.p2Res <= 0;
+
+                if (isFull || noReserves) {
+                    s.gameOver = true;
+                    
+                    // Count Control
+                    const p1Count = flatGrid.filter(c => c && c.owner === 'P1').length;
+                    const p2Count = flatGrid.filter(c => c && c.owner === 'P2').length;
+                    
+                    let result = "DRAW";
+                    if (p1Count > p2Count) result = "VICTORY";
+                    else if (p2Count > p1Count) result = "DEFEAT";
+                    else {
+                        // Tiebreaker: Reserves
+                        if (s.p1Res > s.p2Res) result = "VICTORY (RES)";
+                        else result = "DEFEAT (RES)";
+                    }
+
+                    alert(`MISSION ENDED // RESULT: ${result}\nBlue Atolls: ${p1Count}\nRed Atolls: ${p2Count}`);
+                    App.saveHistory(result);
+                    App.switchView('view-briefing');
+                    return true;
+                }
+                return false;
+            },
+
+            // --- RENDERING & UI ---
+            render: () => {
+                const s = App.state;
+                const gridEl = document.getElementById('manifold-grid');
+                
+                // Update CSS Grid Template
+                gridEl.style.gridTemplateColumns = `repeat(${s.n}, 1fr)`;
+                gridEl.innerHTML = '';
+
+                s.grid.forEach((row, r) => {
+                    row.forEach((cell, c) => {
+                        const div = document.createElement('div');
+                        div.className = 'atoll rounded flex items-center justify-center font-hud text-xl font-bold';
+                        
+                        if (cell) {
+                            div.classList.add('occupied', cell.owner === 'P1' ? 'p1' : 'p2');
+                            div.innerText = cell.value;
+                        } else {
+                            // Empty cell interaction
+                            div.onclick = () => App.handleInput(r, c);
+                        }
+                        
+                        gridEl.appendChild(div);
+                    });
+                });
+
+                // Update Stats
+                document.getElementById('p1-res').innerText = s.p1Res.toString().padStart(2, '0');
+                document.getElementById('p2-res').innerText = s.p2Res.toString().padStart(2, '0');
+            },
+
+            updateSliderMax: () => {
+                const slider = document.getElementById('troop-slider');
+                const valDisplay = document.getElementById('slider-val');
+                
+                // Max cannot exceed current reserves
+                slider.max = App.state.p1Res > 0 ? App.state.p1Res : 1;
+                
+                // Update display on input
+                slider.oninput = (e) => valDisplay.innerText = e.target.value;
+                
+                // Reset value if out of bounds
+                if (parseInt(slider.value) > parseInt(slider.max)) {
+                    slider.value = slider.max;
+                    valDisplay.innerText = slider.max;
+                }
+            },
+
+            // --- UTILS & PERSISTENCE ---
+            log: (msg, type) => {
+                const logEl = document.getElementById('game-log');
+                const line = document.createElement('div');
+                const colors = { "SYS": "text-green-400", "ERR": "text-yellow-400", "CMBT": "text-red-400", "LOG": "text-slate-400" };
+                
+                line.className = `border-l-2 border-slate-700 pl-2 py-1 ${colors[type] || 'text-slate-300'}`;
+                line.innerHTML = `<span class="opacity-50">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+                
+                logEl.prepend(line);
+            },
+
+            saveHistory: (result) => {
+                const history = JSON.parse(localStorage.getItem('atoll_archive') || '[]');
+                history.push({
+                    date: new Date().toLocaleDateString(),
+                    time: new Date().toLocaleTimeString(),
+                    result: result
+                });
+                // Keep only last 10
+                if (history.length > 10) history.shift();
+                localStorage.setItem('atoll_archive', JSON.stringify(history));
+                App.loadHistory();
+            },
+
+            loadHistory: () => {
+                const list = document.getElementById('history-list');
+                const history = JSON.parse(localStorage.getItem('atoll_archive') || '[]');
+                
+                if (history.length === 0) {
+                    list.innerHTML = '<div class="text-[10px] text-slate-600 italic">NO ARCHIVED DATA</div>';
+                    return;
+                }
+
+                list.innerHTML = history.map(h => `
+                    <div class="flex justify-between items-center text-[10px] p-2 bg-slate-800/30 rounded border border-slate-800">
+                        <span class="text-slate-400">${h.date}</span>
+                        <span class="${h.result.includes('VICTORY') ? 'text-cyan-400' : 'text-red-400'} font-bold">${h.result}</span>
+                    </div>
+                `).reverse().join('');
             }
-        }
+        };
 
-        function log(m, p) {
-            const l = document.createElement('div');
-            l.className = "py-1 border-b border-slate-800 text-slate-500";
-            l.innerText = `[${new Date().toLocaleTimeString()}] ${p}: ${m}`;
-            document.getElementById('history-list').prepend(l);
-        }
-
-        function evalEnd() {
-            const full = state.grid.flat().every(c => c !== null);
-            if(full || (state.p1 <= 0 && state.p2 <= 0)) {
-                // Persistent Storage
-                const h = JSON.parse(localStorage.getItem('aggro_v2') || '[]');
-                h.push({ date: new Date().toLocaleDateString(), result: "Session Complete" });
-                localStorage.setItem('aggro_v2', JSON.stringify(h));
-                alert("TERMINAL CONDITION REACHED. SESSION DATA SAVED.");
-                navigateTo('screen-rules');
-                return true;
-            }
-            return false;
-        }
-
-        function loadHistory() {
-            const h = JSON.parse(localStorage.getItem('aggro_v2') || '[]');
-            document.getElementById('history-list').innerHTML = h.map(x => `
-                <div class="p-3 bg-slate-900/50 rounded-lg mb-2">
-                    <p class="text-blue-400">${x.date}</p>
-                    <p class="text-slate-500">Operation Status: ${x.result}</p>
-                </div>
-            `).join('');
-        }
+        // Initialize slider listener
+        App.updateSliderMax();
     </script>
 </body>
 </html>
