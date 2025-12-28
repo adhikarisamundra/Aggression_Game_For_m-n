@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aggression: Advanced Strategy</title>
+    <style>
+        :root {
+            --bg-color: #1f2937;
+            --text-color: #f3f4f6;
+            --panel-bg: #374151;
+            --p1-color: #60a5fa; /* Blue */
+            --p1-hover: #3b82f6;
+            --p2-color: #f87171; /* Red */
+            --p2-hover: #ef4444;
+            --accent: #10b981;
+            --highlight: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 { margin: 0; }
+
+        /* Setup Screen */
+        #setup-container {
+            background: var(--panel-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            margin-top: 5vh;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #d1d5db; }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #4b5563;
+            background: #111827;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box; 
+        }
+
+        button.primary-btn {
+            background-color: var(--accent);
+            color: white;
+            padding: 1rem;
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.primary-btn:hover { background-color: #059669; }
+
+        /* Game Interface */
+        #game-interface {
+            display: none;
+            width: 95%;
+            max-width: 1000px;
+            margin-top: 20px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* HUD */
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .player-card {
+            flex: 1;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-bottom: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .player-card.active-p1 { border-bottom-color: var(--p1-color); background: #1e3a8a; }
+        .player-card.active-p2 { border-bottom-color: var(--p2-color); background: #7f1d1d; }
+
+        .stat-value { font-size: 1.5rem; font-weight: bold; }
+        .stat-label { font-size: 0.8rem; text-transform: uppercase; color: #9ca3af; }
+
+        #phase-banner {
+            background: #111827;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: var(--highlight);
+            border: 1px solid var(--highlight);
+            margin-bottom: 10px;
+        }
+
+        /* Board */
+        #board-wrapper {
+            position: relative;
+            background: #111827;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        #grid {
+            display: grid;
+            gap: 6px;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            background-color: #374151;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: transform 0.1s, filter 0.1s;
+        }
+
+        .cell:hover { filter: brightness(1.1); }
+        .cell:active { transform: scale(0.95); }
+
+        .cell.p1 { background-color: var(--p1-color); color: white; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        .cell.p2 { background-color: var(--p2-color); color: white; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        
+        /* Attack Valid Indicators */
+        .cell.targetable {
+            border: 2px dashed var(--highlight);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        /* Controls Area */
+        #controls-area {
+            margin-top: 20px;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="number"] { width: 80px; text-align: center; }
+        
+        .action-btn {
+            background: #4b5563;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .action-btn:hover { background: #6b7280; }
+
+        /* Game Log */
+        #game-log {
+            margin-top: 20px;
+            width: 100%;
+            height: 150px;
+            background: #111827;
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border: 1px solid #374151;
+            box-sizing: border-box;
+        }
+
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #1f2937; padding-bottom: 2px; }
+        .log-p1 { color: var(--p1-color); }
+        .log-p2 { color: var(--p2-color); }
+        .log-sys { color: #9ca3af; font-style: italic; }
+        .log-success { color: var(--accent); }
+        .log-fail { color: var(--p2-color); }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .cell { width: 40px; height: 40px; font-size: 0.9rem; }
+            #hud { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="setup-container">
+        <h1 style="margin-bottom: 10px; color: var(--p1-color);">AGGRESSION</h1>
+        <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 20px;">Tactical Territory Control</p>
+        
+        <div class="input-group">
+            <label>Grid Size</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="rows" value="6" min="3" max="8" placeholder="Rows">
+                <input type="number" id="cols" value="6" min="3" max="8" placeholder="Cols">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Troops Per Player</label>
+            <input type="number" id="troops" value="36" min="5">
+            <small style="color: #6b7280; display: block; margin-top: 5px;">Recommended: Rows × Cols</small>
+        </div>
+
+        <div class="input-group">
+            <label>Opponent Type</label>
+            <select id="opponent">
+                <option value="human">Human (Local Hotseat)</option>
+                <option value="weak">AI: Weak (Random)</option>
+                <option value="strategic">AI: Strategic (Cluster)</option>
+                <option value="smart" selected>AI: Smart (Advanced)</option>
+            </select>
+        </div>
+
+        <button class="primary-btn" onclick="Game.init()">Initialize Simulation</button>
+        <p style="margin-top: 15px; font-size: 0.8rem;"><a href="https://mathpickle.com/project/a-little-bit-of-aggression/" target="_blank" style="color: var(--accent);">Original Concept by MathPickle</a></p>
+    </div>
+
+    <div id="game-interface">
+        
+        <div id="hud">
+            <div id="p1-card" class="player-card">
+                <div style="color: var(--p1-color); font-weight: bold; margin-bottom: 5px;">PLAYER 1 (Blue)</div>
+                <div class="stat-value" id="p1-troops">0</div>
+                <div class="stat-label">Reserves</div>
+                <div class="stat-value" id="p1-area" style="margin-top: 10px; font-size: 1.1rem;">0</div>
+                <div class="stat-label">Territory</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div id="phase-banner">PLACEMENT PHASE</div>
+                <div id="turn-indicator" style="font-size: 0.9rem; color: #d1d5db;">Waiting to start...</div>
+            </div>
+
+            <div id="p2-card" class="player-card">
+                <div style="color: var(--p2-color); font-weight: bold; margin-bottom: 5px;" id="p2-name">PLAYER 2 (Red)</div>
+                <div class="stat-value" id="p2-troops">0</div>
+                <div class="stat-label">Reserves</div>
+                <div class="stat-value" id="p2-area" style="margin-top: 10px; font-size: 1.1rem;">0</div>
+                <div class="stat-label">Territory</div>
+            </div>
+        </div>
+
+        <div id="board-wrapper">
+            <div id="grid"></div>
+        </div>
+
+        <div id="controls-area">
+            <div id="placement-controls">
+                <label style="display:inline; margin-right: 10px;">Amount:</label>
+                <input type="number" id="place-amt" value="1" min="1">
+                <span style="font-size: 0.8rem; color: #9ca3af; margin-left: 10px;">Click grid to place</span>
+            </div>
+            <div id="attack-controls" style="display: none;">
+                <span style="font-size: 0.9rem; margin-right: 15px;">Click enemy to attack</span>
+                <button class="action-btn" onclick="Game.humanPass()">Pass Turn</button>
+            </div>
+        </div>
+
+        <div id="game-log"></div>
+
+    </div>
+
+    <script>
+        /**
+         * AGGRESSION GAME ENGINE
+         * Designed for stability and algorithmic correctness.
+         */
+        const Game = {
+            state: {
+                rows: 6, cols: 6,
+                grid: [], // 2D array of {owner: 0|1|2, count: int}
+                p1Reserves: 0, p2Reserves: 0,
+                turn: 1, // 1 or 2
+                phase: 'setup', // setup, placement, attack, over
+                ai: null, // null, 'weak', 'strategic', 'smart'
+                consecutivePasses: 0,
+                isProcessing: false // Lock UI during AI moves
+            },
+
+            // --- INITIALIZATION ---
+            init: function() {
+                // 1. Gather Settings
+                const r = parseInt(document.getElementById('rows').value);
+                const c = parseInt(document.getElementById('cols').value);
+                const t = parseInt(document.getElementById('troops').value);
+                const aiType = document.getElementById('opponent').value;
+
+                // 2. Validate caps
+                if (r < 2 || c < 2 || r > 10 || c > 10) { alert("Grid size must be 2-10."); return; }
+                if (t < 1) { alert("Troops must be > 0"); return; }
+
+                // 3. Setup State
+                this.state.rows = r;
+                this.state.cols = c;
+                this.state.p1Reserves = t;
+                this.state.p2Reserves = t;
+                this.state.turn = Math.random() < 0.5 ? 1 : 2;
+                this.state.phase = 'placement';
+                this.state.ai = aiType === 'human' ? null : aiType;
+                this.state.consecutivePasses = 0;
+                this.state.isProcessing = false;
+
+                // 4. Build Grid
+                this.state.grid = [];
+                for(let i=0; i<r; i++){
+                    let row = [];
+                    for(let j=0; j<c; j++){
+                        row.push({ owner: 0, count: 0 });
+                    }
+                    this.state.grid.push(row);
+                }
+
+                // 5. Update UI
+                document.getElementById('setup-container').style.display = 'none';
+                document.getElementById('game-interface').style.display = 'flex';
+                if(this.state.ai) document.getElementById('p2-name').innerText = `AI (${this.state.ai.toUpperCase()})`;
+                
+                this.UI.createGrid(r, c);
+                this.UI.log("System", "Simulation Initialized.");
+                this.UI.log("System", `Player ${this.state.turn} starts placement.`);
+                
+                this.updateEngine();
+            },
+
+            // --- CORE ENGINE LOOP ---
+            updateEngine: function() {
+                this.UI.render();
+
+                // Check for Game Over conditions
+                if (this.state.phase === 'over') return;
+
+                // Handle AI Turn
+                if (this.state.ai && this.state.turn === 2 && !this.state.isProcessing) {
+                    this.state.isProcessing = true;
+                    setTimeout(() => {
+                        this.AI.makeMove();
+                        this.state.isProcessing = false;
+                        this.updateEngine(); // Recursive update after move
+                    }, 800); // Artificial delay for realism
+                }
+            },
+
+            // --- PLAYER ACTIONS ---
+            handleCellClick: function(r, c) {
+                if (this.state.phase === 'over' || this.state.isProcessing) return;
+                if (this.state.ai && this.state.turn === 2) return; // Not human turn
+
+                if (this.state.phase === 'placement') {
+                    let amt = parseInt(document.getElementById('place-amt').value);
+                    if (isNaN(amt) || amt < 1) amt = 1;
+                    this.executePlacement(r, c, amt, 1);
+                } else if (this.state.phase === 'attack') {
+                    this.executeAttack(r, c, 1);
+                }
+            },
+
+            humanPass: function() {
+                if (this.state.turn !== 1 || this.state.phase !== 'attack') return;
+                this.UI.log("P1", "Player 1 Passed.");
+                this.state.consecutivePasses++;
+                this.switchTurn();
+            },
+
+            // --- GAME LOGIC: PLACEMENT ---
+            executePlacement: function(r, c, amount, player) {
+                const cell = this.state.grid[r][c];
+                const reserves = player === 1 ? this.state.p1Reserves : this.state.p2Reserves;
+
+                // Logic Checks
+                if (cell.owner !== 0 && cell.owner !== player) {
+                    if(!this.state.ai || player===1) this.UI.log("System", "Invalid: Cannot place on enemy territory.");
+                    return false;
+                }
+                
+                // Cap amount to reserves
+                let actualAmt = Math.min(amount, reserves);
+                if (actualAmt <= 0) return false;
+
+                // Execute
+                cell.owner = player;
+                cell.count += actualAmt;
+                
+                if (player === 1) this.state.p1Reserves -= actualAmt;
+                else this.state.p2Reserves -= actualAmt;
+
+                this.UI.log(`P${player}`, `Placed ${actualAmt} units at [${r},${c}]`);
+                
+                // Check if placement phase is done
+                if (this.state.p1Reserves === 0 && this.state.p2Reserves === 0) {
+                    this.state.phase = 'attack';
+                    this.UI.log("System", "=== PLACEMENT COMPLETE. ATTACK PHASE START ===");
+                    // Reset turn to P1 for consistency or keep current? Let's reset to P1
+                    this.state.turn = 1;
+                } else {
+                    // Standard turn switch for placement
+                    // Logic: If I still have troops, next turn is opponent. 
+                    // If opponent has no troops, it's me again.
+                    this.handlePlacementTurnSwitch();
+                }
+
+                this.updateEngine();
+                return true;
+            },
+
+            handlePlacementTurnSwitch: function() {
+                const nextPlayer = this.state.turn === 1 ? 2 : 1;
+                const nextReserves = nextPlayer === 1 ? this.state.p1Reserves : this.state.p2Reserves;
+
+                if (nextReserves > 0) {
+                    this.state.turn = nextPlayer;
+                } else {
+                    this.UI.log("System", `Player ${nextPlayer} is out of reserves. Continuing turn.`);
+                }
+            },
+
+            // --- GAME LOGIC: ATTACK ---
+            executeAttack: function(r, c, attackerID) {
+                const cell = this.state.grid[r][c];
+                
+                if (cell.owner === 0) {
+                    if(attackerID===1) this.UI.log("System", "Cannot attack empty space.");
+                    return false;
+                }
+                if (cell.owner === attackerID) {
+                    if(attackerID===1) this.UI.log("System", "Friendly fire invalid.");
+                    return false;
+                }
+
+                const power = this.Logic.calculatePower(r, c, attackerID);
+                const defense = cell.count;
+
+                if (power > defense) {
+                    this.UI.log(`P${attackerID}`, `Attack [${r},${c}] SUCCESS! (${power} vs ${defense})`, true);
+                    // Neutralize
+                    cell.owner = 0;
+                    cell.count = 0;
+                    this.state.consecutivePasses = 0; // Reset pass counter
+                } else {
+                    this.UI.log(`P${attackerID}`, `Attack [${r},${c}] FAILED. (${power} vs ${defense})`, false);
+                }
+
+                this.switchTurn();
+                return true;
+            },
+
+            switchTurn: function() {
+                if (this.state.phase === 'attack') {
+                    if (this.state.consecutivePasses >= 2) {
+                        this.endGame();
+                        return;
+                    }
+                }
+                this.state.turn = this.state.turn === 1 ? 2 : 1;
+                this.updateEngine();
+            },
+
+            endGame: function() {
+                this.state.phase = 'over';
+                let p1Score = 0, p2Score = 0;
+                
+                for(let r=0; r<this.state.rows; r++) {
+                    for(let c=0; c<this.state.cols; c++) {
+                        if (this.state.grid[r][c].owner === 1) p1Score++;
+                        if (this.state.grid[r][c].owner === 2) p2Score++;
+                    }
+                }
+
+                let msg = "";
+                if (p1Score > p2Score) msg = "PLAYER 1 WINS!";
+                else if (p2Score > p1Score) msg = "PLAYER 2 WINS!";
+                else msg = "DRAW!";
+
+                this.UI.render(); // Final render
+                setTimeout(() => alert(`GAME OVER\n${msg}\nScore: ${p1Score} - ${p2Score}`), 100);
+            },
+
+            // --- HELPER LOGIC CLASS ---
+            Logic: {
+                calculatePower: function(r, c, attackerID) {
+                    let power = 0;
+                    // King's move neighbors (8 directions)
+                    const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+                    
+                    dirs.forEach(d => {
+                        const nr = r + d[0];
+                        const nc = c + d[1];
+                        if (nr >= 0 && nr < Game.state.rows && nc >= 0 && nc < Game.state.cols) {
+                            const neighbor = Game.state.grid[nr][nc];
+                            if (neighbor.owner === attackerID) {
+                                power += neighbor.count;
+                            }
+                        }
+                    });
+                    return power;
+                },
+
+                getNeighbors: function(r, c) {
+                    const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+                    let list = [];
+                    dirs.forEach(d => {
+                        const nr = r + d[0];
+                        const nc = c + d[1];
+                        if (nr >= 0 && nr < Game.state.rows && nc >= 0 && nc < Game.state.cols) {
+                            list.push({r: nr, c: nc, cell: Game.state.grid[nr][nc]});
+                        }
+                    });
+                    return list;
+                }
+            },
+
+            // --- AI MODULE ---
+            AI: {
+                makeMove: function() {
+                    if (Game.state.phase === 'placement') this.placementMove();
+                    else this.attackMove();
+                },
+
+                placementMove: function() {
+                    const level = Game.state.ai;
+                    const reserves = Game.state.p2Reserves;
+                    let bestR = -1, bestC = -1, maxScore = -9999;
+                    
+                    // Iterate all cells to find best spot
+                    for(let r=0; r<Game.state.rows; r++) {
+                        for(let c=0; c<Game.state.cols; c++) {
+                            const cell = Game.state.grid[r][c];
+                            if (cell.owner === 1) continue; // Cannot place on P1
+
+                            let score = 0;
+                            
+                            if (level === 'weak') {
+                                score = Math.random();
+                            } 
+                            else if (level === 'strategic') {
+                                // Prefer creating clusters
+                                const neighbors = Game.Logic.getNeighbors(r, c);
+                                neighbors.forEach(n => {
+                                    if(n.cell.owner === 2) score += 5; // Next to friend
+                                    if(n.cell.owner === 1) score -= 1; // Away from enemy
+                                });
+                                if(cell.owner === 0) score += 2; // Prefer claiming new
+                            }
+                            else if (level === 'smart') {
+                                // Advanced Heuristic
+                                const neighbors = Game.Logic.getNeighbors(r, c);
+                                let friendPower = 0;
+                                let enemyPower = 0;
+                                neighbors.forEach(n => {
+                                    if(n.cell.owner === 2) friendPower += n.cell.count;
+                                    if(n.cell.owner === 1) enemyPower += n.cell.count;
+                                });
+
+                                // 1. Support Logic: Place where friends are weak but present
+                                if (friendPower > 0 && friendPower < 5) score += 10;
+                                
+                                // 2. Defensive Logic: Place where enemies are strong to block?
+                                // Actually, in this game, placing next to strong enemies is risky 
+                                // unless we make this stack HUGE.
+                                if (enemyPower > 10) score -= 5; 
+
+                                // 3. Centrality (Middle of board is valuable)
+                                const distFromCenter = Math.abs(r - Game.state.rows/2) + Math.abs(c - Game.state.cols/2);
+                                score -= distFromCenter; 
+                                
+                                score += Math.random() * 2; // Slight randomness
+                            }
+
+                            if (score > maxScore) {
+                                maxScore = score;
+                                bestR = r; bestC = c;
+                            }
+                        }
+                    }
+
+                    // Fallback
+                    if (bestR === -1) {
+                        // Find any empty or owned
+                        // (Shouldn't happen unless board full of P1, impossible in placement)
+                         bestR=0; bestC=0; 
+                    }
+
+                    // Amount logic
+                    let amt = 1;
+                    if (level === 'weak') amt = Math.floor(Math.random() * 5) + 1;
+                    else if (level === 'strategic') amt = Math.min(reserves, 5); // Conserve slightly
+                    else amt = Math.min(reserves, Math.floor(Math.random()*4)+3); // Variable
+
+                    Game.executePlacement(bestR, bestC, amt, 2);
+                },
+
+                attackMove: function() {
+                    const level = Game.state.ai;
+                    let targets = [];
+
+                    // Identify all valid targets
+                    for(let r=0; r<Game.state.rows; r++) {
+                        for(let c=0; c<Game.state.cols; c++) {
+                            const cell = Game.state.grid[r][c];
+                            if (cell.owner === 1) {
+                                const power = Game.Logic.calculatePower(r, c, 2);
+                                if (power > cell.count) {
+                                    // Calculate Threat: How much power does this P1 unit have against ME?
+                                    const threat = Game.Logic.calculatePower(r, c, 1);
+                                    targets.push({ r, c, val: cell.count, threat: threat });
+                                }
+                            }
+                        }
+                    }
+
+                    if (targets.length === 0) {
+                        Game.UI.log("AI", "No valid attacks. Passing.");
+                        Game.state.consecutivePasses++;
+                        Game.switchTurn();
+                        return;
+                    }
+
+                    // Sort targets based on AI intelligence
+                    if (level === 'weak') {
+                        const t = targets[Math.floor(Math.random() * targets.length)];
+                        Game.executeAttack(t.r, t.c, 2);
+                    } 
+                    else if (level === 'strategic') {
+                        // Kill biggest stack
+                        targets.sort((a,b) => b.val - a.val);
+                        Game.executeAttack(targets[0].r, targets[0].c, 2);
+                    } 
+                    else if (level === 'smart') {
+                        // Kill most threatening unit (Defense first)
+                        // Score = (Value of unit killed) + (Threat removed * 2)
+                        targets.sort((a,b) => (b.val + b.threat*2) - (a.val + a.threat*2));
+                        Game.executeAttack(targets[0].r, targets[0].c, 2);
+                    }
+                }
+            },
+
+            // --- UI RENDERER ---
+            UI: {
+                createGrid: function(rows, cols) {
+                    const gridDiv = document.getElementById('grid');
+                    gridDiv.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                    gridDiv.innerHTML = '';
+                    
+                    for(let r=0; r<rows; r++) {
+                        for(let c=0; c<cols; c++) {
+                            const d = document.createElement('div');
+                            d.className = 'cell';
+                            d.id = `c-${r}-${c}`;
+                            d.onclick = () => Game.handleCellClick(r, c);
+                            gridDiv.appendChild(d);
+                        }
+                    }
+                },
+
+                render: function() {
+                    const s = Game.state;
+                    
+                    // 1. Hud
+                    document.getElementById('p1-troops').innerText = s.p1Reserves;
+                    document.getElementById('p2-troops').innerText = s.p2Reserves;
+                    document.getElementById('phase-banner').innerText = s.phase.toUpperCase() + " PHASE";
+
+                    const p1Card = document.getElementById('p1-card');
+                    const p2Card = document.getElementById('p2-card');
+                    p1Card.classList.remove('active-p1');
+                    p2Card.classList.remove('active-p2');
+
+                    if (s.turn === 1) p1Card.classList.add('active-p1');
+                    else p2Card.classList.add('active-p2');
+
+                    document.getElementById('turn-indicator').innerText = 
+                        s.turn === 1 ? "Your Turn" : "Opponent Thinking...";
+
+                    // 2. Controls Visibility
+                    document.getElementById('placement-controls').style.display = s.phase === 'placement' ? 'flex' : 'none';
+                    document.getElementById('attack-controls').style.display = s.phase === 'attack' ? 'flex' : 'none';
+
+                    // 3. Grid
+                    let p1Score = 0, p2Score = 0;
+                    for(let r=0; r<s.rows; r++) {
+                        for(let c=0; c<s.cols; c++) {
+                            const cellData = s.grid[r][c];
+                            const el = document.getElementById(`c-${r}-${c}`);
+                            
+                            // Reset class
+                            el.className = 'cell'; 
+                            el.innerText = '';
+
+                            if (cellData.owner === 1) {
+                                el.classList.add('p1');
+                                el.innerText = cellData.count;
+                                p1Score++;
+                            } else if (cellData.owner === 2) {
+                                el.classList.add('p2');
+                                el.innerText = cellData.count;
+                                p2Score++;
+                            }
+
+                            // Highlighting Logic (Only for Human P1 in Attack Phase)
+                            if (s.phase === 'attack' && s.turn === 1 && cellData.owner === 2) {
+                                const power = Game.Logic.calculatePower(r, c, 1);
+                                if (power > cellData.count) {
+                                    el.classList.add('targetable');
+                                }
+                            }
+                        }
+                    }
+                    document.getElementById('p1-area').innerText = p1Score;
+                    document.getElementById('p2-area').innerText = p2Score;
+                },
+
+                log: function(actor, msg, success=null) {
+                    const box = document.getElementById('game-log');
+                    const div = document.createElement('div');
+                    div.className = 'log-entry';
+                    
+                    let span = document.createElement('span');
+                    span.innerText = `[${actor}] `;
+                    if(actor === 'P1') span.className = 'log-p1';
+                    else if (actor.includes('P2') || actor === 'AI') span.className = 'log-p2';
+                    else span.className = 'log-sys';
+                    
+                    let content = document.createElement('span');
+                    content.innerText = msg;
+                    if(success === true) content.className = 'log-success';
+                    if(success === false) content.className = 'log-fail';
+
+                    div.appendChild(span);
+                    div.appendChild(content);
+                    box.prepend(div);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
