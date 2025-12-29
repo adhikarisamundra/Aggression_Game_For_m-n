@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGGRESSION - Strategic Warfare</title>
+    <title>AGGRESSION - Advanced Strategic Warfare</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -16,6 +16,7 @@
             --p2-glow: rgba(255, 42, 42, 0.15);
             --sys-gold: #fbbf24;
             --sys-green: #10b981;
+            --sys-purple: #a855f7;
             --font-ui: 'Rajdhani', sans-serif;
             --font-mono: 'Space Mono', monospace;
         }
@@ -679,6 +680,7 @@
                     <option value="weak">Weak AI (Random Moves)</option>
                     <option value="strategic">Strategic AI (Aggressive)</option>
                     <option value="smart" selected>Smart AI (Monte Carlo)</option>
+                    <option value="alpha">Alpha AI (Minimax + Alpha-Beta)</option>
                 </select>
             </div>
 
@@ -769,18 +771,30 @@
     </div>
 
     <script>
-        // ==================== CORE GAME ENGINE ====================
+        // ==================== ADVANCED GAME ENGINE ====================
+        
+        /**
+         * Core Game State Manager
+         * Handles all game logic, state transitions, and player interactions
+         */
         const Core = {
+            // Game State
             grid: [],
             rows: 6,
             cols: 6,
             phase: 'placement', // 'placement' | 'attack'
             turn: 1, // 1 or 2
             reserves: [0, 0],
+            territories: [0, 0],
             aiMode: 'smart',
             selectedCell: null,
-            history: [],
-
+            moveHistory: [],
+            turnCount: 0,
+            gameStartTime: null,
+            
+            /**
+             * Initialize and start the game
+             */
             boot() {
                 this.rows = parseInt(document.getElementById('cfg-rows').value);
                 this.cols = parseInt(document.getElementById('cfg-cols').value);
@@ -788,11 +802,4 @@
                 this.aiMode = document.getElementById('cfg-ai').value;
                 
                 this.reserves = [troops, troops];
-                this.grid = Array(this.rows).fill(0).map(() => Array(this.cols).fill({ owner: 0, troops: 0 }));
-                
-                document.getElementById('setup-layer').style.display = 'none';
-                document.getElementById('game-ui').style.display = 'grid';
-                
-                if (this.aiMode !== 'human') {
-                    document.getElementById('p2-label').textContent = `▼ AI [${this.aiMode.toUpperCase()}]`;
-                }
+                this.territories = [0, 0];
