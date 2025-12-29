@@ -3,297 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGGRESSION: SINGULARITY</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>AEGIS: TACTICAL SIMULATION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
+        /* --- CORE VISUALS --- */
         :root {
-            --bg-deep: #00050a;
-            --p1-hex: #00f3ff;
-            --p1-dim: rgba(0, 243, 255, 0.1);
-            --p2-hex: #ff003c;
-            --p2-dim: rgba(255, 0, 60, 0.1);
-            --accent-hex: #e0f2fe;
-            --ui-glass: rgba(10, 20, 30, 0.9);
-            --grid-line: #1a2332;
+            --bg-void: #030508;
+            --panel-glass: rgba(10, 15, 25, 0.95);
+            --p1-core: #00f0ff;
+            --p1-glow: rgba(0, 240, 255, 0.5);
+            --p2-core: #ff0040;
+            --p2-glow: rgba(255, 0, 64, 0.5);
+            --sys-gold: #ffd700;
+            --sys-green: #00ff9d;
+            --border-dim: rgba(255, 255, 255, 0.1);
+            --font-main: 'Share Tech Mono', monospace;
+            --font-head: 'Orbitron', sans-serif;
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Share Tech Mono', monospace;
-            background-color: var(--bg-deep);
-            color: var(--accent-hex);
+            background-color: var(--bg-void);
+            color: #dbeafe;
+            font-family: var(--font-main);
             margin: 0; height: 100vh; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
-            background-image: radial-gradient(circle at 50% 50%, #111827 0%, #000 100%);
+            /* Cyber Grid */
+            background-image: 
+                linear-gradient(rgba(0, 255, 157, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 157, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
 
-        /* --- UI COMPONENTS --- */
-        .panel {
-            background: var(--ui-glass);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 4px;
+        /* --- CRT SCANLINE FX --- */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px; pointer-events: none; z-index: 999;
         }
+
+        /* --- UI COMPONENT LIBRARY --- */
+        .panel {
+            background: var(--panel-glass);
+            border: 1px solid var(--border-dim);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 2px;
+            position: relative;
+        }
+        /* Tech Corners */
+        .panel::before { content: ''; position: absolute; top: -1px; left: -1px; width: 8px; height: 8px; border-top: 2px solid var(--sys-green); border-left: 2px solid var(--sys-green); }
+        .panel::after { content: ''; position: absolute; bottom: -1px; right: -1px; width: 8px; height: 8px; border-bottom: 2px solid var(--sys-green); border-right: 2px solid var(--sys-green); }
 
         .btn {
-            background: rgba(255,255,255,0.05); color: var(--accent-hex);
-            border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px;
-            font-family: 'Orbitron'; font-weight: bold; letter-spacing: 2px;
-            cursor: pointer; transition: 0.2s; text-transform: uppercase;
+            background: rgba(0, 255, 157, 0.05); color: var(--sys-green);
+            border: 1px solid var(--sys-green); padding: 12px 20px;
+            font-family: var(--font-head); font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .btn:hover { background: #fff; color: #000; box-shadow: 0 0 15px #fff; }
-        .btn-danger { border-color: var(--p2-hex); color: var(--p2-hex); }
-        .btn-danger:hover { background: var(--p2-hex); color: #000; box-shadow: 0 0 15px var(--p2-hex); }
+        .btn:hover { background: var(--sys-green); color: #000; box-shadow: 0 0 20px var(--sys-green); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; border-color: #555; color: #555; }
+
+        .btn-danger { color: var(--p2-core); border-color: var(--p2-core); }
+        .btn-danger:hover { background: var(--p2-core); color: #000; box-shadow: 0 0 20px var(--p2-core); }
+
+        input, select {
+            background: #080c14; border: 1px solid #334155; color: #fff;
+            padding: 10px; font-family: var(--font-main); font-size: 1.1rem;
+            text-align: center; width: 100%; outline: none; transition: 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--sys-green); box-shadow: 0 0 10px rgba(0, 255, 157, 0.1); }
+        label { color: #64748b; font-size: 0.75rem; letter-spacing: 1px; display: block; margin-bottom: 5px; text-transform: uppercase; }
 
         /* --- SETUP SCREEN --- */
-        #setup-screen {
-            position: absolute; z-index: 100; padding: 40px;
-            display: flex; flex-direction: column; gap: 20px; width: 500px;
+        #setup-ui {
+            position: absolute; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+            padding: 40px; width: 95%; max-width: 550px;
         }
         h1 {
-            font-family: 'Orbitron'; font-size: 3.5rem; margin: 0; text-align: center;
-            background: linear-gradient(180deg, #fff, #555);
+            font-family: var(--font-head); font-size: 3.5rem; margin: 0; line-height: 1;
+            background: linear-gradient(180deg, #fff, #666);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+            text-shadow: 0 0 30px rgba(0, 255, 157, 0.2); letter-spacing: 4px;
         }
-        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        label { font-size: 0.7rem; color: #666; display: block; margin-bottom: 5px; }
-        input, select {
-            width: 100%; background: #000; border: 1px solid #333; color: #fff;
-            padding: 10px; font-family: 'Share Tech Mono'; text-align: center;
-            font-size: 1.1rem; outline: none;
-        }
-        input:focus, select:focus { border-color: var(--p1-hex); }
+        .setup-row { display: flex; gap: 15px; width: 100%; }
 
         /* --- GAME LAYOUT --- */
-        #game-ui {
-            display: none; width: 100%; height: 100%;
-            grid-template-columns: 300px 1fr 300px;
-            grid-template-rows: 60px 1fr 80px;
-            gap: 20px; padding: 20px; z-index: 10;
+        #game-interface {
+            display: none; width: 100vw; height: 100vh;
+            grid-template-columns: 280px 1fr 280px;
+            grid-template-rows: 60px 1fr 150px;
+            gap: 15px; padding: 15px; z-index: 10;
         }
 
-        /* TOP BAR */
-        .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
-        #phase-display {
-            font-family: 'Orbitron'; font-size: 1.4rem; letter-spacing: 4px;
-            color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5);
-            border: 1px solid rgba(255,255,255,0.2); padding: 5px 20px;
+        /* HEADER */
+        .header-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+        .phase-badge {
+            font-family: var(--font-head); font-size: 1.2rem; letter-spacing: 3px;
+            color: #fff; background: rgba(255,255,255,0.05); padding: 5px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         /* SIDEBARS */
         .sidebar {
-            grid-row: 2 / 3; display: flex; flex-direction: column; gap: 20px;
-            padding: 30px; transition: 0.3s; opacity: 0.5; border: 1px solid transparent;
+            grid-row: 2 / 3; display: flex; flex-direction: column; gap: 15px;
+            padding: 20px; transition: 0.3s; opacity: 0.4; border: 1px solid transparent;
         }
-        /* ACTIVE TURN STYLES */
-        .sidebar.active-p1 {
-            opacity: 1; border-color: var(--p1-hex);
-            box-shadow: 0 0 30px var(--p1-dim), inset 0 0 20px var(--p1-dim);
-            transform: scale(1.02);
-        }
-        .sidebar.active-p2 {
-            opacity: 1; border-color: var(--p2-hex);
-            box-shadow: 0 0 30px var(--p2-dim), inset 0 0 20px var(--p2-dim);
-            transform: scale(1.02);
-        }
+        .sidebar.active { opacity: 1; transform: scale(1.02); background: rgba(20, 30, 40, 0.9); }
+        .p1-active { border-color: var(--p1-core); box-shadow: 0 0 30px var(--p1-glow); }
+        .p2-active { border-color: var(--p2-core); box-shadow: 0 0 30px var(--p2-glow); }
 
-        .player-label { font-family: 'Orbitron'; font-size: 1.5rem; text-align: center; margin-bottom: 20px; }
-        .stat-group { text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 4px; }
-        .stat-val { font-family: 'Orbitron'; font-size: 3rem; font-weight: 900; line-height: 1; }
-        .stat-name { font-size: 0.8rem; color: #666; letter-spacing: 2px; margin-top: 5px; }
+        .stat-card {
+            background: rgba(0,0,0,0.4); padding: 15px; border-radius: 2px;
+            text-align: center; border-left: 3px solid #444;
+        }
+        .p1-side .stat-card { border-color: var(--p1-core); }
+        .p2-side .stat-card { border-color: var(--p2-core); }
+        
+        .stat-val { font-family: var(--font-head); font-size: 3rem; font-weight: 900; line-height: 1; color: #fff; }
+        .stat-label { font-size: 0.8rem; letter-spacing: 2px; opacity: 0.7; margin-top: 5px; }
 
-        /* BOARD AREA */
-        #board-area {
+        /* CENTER STAGE */
+        #viewport {
             grid-column: 2 / 3; grid-row: 2 / 3;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative;
         }
-        #grid-frame {
-            padding: 15px; background: rgba(0,0,0,0.8);
-            border: 1px solid #333; box-shadow: 0 20px 50px #000;
+        #grid-container {
+            position: relative; padding: 10px; border: 1px solid #333;
+            background: rgba(0,0,0,0.8); box-shadow: 0 0 60px rgba(0,0,0,0.5);
         }
         #grid { display: grid; gap: 4px; }
-        
-        .cell {
-            width: 60px; height: 60px; background: #0a0f18;
-            border: 1px solid #222; display: flex; justify-content: center; align-items: center;
-            font-family: 'Orbitron'; font-weight: bold; font-size: 1.5rem;
-            cursor: pointer; transition: 0.1s; position: relative;
-        }
-        .cell:hover { border-color: #fff; z-index: 10; transform: scale(1.1); }
-        
-        /* PLAYER 1 UNITS */
-        .cell.p1 {
-            color: var(--p1-hex); border: 2px solid var(--p1-hex);
-            background: rgba(0, 243, 255, 0.05);
-            box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.1);
-        }
-        /* PLAYER 2 UNITS */
-        .cell.p2 {
-            color: var(--p2-hex); border: 2px solid var(--p2-hex);
-            background: rgba(255, 0, 60, 0.05);
-            box-shadow: inset 0 0 15px rgba(255, 0, 60, 0.1);
-        }
-        /* LOCKED (Visual indicator that you can't place here) */
-        .cell.locked { cursor: not-allowed; opacity: 0.8; }
-        
-        /* ATTACK PREVIEW */
-        .cell.targetable { animation: flashRed 1s infinite; cursor: crosshair; }
-        @keyframes flashRed { 0% {box-shadow: 0 0 0 var(--p2-hex);} 50% {box-shadow: 0 0 20px var(--p2-hex);} }
 
-        /* BOTTOM BAR */
-        #controls {
-            grid-column: 2 / 3; grid-row: 3 / 4;
-            display: flex; justify-content: center; align-items: center; gap: 20px;
+        .cell {
+            width: 60px; height: 60px; background: #080c12;
+            display: flex; justify-content: center; align-items: center;
+            font-family: var(--font-head); font-weight: bold; font-size: 1.5rem;
+            cursor: pointer; position: relative; border: 1px solid #1e293b;
+            transition: all 0.15s ease;
         }
+        .cell:hover { z-index: 10; transform: scale(1.15); border-color: #fff; }
         
-        #log-feed {
-            grid-column: 1 / 2; grid-row: 3 / 4;
-            font-size: 0.7rem; color: #666; overflow: hidden;
-            display: flex; flex-direction: column-reverse;
-            border-top: 2px solid #333; padding-top: 5px;
+        /* OWNERSHIP STYLES */
+        .cell.p1 {
+            color: var(--p1-core); border-color: var(--p1-core);
+            background: rgba(0, 243, 255, 0.05);
+            box-shadow: inset 0 0 15px var(--p1-glow);
         }
-        .log-entry { margin-bottom: 2px; }
-        .log-high { color: var(--p1-hex); }
-        .log-warn { color: var(--p2-hex); }
+        .cell.p2 {
+            color: var(--p2-core); border-color: var(--p2-core);
+            background: rgba(255, 0, 60, 0.05);
+            box-shadow: inset 0 0 15px var(--p2-glow);
+        }
+        .cell.locked { cursor: not-allowed; opacity: 0.7; }
+        .cell.locked:hover { transform: none; border-color: #1e293b; }
+
+        /* ATTACK PREVIEW */
+        .cell.valid-target { animation: pulseTarget 1s infinite; cursor: crosshair; }
+        @keyframes pulseTarget { 0% {box-shadow: 0 0 0 var(--p2-core);} 50% {box-shadow: 0 0 25px var(--p2-core);} }
+
+        /* PREDICTION TOOLTIP */
+        #prediction-hud {
+            position: absolute; pointer-events: none; z-index: 50;
+            background: rgba(0, 0, 0, 0.95); border: 1px solid #fff;
+            padding: 8px 12px; font-size: 0.8rem; color: #fff;
+            white-space: nowrap; transform: translate(-50%, -120%);
+            display: none; box-shadow: 0 5px 15px #000;
+        }
+
+        /* BOTTOM AREA */
+        #console-area {
+            grid-column: 1 / 3; grid-row: 3 / 4;
+            background: #000; border: 1px solid #333; padding: 10px;
+            font-size: 0.75rem; overflow-y: auto; font-family: monospace;
+            display: flex; flex-direction: column-reverse;
+        }
+        .log-line { margin-bottom: 3px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        .log-p1 { color: var(--p1-core); }
+        .log-p2 { color: var(--p2-core); }
+        .log-sys { color: var(--sys-green); }
+
+        #action-deck {
+            grid-column: 3 / 4; grid-row: 3 / 4;
+            display: flex; flex-direction: column; gap: 10px;
+            justify-content: center;
+        }
 
         /* MODALS */
-        .modal-overlay {
+        .modal-wrap {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 200; display: none;
+            background: rgba(0,0,0,0.9); z-index: 200; display: none;
             justify-content: center; align-items: center;
         }
-        .modal-box {
-            background: #050a10; border: 1px solid var(--p1-hex); padding: 40px;
-            text-align: center; max-width: 500px; width: 90%;
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+        .modal-body {
+            background: #050a10; border: 1px solid var(--p1-core); padding: 30px;
+            width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15); text-align: center;
         }
 
-        /* AI COMPUTING OVERLAY */
-        #ai-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9); border: 1px solid var(--p2-hex); color: var(--p2-hex);
-            padding: 10px 20px; font-family: 'Orbitron'; z-index: 50; display: none;
-            box-shadow: 0 0 20px var(--p2-hex); pointer-events: none;
-        }
+        /* DATA TABLE */
+        .archive-table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; font-size: 0.85rem; }
+        .archive-table th { color: var(--sys-green); border-bottom: 1px solid #333; padding: 5px; }
+        .archive-table td { padding: 8px 5px; border-bottom: 1px solid #111; color: #aaa; }
+        .archive-table tr:hover { background: #111; }
 
         @media (max-width: 900px) {
-            #game-ui { display: flex; flex-direction: column; overflow-y: auto; }
-            .sidebar { flex-direction: row; justify-content: space-around; padding: 10px; min-height: 80px; }
-            #log-feed { display: none; }
+            #game-interface { grid-template-columns: 1fr; grid-template-rows: auto auto auto 1fr auto; display: flex; flex-direction: column; overflow-y: auto; }
+            .sidebar { flex-direction: row; justify-content: space-around; padding: 10px; }
+            .stat-val { font-size: 2rem; }
+            #console-area { height: 100px; }
         }
     </style>
 </head>
 <body>
 
-    <div id="setup-screen" class="panel">
-        <h1>AGGRESSION</h1>
-        <div style="text-align:center; color:#666; margin-bottom:30px; letter-spacing:3px;">SINGULARITY ENGINE V9.0</div>
+    <div class="scanlines"></div>
+
+    <div id="setup-ui" class="panel">
+        <h1>AEGIS</h1>
+        <div style="letter-spacing:4px; color:var(--sys-green); margin-bottom:20px; font-size:0.8rem;">STRATEGIC WARFARE SIMULATOR</div>
         
-        <div class="config-grid">
-            <div>
-                <label>GRID ROWS (3-10)</label>
-                <input type="number" id="rows" value="6" min="3" max="10">
+        <div class="setup-row">
+            <div style="flex:1">
+                <label>ROWS (3-10)</label>
+                <input type="number" id="cfg-rows" value="6" min="3" max="10">
             </div>
-            <div>
-                <label>GRID COLS (3-10)</label>
-                <input type="number" id="cols" value="6" min="3" max="10">
+            <div style="flex:1">
+                <label>COLS (3-10)</label>
+                <input type="number" id="cfg-cols" value="6" min="3" max="10">
             </div>
         </div>
         
-        <div>
-            <label>TOTAL TROOPS (PER PLAYER)</label>
-            <input type="number" id="troops" value="36" min="1">
-            <label style="margin-top:5px; color:#444;">RULE: NO STACKING ALLOWED</label>
+        <div style="width:100%">
+            <label>UNIT ALLOCATION</label>
+            <input type="number" id="cfg-troops" value="36" min="1">
+            <div style="font-size:0.7rem; color:#666; margin-top:5px;">⚠️ RULE: SINGLE PLACEMENT PER TILE</div>
         </div>
 
-        <div>
-            <label>OPPONENT INTELLIGENCE</label>
-            <select id="ai-level">
+        <div style="width:100%">
+            <label>OPPONENT CLASS</label>
+            <select id="cfg-ai">
                 <option value="human">HUMAN (HOTSEAT)</option>
-                <option value="weak">AI: DRONE (Random)</option>
-                <option value="strategic">AI: TACTICIAN (Aggressive)</option>
-                <option value="omega" selected>AI: SINGULARITY (Simulation)</option>
+                <option value="weak">CLASS 1: DRONE (RANDOM)</option>
+                <option value="strategic">CLASS 2: TACTICIAN (HEURISTIC)</option>
+                <option value="omega" selected>CLASS 3: AEGIS (MINIMAX SIMULATION)</option>
             </select>
         </div>
 
-        <button class="btn" onclick="Game.init()">INITIALIZE</button>
-        <button class="btn btn-danger" onclick="Data.open()">MISSION LOGS</button>
+        <button class="btn" style="width:100%; margin-top:10px;" onclick="Core.init()">INITIALIZE SYSTEM</button>
+        <button class="btn btn-danger" style="width:100%" onclick="Data.open()">MISSION ARCHIVES</button>
     </div>
 
-    <div id="game-ui">
-        
-        <div class="top-bar panel">
-            <div style="font-weight:bold; color:#fff;">AGGRESSION PROTOCOL</div>
-            <div id="phase-display">PLACEMENT</div>
-            <div onclick="location.reload()" style="cursor:pointer; color:#555;">[ABORT]</div>
+    <div id="game-interface">
+        <div class="header-bar panel">
+            <div style="font-weight:bold; color:#fff;">ACTIVE SESSION</div>
+            <div id="phase-badge" class="phase-badge">PLACEMENT</div>
+            <div onclick="location.reload()" style="cursor:pointer; color:#666;">[ABORT]</div>
         </div>
 
-        <div class="sidebar panel" id="p1-bar">
-            <div class="player-label" style="color:var(--p1-hex)">PLAYER 1</div>
-            <div class="stat-group">
+        <div class="sidebar panel p1-side" id="p1-panel">
+            <div class="player-label" style="color:var(--p1-core); text-align:center; font-family:var(--font-head); font-size:1.5rem;">PLAYER 1</div>
+            <div class="stat-card">
                 <div class="stat-val" id="p1-res">0</div>
-                <div class="stat-name">RESERVES</div>
+                <div class="stat-label">RESERVES</div>
             </div>
-            <div class="stat-group">
-                <div class="stat-val" id="p1-score">0</div>
-                <div class="stat-name">SECTORS</div>
+            <div class="stat-card">
+                <div class="stat-val" id="p1-area">0</div>
+                <div class="stat-label">SECTORS</div>
             </div>
         </div>
 
-        <div id="board-area">
-            <div id="ai-overlay">COMPUTING OPTIMAL VECTOR...</div>
-            <div id="grid-frame">
+        <div id="viewport">
+            <div id="grid-container">
                 <div id="grid"></div>
+                <div id="prediction-hud"></div>
+            </div>
+            <div id="ai-thinking" style="position:absolute; bottom:20px; color:var(--p2-core); display:none; font-weight:bold; text-shadow:0 0 10px var(--p2-core);">
+                >> OMEGA AI COMPUTING VECTORS...
             </div>
         </div>
 
-        <div class="sidebar panel" id="p2-bar">
-            <div class="player-label" style="color:var(--p2-hex)" id="p2-name">PLAYER 2</div>
-            <div class="stat-group">
+        <div class="sidebar panel p2-side" id="p2-panel">
+            <div class="player-label" style="color:var(--p2-core); text-align:center; font-family:var(--font-head); font-size:1.5rem;" id="p2-name">PLAYER 2</div>
+            <div class="stat-card">
                 <div class="stat-val" id="p2-res">0</div>
-                <div class="stat-name">RESERVES</div>
+                <div class="stat-label">RESERVES</div>
             </div>
-            <div class="stat-group">
-                <div class="stat-val" id="p2-score">0</div>
-                <div class="stat-name">SECTORS</div>
-            </div>
-        </div>
-
-        <div id="log-feed"></div>
-
-        <div id="controls" class="panel">
-            <div id="place-ctrls" style="display:flex; align-items:center; gap:15px;">
-                <span style="color:#888;">DEPLOYMENT SIZE:</span>
-                <input type="number" id="deploy-amt" value="1" min="1" style="width:80px; background:#111; border:none;">
-                <span style="font-size:0.7rem; color:#555;">(CLICK EMPTY TILE)</span>
-            </div>
-            <div id="attack-ctrls" style="display:none;">
-                <span style="color:#888; margin-right:20px;">TARGET HOSTILE SECTOR</span>
-                <button class="btn btn-danger" onclick="Game.passTurn()">PASS TURN</button>
+            <div class="stat-card">
+                <div class="stat-val" id="p2-area">0</div>
+                <div class="stat-label">SECTORS</div>
             </div>
         </div>
 
+        <div id="console-area"></div>
+
+        <div id="action-deck" class="panel" style="padding:15px;">
+            <div id="placement-controls">
+                <label>DEPLOYMENT SIZE</label>
+                <input type="number" id="deploy-input" value="1" min="1" style="background:#111; margin-bottom:10px;">
+                <div style="font-size:0.7rem; color:#666;">CLICK EMPTY TILE TO CONFIRM</div>
+            </div>
+            <div id="attack-controls" style="display:none;">
+                <div style="text-align:center; margin-bottom:10px; color:var(--p2-core);">COMBAT ACTIVE</div>
+                <button class="btn btn-danger" style="width:100%" onclick="Core.passTurn()">PASS TURN</button>
+            </div>
+        </div>
     </div>
 
-    <div id="data-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h2 style="font-family:'Orbitron'; margin-bottom:20px;">MISSION ARCHIVES</h2>
-            <div id="archive-list" style="height:200px; overflow-y:auto; border:1px solid #333; margin-bottom:20px; text-align:left; padding:10px;"></div>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="flex:1" onclick="Data.export()">EXPORT DATA</button>
-                <button class="btn" style="flex:1" onclick="Data.import()">IMPORT DATA</button>
+    <div id="archive-modal" class="modal-wrap">
+        <div class="modal-body">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0; color:var(--sys-green); font-family:var(--font-head);">MISSION ARCHIVES</h2>
+                <span style="cursor:pointer; font-size:1.5rem;" onclick="Data.close()">×</span>
             </div>
-            <button class="btn btn-danger" style="width:100%; margin-top:10px;" onclick="Data.close()">CLOSE</button>
+            
+            <table class="archive-table">
+                <thead><tr><th>ID</th><th>DATE</th><th>RESULT</th><th>SCORE</th><th>ACTION</th></tr></thead>
+                <tbody id="archive-list"></tbody>
+            </table>
+
+            <div style="margin-top:20px; border-top:1px solid #333; padding-top:15px; text-align:left;">
+                <label>DATA SYNC (CROSS-DEVICE)</label>
+                <textarea id="sync-string" style="width:100%; height:60px; background:#000; color:#0f0; border:1px solid #333; font-size:0.7rem;" readonly placeholder="Export string..."></textarea>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Data.export()">COPY EXPORT CODE</button>
+                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Data.import()">IMPORT FROM CLIPBOARD</button>
+                </div>
+            </div>
+            
+            <button class="btn btn-danger" style="width:100%; margin-top:20px;" onclick="Data.wipe()">PURGE DATABASE</button>
         </div>
     </div>
 
     <script>
-        /* --- CORE ENGINE V9 --- */
-        const Game = {
+        /* --- ENGINE CORE --- */
+        const Core = {
             rows: 0, cols: 0, grid: [],
             p1Res: 0, p2Res: 0,
             turn: 1, phase: 'setup', ai: null,
@@ -301,23 +348,19 @@
             logs: [],
 
             init() {
-                this.rows = +document.getElementById('rows').value;
-                this.cols = +document.getElementById('cols').value;
-                // Safety clamp
-                this.rows = Math.max(3, Math.min(10, this.rows));
-                this.cols = Math.max(3, Math.min(10, this.cols));
-                
-                const t = +document.getElementById('troops').value;
+                this.rows = Math.max(3, Math.min(10, +document.getElementById('cfg-rows').value));
+                this.cols = Math.max(3, Math.min(10, +document.getElementById('cfg-cols').value));
+                const t = +document.getElementById('cfg-troops').value;
+                const aiVal = document.getElementById('cfg-ai').value;
+
                 this.p1Res = t; this.p2Res = t;
-                
-                const aiVal = document.getElementById('ai-level').value;
                 this.ai = aiVal === 'human' ? null : aiVal;
-                
                 this.phase = 'placement';
                 this.turn = Math.random() < 0.5 ? 1 : 2;
                 this.firstMover = 0; this.hasMoved = false; this.passCount = 0;
                 this.logs = [];
 
+                // Grid Init
                 this.grid = [];
                 for(let r=0; r<this.rows; r++) {
                     let row = [];
@@ -325,50 +368,69 @@
                     this.grid.push(row);
                 }
 
-                // UI Transition
-                document.getElementById('setup-screen').style.display = 'none';
-                document.getElementById('game-ui').style.display = 'grid';
+                // UI Reset
+                document.getElementById('setup-ui').style.display = 'none';
+                document.getElementById('game-interface').style.display = 'grid';
                 document.getElementById('p2-name').innerText = this.ai ? `AI: ${this.ai.toUpperCase()}` : "PLAYER 2";
-
-                this.buildGrid();
+                
+                this.buildBoard();
                 this.updateHUD();
-                this.log("SYSTEM INITIALIZED");
-                this.log(`P${this.turn} STARTS PLACEMENT`);
+                this.log("SYSTEM INITIALIZED", "sys");
+                this.log(`PLAYER ${this.turn} HAS INITIATIVE`, this.turn===1?"p1":"p2");
                 this.checkAI();
             },
 
-            buildGrid() {
+            buildBoard() {
                 const el = document.getElementById('grid');
                 el.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
                 el.innerHTML = '';
                 for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
                     const d = document.createElement('div');
                     d.className = 'cell';
-                    d.id = `c-${r}-${c}`;
-                    d.onclick = () => this.handleInput(r, c);
+                    d.id = `cell-${r}-${c}`;
+                    d.onclick = () => this.interact(r, c);
+                    d.onmouseenter = () => this.hover(r, c);
+                    d.onmouseleave = () => document.getElementById('prediction-hud').style.display='none';
                     el.appendChild(d);
                 }
             },
 
-            handleInput(r, c) {
+            hover(r, c) {
+                if(this.phase !== 'attack' || this.turn !== 1) return;
+                const cell = this.grid[r][c];
+                if(cell.owner !== 2) return;
+
+                const p = this.calcPower(r, c, 1);
+                const hud = document.getElementById('prediction-hud');
+                const rect = document.getElementById(`cell-${r}-${c}`).getBoundingClientRect();
+                const parent = document.getElementById('viewport').getBoundingClientRect();
+
+                hud.style.display = 'block';
+                hud.style.left = (rect.left - parent.left + 30) + 'px';
+                hud.style.top = (rect.top - parent.top) + 'px';
+                hud.innerHTML = `ATK: <span style="color:var(--p1-core)">${p}</span> vs DEF: <span style="color:var(--p2-core)">${cell.count}</span><br>${p>cell.count ? ">> VICTORY <<" : ">> INSUFFICIENT <<"}`;
+                hud.style.borderColor = p > cell.count ? 'var(--sys-green)' : 'var(--p2-core)';
+            },
+
+            interact(r, c) {
                 if(this.phase === 'over' || (this.ai && this.turn === 2)) return;
                 
                 if(this.phase === 'placement') {
-                    const amt = +document.getElementById('deploy-amt').value || 1;
-                    this.actionPlace(r, c, amt);
+                    const amt = +document.getElementById('deploy-input').value;
+                    this.placeTroop(r, c, amt);
                 } else {
-                    this.actionAttack(r, c);
+                    this.attackSector(r, c);
                 }
             },
 
-            /* --- LOGIC: PLACEMENT (NO STACKING) --- */
-            actionPlace(r, c, amt) {
+            /* --- LOGIC: PLACEMENT --- */
+            placeTroop(r, c, amt) {
                 const cell = this.grid[r][c];
                 
-                // RULE: NO STACKING. Must be empty.
+                // RULE: NO STACKING
                 if(cell.owner !== 0) {
-                    this.flashError(r, c);
-                    this.log("ERROR: TILE OCCUPIED");
+                    this.log("ERROR: SECTOR OCCUPIED", "sys");
+                    this.flash(r, c, 'red');
                     return;
                 }
 
@@ -377,71 +439,68 @@
                 if(actual <= 0) return;
 
                 cell.owner = this.turn;
-                cell.count += actual;
+                cell.count = actual;
                 if(this.turn === 1) this.p1Res -= actual; else this.p2Res -= actual;
 
                 if(!this.hasMoved) { this.firstMover = this.turn; this.hasMoved = true; }
 
                 this.render(); this.updateHUD();
                 
-                // CHECK: Is board full? Or both out of troops?
-                const boardFull = this.grid.every(row => row.every(c => c.owner !== 0));
-                
-                if((this.p1Res === 0 && this.p2Res === 0) || boardFull) {
-                    this.startAttackPhase();
+                // Phase Check
+                const full = this.grid.every(rw => rw.every(cl => cl.owner !== 0));
+                if((this.p1Res === 0 && this.p2Res === 0) || full) {
+                    this.startWar();
                 } else {
-                    // Turn switch logic
                     let next = this.turn === 1 ? 2 : 1;
-                    let nextRes = next === 1 ? this.p1Res : this.p2Res;
-                    
-                    // If next player has no troops, keep current turn
-                    if(nextRes > 0 && !boardFull) {
-                        this.turn = next;
-                    }
+                    if((next===1?this.p1Res:this.p2Res) > 0 && !full) this.turn = next;
                 }
                 this.updateHUD(); this.checkAI();
             },
 
-            startAttackPhase() {
+            startWar() {
                 this.phase = 'attack';
                 this.turn = this.firstMover;
-                document.getElementById('phase-display').innerText = "COMBAT PHASE";
-                document.getElementById('phase-display').style.borderColor = "var(--p2-hex)";
-                document.getElementById('place-ctrls').style.display = 'none';
-                document.getElementById('attack-ctrls').style.display = 'flex';
-                this.log("PHASE CHANGE -> COMBAT");
+                document.getElementById('phase-badge').innerText = "COMBAT PHASE";
+                document.getElementById('phase-badge').style.borderColor = "var(--p2-core)";
+                document.getElementById('placement-controls').style.display = 'none';
+                document.getElementById('attack-controls').style.display = 'block';
+                this.log("PLACEMENT COMPLETE. COMBAT INITIATED.", "sys");
             },
 
             /* --- LOGIC: ATTACK --- */
-            actionAttack(r, c) {
+            attackSector(r, c) {
                 const cell = this.grid[r][c];
-                if(cell.owner === 0 || cell.owner === this.turn) { return; } // Invalid
+                if(cell.owner === 0 || cell.owner === this.turn) return;
 
-                let power = 0;
-                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0&&dc===0)continue;
-                    let nr=r+dr, nc=c+dc;
-                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner === this.turn) {
-                        power += this.grid[nr][nc].count;
-                    }
-                }
-
+                const power = this.calcPower(r, c, this.turn);
+                
                 if(power > cell.count) {
-                    this.log(`P${this.turn} ELIMINATED [${r},${c}]`);
+                    this.log(`P${this.turn} NEUTRALIZED [${r},${c}]`, this.turn===1?"p1":"p2");
                     cell.owner = 0; cell.count = 0;
                     this.passCount = 0;
                 } else {
-                    this.log(`ATTACK FAILED [${r},${c}]`);
-                    this.flashError(r, c);
+                    this.log(`ATTACK FAILED ON [${r},${c}]`, "sys");
+                    this.flash(r, c, 'red');
                 }
-                
                 this.render(); this.nextTurn();
+            },
+
+            calcPower(r, c, attacker) {
+                let p = 0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0&&dc===0) continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols) {
+                        if(this.grid[nr][nc].owner === attacker) p += this.grid[nr][nc].count;
+                    }
+                }
+                return p;
             },
 
             passTurn() {
                 this.passCount++;
-                this.log(`P${this.turn} PASS`);
-                if(this.passCount >= 2) this.endGame(); else this.nextTurn();
+                this.log(`P${this.turn} PASSES`, this.turn===1?"p1":"p2");
+                if(this.passCount >= 2) this.gameOver(); else this.nextTurn();
             },
 
             nextTurn() {
@@ -449,78 +508,78 @@
                 this.updateHUD(); this.checkAI();
             },
 
-            /* --- AI CONTROLLER --- */
+            /* --- OMEGA AI ENGINE --- */
             checkAI() {
                 if(!this.ai || this.turn === 1 || this.phase === 'over') return;
                 
-                // Show thinking UI
-                document.getElementById('ai-overlay').style.display = 'block';
-                
-                // Watchdog Timer: Force move if AI hangs
-                const watchdog = setTimeout(() => {
-                    console.warn("AI TIMEOUT - FORCING RANDOM MOVE");
-                    this.executeAiMove(null); 
-                }, 3000);
+                document.getElementById('ai-thinking').style.display = 'block';
+                const start = Date.now();
 
-                // Small delay for UX
                 setTimeout(() => {
                     let move = null;
+                    
                     if(this.phase === 'placement') {
-                        // AI PLACEMENT
-                        if(this.ai === 'omega') move = AI.getBestPlacement(this);
-                        else if(this.ai === 'strategic') move = AI.getStrategicPlacement(this);
-                        else move = AI.getRandomPlacement(this); // Weak
+                        if(this.ai === 'omega') move = AI.findBestPlacement(this);
+                        else if(this.ai === 'strategic') move = AI.findStrategicPlacement(this);
+                        else move = AI.findRandomPlacement(this);
 
-                        // Execute Place
-                        clearTimeout(watchdog);
                         if(move) {
-                            let amt = this.ai === 'weak' ? 1 : Math.floor(Math.random()*4)+2;
-                            this.actionPlace(move.r, move.c, amt);
+                            let amt = this.ai==='weak' ? 1 : Math.floor(Math.random()*4)+2;
+                            // Execute directly
+                            const cell = this.grid[move.r][move.c];
+                            const actual = Math.min(amt, this.p2Res);
+                            cell.owner = 2; cell.count = actual; this.p2Res -= actual;
+                            if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
+                            
+                            // Check logic duplicate for AI
+                            const full = this.grid.every(rw => rw.every(cl => cl.owner !== 0));
+                            if((this.p1Res === 0 && this.p2Res === 0) || full) {
+                                this.startWar();
+                            } else {
+                                if(this.p1Res > 0 && !full) this.turn = 1;
+                            }
                         } else {
-                            // No valid moves? (Board full)
-                            this.startAttackPhase();
-                            this.updateHUD(); this.checkAI();
+                            // Should allow phase shift if board full
+                            this.startWar();
                         }
                     } else {
-                        // AI ATTACK
-                        if(this.ai === 'omega') move = AI.getSimulationAttack(this);
-                        else if(this.ai === 'strategic') move = AI.getBestAttack(this);
-                        else move = AI.getRandomAttack(this);
+                        // Combat
+                        if(this.ai === 'omega') move = AI.findBestAttack(this);
+                        else if(this.ai === 'strategic') move = AI.findGoodAttack(this);
+                        else move = AI.findRandomAttack(this);
 
-                        clearTimeout(watchdog);
                         if(move) {
-                            this.actionAttack(move.r, move.c);
+                            this.log(`AI TARGETS [${move.r},${move.c}]`, "p2");
+                            const cell = this.grid[move.r][move.c];
+                            cell.owner = 0; cell.count = 0; this.passCount = 0;
                         } else {
-                            this.passTurn();
+                            this.passCount++;
+                            this.log("AI PASSES", "p2");
+                            if(this.passCount >= 2) return this.gameOver();
                         }
+                        this.turn = 1;
                     }
-                    document.getElementById('ai-overlay').style.display = 'none';
-                }, 800);
+
+                    document.getElementById('ai-thinking').style.display = 'none';
+                    this.render(); this.updateHUD();
+                }, 600); // Thinking delay
             },
 
+            /* --- RENDERERS --- */
             render() {
                 for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
-                    const d = this.grid[r][c];
-                    const el = document.getElementById(`c-${r}-${c}`);
+                    const cell = this.grid[r][c];
+                    const el = document.getElementById(`cell-${r}-${c}`);
                     el.className = 'cell'; el.innerText = '';
-                    if(d.owner === 1) { el.classList.add('p1'); el.innerText = d.count; }
-                    if(d.owner === 2) { el.classList.add('p2'); el.innerText = d.count; }
                     
-                    // Locked visual for placement
-                    if(this.phase === 'placement' && d.owner !== 0) el.classList.add('locked');
-
-                    // Attack preview
-                    if(this.phase === 'attack' && this.turn === 1 && d.owner === 2) {
-                        // Calc power for viz
-                        let p = 0;
-                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                            if(dr===0&&dc===0)continue;
-                            let nr=r+dr, nc=c+dc;
-                            if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner === 1) {
-                                p += this.grid[nr][nc].count;
-                            }
-                        }
-                        if(p > d.count) el.classList.add('targetable');
+                    if(cell.owner === 1) { el.classList.add('p1'); el.innerText = cell.count; }
+                    if(cell.owner === 2) { el.classList.add('p2'); el.innerText = cell.count; }
+                    
+                    if(this.phase === 'placement' && cell.owner !== 0) el.classList.add('locked');
+                    
+                    // Attack Highlight
+                    if(this.phase === 'attack' && this.turn === 1 && cell.owner === 2) {
+                        if(this.calcPower(r, c, 1) > cell.count) el.classList.add('valid-target');
                     }
                 }
             },
@@ -529,136 +588,80 @@
                 document.getElementById('p1-res').innerText = this.p1Res;
                 document.getElementById('p2-res').innerText = this.p2Res;
                 
-                const p1Bar = document.getElementById('p1-bar');
-                const p2Bar = document.getElementById('p2-bar');
-                p1Bar.classList.remove('active-p1', 'active-p2');
-                p2Bar.classList.remove('active-p1', 'active-p2');
+                const s1 = document.getElementById('p1-panel');
+                const s2 = document.getElementById('p2-panel');
+                s1.className = `sidebar panel p1-side ${this.turn===1 ? 'active p1-active' : ''}`;
+                s2.className = `sidebar panel p2-side ${this.turn===2 ? 'active p2-active' : ''}`;
 
-                if(this.turn === 1) p1Bar.classList.add('active-p1');
-                if(this.turn === 2) p2Bar.classList.add('active-p2');
-
-                let s1=0, s2=0;
+                let score1=0, score2=0;
                 this.grid.forEach(r => r.forEach(c => {
-                    if(c.owner===1) s1++; if(c.owner===2) s2++;
+                    if(c.owner===1) score1++; if(c.owner===2) score2++;
                 }));
-                document.getElementById('p1-score').innerText = s1;
-                document.getElementById('p2-score').innerText = s2;
+                document.getElementById('p1-area').innerText = score1;
+                document.getElementById('p2-area').innerText = score2;
             },
 
-            log(msg) {
-                const el = document.getElementById('log-feed');
-                const div = document.createElement('div');
-                div.className = 'log-entry';
-                if(msg.includes('P1')) div.classList.add('log-high');
-                if(msg.includes('AI') || msg.includes('P2')) div.classList.add('log-warn');
-                div.innerText = `>> ${msg}`;
-                el.prepend(div);
+            log(msg, type='sys') {
                 this.logs.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
+                const el = document.getElementById('console-area');
+                const line = document.createElement('div');
+                line.className = `log-line log-${type}`;
+                line.innerText = `> ${msg}`;
+                el.prepend(line);
             },
 
-            flashError(r, c) {
-                const el = document.getElementById(`c-${r}-${c}`);
-                el.style.backgroundColor = '#fff';
+            flash(r, c, color) {
+                const el = document.getElementById(`cell-${r}-${c}`);
+                el.style.backgroundColor = color === 'red' ? '#500' : '#fff';
                 setTimeout(() => el.style.backgroundColor = '', 100);
             },
 
-            endGame() {
+            gameOver() {
                 this.phase = 'over';
-                let s1 = +document.getElementById('p1-score').innerText;
-                let s2 = +document.getElementById('p2-score').innerText;
-                let w = s1>s2 ? "PLAYER 1" : (s2>s1 ? "AI / PLAYER 2" : "DRAW");
+                let s1 = +document.getElementById('p1-area').innerText;
+                let s2 = +document.getElementById('p2-area').innerText;
+                let w = s1 > s2 ? "PLAYER 1" : (s2 > s1 ? "PLAYER 2" : "DRAW");
                 
-                Data.save(w, `${s1}-${s2}`, this.logs);
-                setTimeout(() => alert(`MISSION END.\nVICTOR: ${w}\n\nDATA ARCHIVED.`), 500);
+                Data.save(w, `${s1} - ${s2}`, this.logs);
+                setTimeout(() => alert(`MISSION END.\n\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}\n\nData archived.`), 200);
             }
         };
 
-        /* --- ADVANCED AI ENGINE --- */
+        /* --- AI LOGIC (MINIMAX LITE) --- */
         const AI = {
-            // 1. Heatmap Placement (Finds empty tile with most influence)
-            getBestPlacement(g) {
-                let moves = [];
+            // Placement: Heatmap based on neighbors + center
+            findBestPlacement(g) {
+                let best = null; let maxScore = -Infinity;
                 for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
                     if(g.grid[r][c].owner === 0) { // MUST BE EMPTY
                         let score = 0;
                         // Center bias
                         let dist = Math.abs(r - g.rows/2) + Math.abs(c - g.cols/2);
-                        score -= dist;
+                        score -= dist * 2;
                         
                         // Neighbor analysis
                         for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
                             if(dr===0&&dc===0)continue;
                             let nr=r+dr, nc=c+dc;
-                            if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols) {
-                                if(g.grid[nr][nc].owner === 2) score += 5; // Support friend
-                                if(g.grid[nr][nc].owner === 1) score -= 2; // Avoid direct contact early
+                            if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols) {
+                                if(g.grid[nr][nc].owner === 2) score += 5; // Support
+                                if(g.grid[nr][nc].owner === 1) score -= 3; // Avoid frontlines early
                             }
                         }
-                        moves.push({r,c,score});
+                        if(score > maxScore) { maxScore = score; best = {r,c}; }
                     }
                 }
-                moves.sort((a,b) => b.score - a.score);
-                return moves.length ? moves[0] : null;
+                return best;
+            },
+            findStrategicPlacement(g) { return this.findBestPlacement(g); }, // Reuse
+            findRandomPlacement(g) {
+                let emp = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) if(g.grid[r][c].owner===0) emp.push({r,c});
+                return emp.length ? emp[Math.floor(Math.random()*emp.length)] : null;
             },
 
-            getStrategicPlacement(g) {
-                // Simple clustering
-                let moves = [];
-                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
-                    if(g.grid[r][c].owner === 0) {
-                        let friends = 0;
-                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                            if(dr===0&&dc===0)continue;
-                            let nr=r+dr, nc=c+dc;
-                            if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols && g.grid[nr][nc].owner===2) friends++;
-                        }
-                        moves.push({r,c,score:friends});
-                    }
-                }
-                moves.sort((a,b) => b.score - a.score);
-                return moves.length ? moves[0] : this.getRandomPlacement(g);
-            },
-
-            getRandomPlacement(g) {
-                let empties = [];
-                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
-                    if(g.grid[r][c].owner === 0) empties.push({r,c});
-                }
-                return empties.length ? empties[Math.floor(Math.random()*empties.length)] : null;
-            },
-
-            // 2. Simulation Attack (Monte Carlo Lite)
-            getSimulationAttack(g) {
-                let attacks = this.getAllAttacks(g);
-                if(attacks.length === 0) return null;
-                
-                // Score based on value + safety
-                attacks.forEach(atk => {
-                    atk.score = atk.val * 10; // Base value
-                    // Simulate: If I kill this, how exposed am I? (Simplified)
-                    let exposure = 0;
-                    // Check neighbors of the target (enemies of the target, aka friends of AI)
-                    // If AI kills target, does it open a hole?
-                    atk.score -= Math.random() * 5; // Add noise
-                });
-                
-                attacks.sort((a,b) => b.score - a.score);
-                return attacks[0];
-            },
-
-            getBestAttack(g) {
-                let attacks = this.getAllAttacks(g);
-                if(attacks.length === 0) return null;
-                attacks.sort((a,b) => b.val - a.val); // Greedy
-                return attacks[0];
-            },
-
-            getRandomAttack(g) {
-                let attacks = this.getAllAttacks(g);
-                return attacks.length ? attacks[Math.floor(Math.random()*attacks.length)] : null;
-            },
-
-            getAllAttacks(g) {
+            // Attack: Safety first
+            findBestAttack(g) {
                 let moves = [];
                 for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
                     if(g.grid[r][c].owner === 1) { // Enemy
@@ -666,56 +669,84 @@
                         for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
                             if(dr===0&&dc===0)continue;
                             let nr=r+dr, nc=c+dc;
-                            if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols && g.grid[nr][nc].owner === 2) {
-                                p += g.grid[nr][nc].count;
-                            }
+                            if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols && g.grid[nr][nc].owner===2) p += g.grid[nr][nc].count;
                         }
+                        
                         if(p > g.grid[r][c].count) {
-                            moves.push({r, c, val: g.grid[r][c].count});
+                            // Score: Value of kill + safety
+                            // Does killing this expose me? (Simulate removal)
+                            // For complexity, we stick to high value kills
+                            moves.push({r,c, score: g.grid[r][c].count * 10});
                         }
                     }
                 }
-                return moves;
+                moves.sort((a,b) => b.score - a.score);
+                return moves.length ? moves[0] : null;
+            },
+            findGoodAttack(g) { return this.findBestAttack(g); },
+            findRandomAttack(g) {
+                let moves = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
+                    if(g.grid[r][c].owner === 1) {
+                        let p = 0;
+                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                            if(dr===0&&dc===0)continue;
+                            let nr=r+dr, nc=c+dc;
+                            if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols && g.grid[nr][nc].owner===2) p += g.grid[nr][nc].count;
+                        }
+                        if(p > g.grid[r][c].count) moves.push({r,c});
+                    }
+                }
+                return moves.length ? moves[Math.floor(Math.random()*moves.length)] : null;
             }
         };
 
-        /* --- DATA MANAGEMENT (Archives) --- */
+        /* --- DATA MANAGER --- */
         const Data = {
-            key: 'aggression_save_v2',
+            key: 'aegis_save_v1',
             get() { return JSON.parse(localStorage.getItem(this.key) || "[]"); },
-            save(winner, score, logs) {
+            save(w, s, l) {
                 const db = this.get();
-                db.unshift({ id: Date.now().toString(36), date: new Date().toLocaleDateString(), winner, score, logs });
+                db.unshift({ id: Date.now(), date: new Date().toLocaleString(), winner: w, score: s, log: l });
                 localStorage.setItem(this.key, JSON.stringify(db));
             },
             open() {
-                document.getElementById('data-modal').style.display = 'flex';
-                const el = document.getElementById('archive-list');
+                document.getElementById('archive-modal').style.display = 'flex';
+                this.render();
+            },
+            close() { document.getElementById('archive-modal').style.display = 'none'; },
+            render() {
                 const db = this.get();
-                el.innerHTML = db.length ? '' : 'NO DATA FOUND';
+                const el = document.getElementById('archive-list');
+                el.innerHTML = '';
+                if(!db.length) { el.innerHTML = '<tr><td colspan="5">NO DATA FOUND</td></tr>'; return; }
                 db.forEach(g => {
-                    el.innerHTML += `<div style="border-bottom:1px solid #333; padding:5px; font-size:0.8rem;">
-                        <span style="color:#888">${g.date}</span> | 
-                        <strong style="color:${g.winner.includes('1')?'#0ff':'#f05'}">${g.winner}</strong> 
-                        (${g.score})
-                    </div>`;
+                    const row = document.createElement('tr');
+                    const c = g.winner.includes('1') ? 'var(--p1-core)' : (g.winner.includes('2') ? 'var(--p2-core)' : '#fff');
+                    row.innerHTML = `<td>${g.id}</td><td>${g.date}</td><td style="color:${c}">${g.winner}</td><td>${g.score}</td>
+                    <td><button style="font-size:0.7rem; cursor:pointer; background:#333; color:#fff; border:none;" onclick="Data.dl(${g.id})">DL</button></td>`;
+                    el.appendChild(row);
                 });
             },
-            close() { document.getElementById('data-modal').style.display = 'none'; },
+            dl(id) {
+                const g = this.get().find(x => x.id === id);
+                const b = new Blob([JSON.stringify(g,null,2)], {type:'application/json'});
+                const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `log_${id}.json`; a.click();
+            },
             export() {
                 const str = btoa(localStorage.getItem(this.key) || "[]");
-                prompt("COPY THIS CODE:", str);
+                navigator.clipboard.writeText(str).then(() => alert("COPIED TO CLIPBOARD"));
+                document.getElementById('sync-string').value = str;
             },
             import() {
-                const str = prompt("PASTE CODE:");
-                if(str) {
+                navigator.clipboard.readText().then(txt => {
                     try {
-                        localStorage.setItem(this.key, atob(str));
-                        alert("SYNC SUCCESSFUL");
-                        this.open();
-                    } catch(e) { alert("INVALID CODE"); }
-                }
-            }
+                        localStorage.setItem(this.key, atob(txt));
+                        this.render(); alert("IMPORT SUCCESSFUL");
+                    } catch(e) { alert("INVALID DATA"); }
+                });
+            },
+            wipe() { if(confirm("DELETE ALL DATA?")) { localStorage.removeItem(this.key); this.render(); } }
         };
     </script>
 </body>
