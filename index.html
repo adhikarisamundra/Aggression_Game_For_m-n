@@ -3,706 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OBSIDIAN // TACTICAL SIMULATION</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <title>TITAN // STRATEGIC ENGINE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <style>
-        /* --- CORE VARIABLES --- */
+        /* --- CORE VISUALS --- */
         :root {
-            --void: #030507;
-            --glass: rgba(10, 15, 20, 0.92);
-            --border: rgba(255, 255, 255, 0.08);
-            
-            /* FACTION COLORS */
-            --cyan-core: #00f0ff;
-            --cyan-dim: rgba(0, 240, 255, 0.1);
-            --red-core: #ff2a2a;
-            --red-dim: rgba(255, 42, 42, 0.1);
-            --gold-sys: #fbbf24;
-            --green-sys: #10b981;
-            
-            /* TYPOGRAPHY */
-            --font-ui: 'Rajdhani', sans-serif;
-            --font-mono: 'Space Mono', monospace;
+            --void: #050505;
+            --glass: rgba(20, 25, 35, 0.95);
+            --p1: #00e5ff;
+            --p1-dark: rgba(0, 229, 255, 0.2);
+            --p2: #ff2a6d;
+            --p2-dark: rgba(255, 42, 109, 0.2);
+            --sys: #ffc800; /* Amber */
+            --grid: rgba(255, 255, 255, 0.05);
+            --font-head: 'Chakra Petch', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
         }
 
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; user-select: none; }
 
         body {
-            background: var(--void);
-            color: #e2e8f0;
-            font-family: var(--font-ui);
+            background-color: var(--void);
+            color: #d1d5db;
+            font-family: var(--font-head);
             margin: 0; height: 100vh; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
         }
 
-        /* --- AMBIENT FX --- */
-        #starfield {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        /* --- BACKGROUND FX --- */
+        #bg-grid {
+            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
             background-image: 
-                radial-gradient(circle at 50% 50%, rgba(16, 24, 40, 0) 0%, rgba(0,0,0,1) 100%),
-                linear-gradient(0deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            perspective: 1000px;
-            z-index: 0;
-            animation: gridScroll 120s linear infinite;
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg);
+            animation: planeFly 20s linear infinite;
+            z-index: 0; pointer-events: none;
         }
-        @keyframes gridScroll { from { background-position: 0 0, 0 0, 0 0; } to { background-position: 0 0, 0 40px, 0 40px; } }
+        @keyframes planeFly { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(50px); } }
 
-        .scanline {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-            background-size: 100% 4px; pointer-events: none; z-index: 999; opacity: 0.6;
-        }
-
-        #vfx-canvas { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 50; }
-
-        /* --- UI KIT --- */
+        /* --- UI UTILITIES --- */
         .panel {
             background: var(--glass);
-            border: 1px solid var(--border);
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             position: relative;
-            padding: 20px;
         }
-        /* Corner Accents */
-        .panel::before, .panel::after {
-            content: ''; position: absolute; width: 6px; height: 6px;
-            border: 2px solid var(--gold-sys); transition: 0.3s;
+        .panel::before { /* Tech Border Top-Left */
+            content: ''; position: absolute; top: -1px; left: -1px; 
+            width: 20px; height: 20px; border-top: 3px solid var(--sys); border-left: 3px solid var(--sys);
         }
-        .panel::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
-        .panel::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+        .panel::after { /* Tech Border Bottom-Right */
+            content: ''; position: absolute; bottom: -1px; right: -1px; 
+            width: 20px; height: 20px; border-bottom: 3px solid var(--sys); border-right: 3px solid var(--sys);
+        }
 
         .btn {
-            background: rgba(255,255,255,0.03);
-            color: var(--cyan-core);
-            border: 1px solid var(--cyan-core);
-            padding: 12px 24px;
-            font-family: var(--font-mono);
-            font-size: 0.85rem; letter-spacing: 2px;
-            text-transform: uppercase; cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; overflow: hidden;
+            background: rgba(255,255,255,0.05); color: var(--sys);
+            border: 1px solid var(--sys); padding: 15px; width: 100%;
+            font-family: var(--font-code); font-weight: 800; letter-spacing: 2px;
+            cursor: pointer; transition: 0.2s; text-transform: uppercase;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .btn::before {
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
-            transition: 0.4s;
-        }
-        .btn:hover::before { left: 100%; }
-        .btn:hover { background: var(--cyan-dim); box-shadow: 0 0 20px var(--cyan-dim); text-shadow: 0 0 5px var(--cyan-core); }
-        
-        .btn-danger { color: var(--red-core); border-color: var(--red-core); }
-        .btn-danger:hover { background: var(--red-dim); box-shadow: 0 0 20px var(--red-dim); text-shadow: 0 0 5px var(--red-core); }
-        
+        .btn:hover { background: var(--sys); color: #000; box-shadow: 0 0 20px var(--sys); }
+        .btn-red { color: var(--p2); border-color: var(--p2); }
+        .btn-red:hover { background: var(--p2); color: #fff; box-shadow: 0 0 20px var(--p2); }
+
         input, select {
-            background: #080c10; border: 1px solid #333; color: #fff;
-            padding: 12px; font-family: var(--font-mono); text-align: center;
-            width: 100%; outline: none; transition: 0.3s;
+            background: #0a0a0a; border: 1px solid #333; color: #fff;
+            padding: 10px; font-family: var(--font-code); width: 100%;
+            text-align: center; font-size: 1.1rem; outline: none;
         }
-        input:focus, select:focus { border-color: var(--gold-sys); box-shadow: 0 0 15px rgba(251, 191, 36, 0.1); }
-        label { display: block; color: #64748b; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 6px; }
+        input:focus { border-color: var(--sys); }
 
-        /* --- SCREENS --- */
-        /* SETUP */
-        #setup-layer {
-            position: absolute; z-index: 100;
-            display: flex; flex-direction: column; gap: 25px;
-            width: 500px; padding: 40px;
-            transform: translateY(0); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        /* --- SETUP SCREEN (Fixed Positioning) --- */
+        #setup-ui {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--void); /* Solid background blocks game UI */
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; /* Always on top */
         }
-        #setup-layer.hidden { transform: translateY(-50px); opacity: 0; pointer-events: none; }
-
+        #setup-card { width: 500px; padding: 40px; display: flex; flex-direction: column; gap: 20px; }
+        
         h1 {
-            font-family: var(--font-mono); font-size: 4rem; margin: 0; line-height: 0.9;
-            background: linear-gradient(180deg, #fff, #444);
+            font-size: 3.5rem; margin: 0; text-align: center;
+            background: linear-gradient(to bottom, #fff, #666);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-align: center; letter-spacing: -2px;
-        }
-        .subtitle {
-            text-align: center; color: var(--gold-sys); font-family: var(--font-mono);
-            font-size: 0.75rem; letter-spacing: 4px; margin-bottom: 20px;
-            border-bottom: 1px solid rgba(251, 191, 36, 0.2); padding-bottom: 10px;
+            font-weight: 700; letter-spacing: -2px;
         }
 
-        /* HUD LAYOUT */
-        #hud-layer {
-            display: none; width: 100vw; height: 100vh;
-            grid-template-columns: 280px 1fr 280px;
-            grid-template-rows: 60px 1fr 140px;
-            gap: 15px; padding: 20px; z-index: 10;
+        /* --- GAME UI --- */
+        #game-ui {
+            display: none; /* Hidden by default */
+            width: 100vw; height: 100vh;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 70px 1fr 150px;
+            gap: 20px; padding: 20px; z-index: 10; position: relative;
         }
 
         /* HEADER */
-        .top-deck { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; }
-        .phase-badge {
-            font-family: var(--font-mono); font-size: 0.9rem;
-            color: #fff; background: rgba(255,255,255,0.05);
-            padding: 6px 16px; border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
+        .phase-pill {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
+            padding: 5px 20px; font-family: var(--font-code); font-size: 0.9rem; color: #fff;
         }
 
-        /* PLAYER PANELS */
-        .side-deck {
-            grid-row: 2 / 3; display: flex; flex-direction: column; gap: 15px;
-            padding: 20px; transition: 0.4s; border: 1px solid transparent; opacity: 0.4;
-        }
-        .side-deck.active { opacity: 1; transform: scale(1.02); background: rgba(15, 20, 30, 0.8); }
-        .p1-active { border-color: var(--cyan-core); box-shadow: 0 0 40px var(--cyan-dim); }
-        .p2-active { border-color: var(--red-core); box-shadow: 0 0 40px var(--red-dim); }
+        /* SIDEBARS */
+        .sidebar { grid-row: 2 / 3; display: flex; flex-direction: column; gap: 20px; padding: 25px; transition: 0.3s; opacity: 0.5; }
+        .sidebar.active { opacity: 1; transform: scale(1.02); z-index: 20; background: rgba(20,25,35,1); }
+        .p1-glow { border-color: var(--p1); box-shadow: 0 0 30px var(--p1-dark); }
+        .p2-glow { border-color: var(--p2); box-shadow: 0 0 30px var(--p2-dark); }
 
-        .stat-block {
-            background: rgba(0,0,0,0.4); padding: 15px;
-            text-align: center; border-left: 2px solid #333;
-        }
-        .p1-side .stat-block { border-color: var(--cyan-core); }
-        .p2-side .stat-block { border-color: var(--red-core); }
-        
-        .stat-num { font-family: var(--font-mono); font-size: 2.5rem; font-weight: 700; color: #fff; }
-        .stat-lbl { font-size: 0.7rem; color: #94a3b8; letter-spacing: 2px; margin-top: 5px; }
+        .stat-box { background: rgba(0,0,0,0.3); padding: 15px; text-align: center; border-radius: 4px; }
+        .stat-num { font-size: 2.5rem; font-weight: 700; font-family: var(--font-code); }
+        .stat-lbl { font-size: 0.7rem; color: #888; letter-spacing: 2px; margin-top: 5px; }
 
         /* BATTLEFIELD */
-        #battlefield {
-            grid-column: 2 / 3; grid-row: 2 / 3;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        #viewport { grid-column: 2 / 3; grid-row: 2 / 3; display: flex; justify-content: center; align-items: center; position: relative; }
+        #grid-frame { padding: 15px; background: rgba(0,0,0,0.8); border: 1px solid #333; position: relative; }
+        
+        #grid { display: grid; gap: 5px; }
+        
+        .cell {
+            width: 65px; height: 65px; background: #0b0f15;
+            display: flex; justify-content: center; align-items: center;
+            font-family: var(--font-code); font-weight: 800; font-size: 1.5rem;
+            cursor: pointer; border: 1px solid #1a202c; transition: 0.15s;
             position: relative;
         }
-        #grid-mount {
-            padding: 10px; background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-        }
-        #grid { display: grid; gap: 4px; }
-
-        .cell {
-            width: 64px; height: 64px; background: #080c10;
-            display: flex; justify-content: center; align-items: center;
-            font-family: var(--font-mono); font-weight: 700; font-size: 1.4rem;
-            cursor: pointer; position: relative; border: 1px solid #1e293b;
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .cell:hover { z-index: 10; transform: scale(1.1); border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        .cell:hover { z-index: 10; transform: scale(1.15); border-color: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         
-        /* Unit Styles */
-        .cell.p1 {
-            color: var(--cyan-core); border-color: var(--cyan-core);
-            background: var(--cyan-dim);
-            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.1);
-        }
-        .cell.p2 {
-            color: var(--red-core); border-color: var(--red-core);
-            background: var(--red-dim);
-            box-shadow: inset 0 0 20px rgba(255, 42, 42, 0.1);
-        }
-        .cell.locked { cursor: not-allowed; opacity: 0.8; filter: grayscale(0.5); }
-        .cell.locked:hover { transform: none; border-color: #1e293b; }
+        /* P1 STYLE */
+        .cell.p1 { color: var(--p1); border-color: var(--p1); background: rgba(0, 229, 255, 0.05); box-shadow: inset 0 0 15px var(--p1-dark); }
+        /* P2 STYLE */
+        .cell.p2 { color: var(--p2); border-color: var(--p2); background: rgba(255, 42, 109, 0.05); box-shadow: inset 0 0 15px var(--p2-dark); }
+        /* LOCKED */
+        .cell.locked { cursor: not-allowed; opacity: 0.6; }
+        .cell.locked:hover { transform: none; border-color: inherit; box-shadow: none; }
+        /* TARGET */
+        .cell.targetable { animation: threatPulse 1s infinite; cursor: crosshair; }
+        @keyframes threatPulse { 0% { box-shadow: inset 0 0 0 var(--p2); } 50% { box-shadow: inset 0 0 20px var(--p2); } }
 
-        /* Hover Tooltip */
-        #intel-popup {
-            position: absolute; pointer-events: none; z-index: 100;
-            background: rgba(0,0,0,0.95); border: 1px solid #fff;
-            padding: 8px 12px; font-size: 0.75rem; color: #fff; font-family: var(--font-mono);
-            white-space: nowrap; transform: translate(-50%, -130%);
-            display: none; box-shadow: 0 10px 30px #000;
+        /* PREDICTOR HUD */
+        #prediction {
+            position: absolute; pointer-events: none; z-index: 50; display: none;
+            background: rgba(0,0,0,0.95); border: 1px solid #fff; padding: 10px;
+            font-family: var(--font-code); font-size: 0.8rem; white-space: nowrap;
+            transform: translate(-50%, -140%);
         }
 
-        /* CONSOLE & CONTROLS */
-        #console-deck {
-            grid-column: 1 / 3; grid-row: 3 / 4;
-            background: #020406; border: 1px solid #333; padding: 10px;
-            font-family: var(--font-mono); font-size: 0.7rem; color: #64748b;
-            overflow-y: auto; display: flex; flex-direction: column-reverse;
+        /* BOTTOM DECK */
+        #console { 
+            grid-column: 1 / 3; grid-row: 3 / 4; 
+            background: #000; border: 1px solid #333; padding: 15px; 
+            font-family: var(--font-code); font-size: 0.75rem; 
+            display: flex; flex-direction: column-reverse; overflow-y: auto;
         }
-        .log-ln { margin-bottom: 2px; border-bottom: 1px solid #111; }
-        .ln-p1 { color: var(--cyan-core); }
-        .ln-p2 { color: var(--red-core); }
-        .ln-sys { color: var(--gold-sys); }
+        .log-msg { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        .c-p1 { color: var(--p1); } .c-p2 { color: var(--p2); } .c-sys { color: var(--sys); }
 
-        #command-deck {
-            grid-column: 3 / 4; grid-row: 3 / 4;
-            display: flex; flex-direction: column; gap: 10px; justify-content: center;
-        }
+        #controls { grid-column: 3 / 4; grid-row: 3 / 4; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
 
-        /* MODALS */
-        .modal-veil {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.96); z-index: 200; display: none;
-            justify-content: center; align-items: center;
+        /* AI OVERLAY */
+        #ai-brain {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--p2); color: #fff; padding: 5px 20px; 
+            font-family: var(--font-code); font-size: 0.8rem; font-weight: bold;
+            display: none; box-shadow: 0 0 20px var(--p2);
         }
-        .modal-core {
-            background: #05080c; border: 1px solid var(--cyan-core); padding: 40px;
-            width: 700px; max-width: 90%; max-height: 90vh; overflow-y: auto;
-            box-shadow: 0 0 80px rgba(0, 240, 255, 0.1);
-        }
-
-        /* DATA TABLE */
-        .data-grid { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; font-size: 0.8rem; font-family: var(--font-mono); }
-        .data-grid th { color: var(--gold-sys); border-bottom: 1px solid #333; padding: 8px; }
-        .data-grid td { padding: 8px; border-bottom: 1px solid #111; color: #94a3b8; }
-        .data-grid tr:hover td { background: #0f1520; color: #fff; }
-
-        /* LOADING SPINNER */
-        .loader {
-            width: 20px; height: 20px; border: 2px solid var(--red-core);
-            border-bottom-color: transparent; border-radius: 50%;
-            display: inline-block; animation: spin 1s linear infinite;
-            vertical-align: middle; margin-right: 10px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         @media (max-width: 900px) {
-            #game-ui { display: flex; flex-direction: column; height: auto; overflow-y: auto; }
-            .side-deck { flex-direction: row; justify-content: space-around; }
-            #console-deck { height: 120px; }
+            #game-ui { display: flex; flex-direction: column; overflow-y: auto; height: auto; }
+            .sidebar { flex-direction: row; justify-content: space-around; padding: 10px; min-height: 80px; }
+            #console { height: 100px; }
         }
     </style>
 </head>
 <body>
 
-    <div id="starfield"></div>
-    <div class="scanline"></div>
-    <canvas id="vfx-canvas"></canvas>
+    <div id="bg-grid"></div>
 
-    <div id="setup-layer" class="panel">
-        <h1>OBSIDIAN</h1>
-        <div class="subtitle">TACTICAL WARFARE ENGINE</div>
-        
-        <div style="display:flex; gap:15px;">
-            <div style="flex:1">
-                <label>GRID ROWS</label>
-                <input type="number" id="cfg-rows" value="6" min="3" max="10">
+    <div id="setup-ui">
+        <div id="setup-card" class="panel">
+            <h1>TITAN</h1>
+            <div style="text-align:center; color:var(--sys); letter-spacing:4px; font-size:0.8rem; margin-bottom:20px;">STRATEGIC WARFARE PROTOCOL</div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div>
+                    <label style="font-size:0.7rem; color:#888;">GRID ROWS</label>
+                    <input type="number" id="set-r" value="6" min="3" max="10">
+                </div>
+                <div>
+                    <label style="font-size:0.7rem; color:#888;">GRID COLS</label>
+                    <input type="number" id="set-c" value="6" min="3" max="10">
+                </div>
             </div>
-            <div style="flex:1">
-                <label>GRID COLS</label>
-                <input type="number" id="cfg-cols" value="6" min="3" max="10">
-            </div>
-        </div>
-        
-        <div>
-            <label>UNIT ALLOCATION (PER COMMANDER)</label>
-            <input type="number" id="cfg-troops" value="36" min="1">
-            <div style="font-size:0.65rem; color:var(--red-core); margin-top:5px; font-family:var(--font-mono);">
-                WARNING: UNIT STACKING PROHIBITED ON OCCUPIED SECTORS
-            </div>
-        </div>
 
-        <div>
-            <label>OPPOSING FORCE</label>
-            <select id="cfg-ai">
-                <option value="human">LOCAL PVP (HUMAN)</option>
-                <option value="weak">CLASS I: DRONE (RANDOM)</option>
-                <option value="strategic">CLASS II: TACTICIAN (AGGRESSIVE)</option>
-                <option value="nexus" selected>CLASS III: NEXUS (MONTE CARLO SIM)</option>
-            </select>
-        </div>
+            <div>
+                <label style="font-size:0.7rem; color:#888;">UNIT CAP</label>
+                <input type="number" id="set-t" value="36">
+            </div>
 
-        <button class="btn" style="width:100%; margin-top:15px;" onclick="Core.boot()">INITIALIZE SYSTEM</button>
-        <button class="btn btn-danger" style="width:100%" onclick="Archive.open()">MISSION LOGS</button>
+            <div>
+                <label style="font-size:0.7rem; color:#888;">OPPONENT</label>
+                <select id="set-ai">
+                    <option value="human">HUMAN VS HUMAN</option>
+                    <option value="weak">AI: DRONE (Basic)</option>
+                    <option value="strategic">AI: COMMANDER (Aggressive)</option>
+                    <option value="titan" selected>AI: TITAN (Heuristic Engine)</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="Engine.boot()">INITIALIZE</button>
+        </div>
     </div>
 
     <div id="game-ui">
-        
-        <div class="top-deck panel">
-            <div style="font-weight:700; color:#fff; font-family:var(--font-mono);">OBSIDIAN PROTOCOL</div>
-            <div id="phase-badge" class="phase-badge">PLACEMENT PHASE</div>
-            <div onclick="location.reload()" style="cursor:pointer; color:#666; font-size:0.8rem;">[ABORT MISSION]</div>
+        <div class="top-bar panel">
+            <div style="color:#fff; font-weight:700;">ACTIVE SESSION</div>
+            <div id="phase-ui" class="phase-pill">PLACEMENT</div>
+            <div onclick="location.reload()" style="cursor:pointer; color:#666; font-size:0.8rem;">[ABORT]</div>
         </div>
 
-        <div class="side-deck panel p1-side" id="p1-deck">
-            <div style="color:var(--cyan-core); font-family:var(--font-mono); font-weight:700; text-align:center;">PLAYER 1</div>
-            <div class="stat-block">
+        <div class="sidebar panel" id="p1-bar">
+            <div style="color:var(--p1); font-weight:700; text-align:center; font-size:1.2rem;">PLAYER 1</div>
+            <div class="stat-box">
                 <div class="stat-num" id="p1-res">0</div>
                 <div class="stat-lbl">RESERVES</div>
             </div>
-            <div class="stat-block">
-                <div class="stat-num" id="p1-score">0</div>
-                <div class="stat-lbl">CONTROL</div>
+            <div class="stat-box">
+                <div class="stat-num" id="p1-area">0</div>
+                <div class="stat-lbl">SECTORS</div>
             </div>
         </div>
 
-        <div id="battlefield">
-            <div id="ai-status" style="position:absolute; top:-30px; color:var(--red-core); font-family:var(--font-mono); font-size:0.8rem; display:none;">
-                <span class="loader"></span>NEXUS COMPUTING OPTIMAL VECTOR...
-            </div>
-            <div id="grid-mount">
+        <div id="viewport">
+            <div id="ai-brain">TITAN COMPUTING...</div>
+            <div id="grid-frame">
                 <div id="grid"></div>
-                <div id="intel-popup"></div>
+                <div id="prediction"></div>
             </div>
         </div>
 
-        <div class="side-deck panel p2-side" id="p2-deck">
-            <div style="color:var(--red-core); font-family:var(--font-mono); font-weight:700; text-align:center;" id="p2-label">PLAYER 2</div>
-            <div class="stat-block">
+        <div class="sidebar panel" id="p2-bar">
+            <div style="color:var(--p2); font-weight:700; text-align:center; font-size:1.2rem;" id="p2-lbl">PLAYER 2</div>
+            <div class="stat-box">
                 <div class="stat-num" id="p2-res">0</div>
                 <div class="stat-lbl">RESERVES</div>
             </div>
-            <div class="stat-block">
-                <div class="stat-num" id="p2-score">0</div>
-                <div class="stat-lbl">CONTROL</div>
+            <div class="stat-box">
+                <div class="stat-num" id="p2-area">0</div>
+                <div class="stat-lbl">SECTORS</div>
             </div>
         </div>
 
-        <div id="console-deck"></div>
+        <div id="console"></div>
 
-        <div id="command-deck" class="panel" style="padding:15px;">
+        <div id="controls" class="panel" style="padding:20px;">
             <div id="ctrl-place">
-                <label>DEPLOYMENT SIZE</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="deploy-val" value="1" min="1" style="background:#000; border-color:#333;">
-                </div>
-                <div style="font-size:0.65rem; color:#666; margin-top:5px;">SELECT EMPTY SECTOR TO DEPLOY</div>
+                <div style="color:#888; font-size:0.7rem; margin-bottom:5px;">DEPLOYMENT MASS</div>
+                <input type="number" id="deploy-input" value="1" min="1" style="margin-bottom:10px; background:#000;">
+                <div style="font-size:0.6rem; color:#555;">SELECT EMPTY TILE</div>
             </div>
             <div id="ctrl-attack" style="display:none;">
-                <div style="text-align:center; margin-bottom:10px; color:var(--red-core); font-size:0.8rem;">COMBAT AUTHORIZED</div>
-                <button class="btn btn-danger" style="width:100%" onclick="Core.pass()">PASS TURN</button>
+                <div style="text-align:center; margin-bottom:10px; color:var(--p2);">COMBAT ACTIVE</div>
+                <button class="btn btn-red" onclick="Engine.pass()">PASS TURN</button>
             </div>
-        </div>
-
-    </div>
-
-    <div id="archive-modal" class="modal-veil">
-        <div class="modal-core">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0; font-family:var(--font-mono); color:var(--gold-sys);">MISSION LOGS</h2>
-                <span style="cursor:pointer; font-size:1.5rem;" onclick="Archive.close()">×</span>
-            </div>
-            
-            <table class="data-grid">
-                <thead><tr><th>ID</th><th>TIMESTAMP</th><th>OUTCOME</th><th>SCORE</th><th>DATA</th></tr></thead>
-                <tbody id="archive-rows"></tbody>
-            </table>
-
-            <div style="margin-top:25px; border-top:1px solid #333; padding-top:15px;">
-                <label>DATA UPLINK (CROSS-DEVICE SYNC)</label>
-                <textarea id="sync-code" style="width:100%; height:60px; background:#000; color:var(--green-sys); border:1px solid #333; font-family:monospace; font-size:0.7rem; resize:none;" readonly placeholder="EXPORT STRING GENERATED HERE..."></textarea>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn" style="flex:1" onclick="Archive.export()">GENERATE CODE</button>
-                    <button class="btn" style="flex:1" onclick="Archive.import()">IMPORT CODE</button>
-                </div>
-            </div>
-            
-            <button class="btn btn-danger" style="width:100%; margin-top:20px;" onclick="Archive.wipe()">FORMAT DATABASE</button>
         </div>
     </div>
 
     <script>
-        /* --- VISUAL FX SYSTEM --- */
-        const VFX = {
-            canvas: document.getElementById('vfx-canvas'),
-            ctx: document.getElementById('vfx-canvas').getContext('2d'),
-            particles: [],
-            
-            init() {
-                window.addEventListener('resize', () => this.resize());
-                this.resize();
-                this.loop();
-            },
-            
-            resize() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
-            },
-            
-            burst(x, y, color) {
-                for(let i=0; i<20; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const speed = Math.random() * 8 + 2;
-                    this.particles.push({
-                        x, y,
-                        vx: Math.cos(angle) * speed,
-                        vy: Math.sin(angle) * speed,
-                        life: 1.0,
-                        decay: Math.random() * 0.03 + 0.01,
-                        color: color,
-                        size: Math.random() * 3 + 1
-                    });
-                }
-            },
-            
-            loop() {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                for (let i = this.particles.length - 1; i >= 0; i--) {
-                    const p = this.particles[i];
-                    p.x += p.vx; p.y += p.vy;
-                    p.life -= p.decay;
-                    
-                    this.ctx.globalAlpha = p.life;
-                    this.ctx.fillStyle = p.color;
-                    this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    this.ctx.fill();
-                    
-                    if (p.life <= 0) this.particles.splice(i, 1);
-                }
-                requestAnimationFrame(() => this.loop());
-            }
-        };
-        VFX.init();
-
-        /* --- SOUND ENGINE --- */
-        const SFX = {
-            ctx: new (window.AudioContext || window.webkitAudioContext)(),
-            play(freq, type, dur, vol=0.1) {
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + dur);
-            },
-            boot: () => SFX.play(200, 'sine', 0.5),
-            click: () => SFX.play(800, 'square', 0.05),
-            error: () => SFX.play(150, 'sawtooth', 0.3),
-            deploy: () => SFX.play(400, 'triangle', 0.15),
-            kill: () => { SFX.play(100, 'sawtooth', 0.1); setTimeout(()=>SFX.play(60, 'square', 0.3), 80); },
-            win: () => [300,400,500,600,800].forEach((f,i)=>setTimeout(()=>SFX.play(f,'square',0.2), i*100))
-        };
-
-        /* --- DATA PERSISTENCE --- */
-        const Archive = {
-            key: 'obsidian_data_v1',
-            get() { return JSON.parse(localStorage.getItem(this.key) || "[]"); },
-            save(winner, score, log) {
-                const db = this.get();
-                db.unshift({
-                    id: Math.random().toString(36).substr(2, 9).toUpperCase(),
-                    date: new Date().toLocaleString(),
-                    winner, score, log
-                });
-                if(db.length > 50) db.pop(); // Cap history
-                localStorage.setItem(this.key, JSON.stringify(db));
-            },
-            open() {
-                document.getElementById('archive-modal').style.display = 'flex';
-                this.render();
-            },
-            close() { document.getElementById('archive-modal').style.display = 'none'; },
-            render() {
-                const db = this.get();
-                const el = document.getElementById('archive-rows');
-                el.innerHTML = '';
-                if(!db.length) { el.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">NO MISSION DATA FOUND</td></tr>'; return; }
-                
-                db.forEach(g => {
-                    const row = document.createElement('tr');
-                    const color = g.winner.includes('1') ? 'var(--cyan-core)' : (g.winner.includes('2') ? 'var(--red-core)' : '#fff');
-                    row.innerHTML = `
-                        <td style="font-family:monospace; color:#666;">${g.id}</td>
-                        <td>${g.date}</td>
-                        <td style="color:${color}; font-weight:bold;">${g.winner}</td>
-                        <td>${g.score}</td>
-                        <td><button class="btn" style="padding:4px 8px; font-size:0.6rem;" onclick="Archive.dl('${g.id}')">DL</button></td>
-                    `;
-                    el.appendChild(row);
-                });
-            },
-            dl(id) {
-                const g = this.get().find(x => x.id === id);
-                const blob = new Blob([JSON.stringify(g, null, 2)], {type: 'application/json'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `LOG_${id}.json`; a.click();
-            },
-            export() {
-                const str = localStorage.getItem(this.key) || "[]";
-                const code = btoa(unescape(encodeURIComponent(str)));
-                document.getElementById('sync-code').value = code;
-                alert("CODE GENERATED. COPY TO TRANSFER.");
-            },
-            import() {
-                const code = prompt("PASTE SYNC CODE:");
-                if(!code) return;
-                try {
-                    const str = decodeURIComponent(escape(atob(code)));
-                    JSON.parse(str); // Validation check
-                    localStorage.setItem(this.key, str);
-                    this.render();
-                    alert("DATABASE UPDATED SUCCESSFULLY.");
-                } catch(e) { alert("ERROR: CORRUPT DATA STREAM."); }
-            },
-            wipe() {
-                if(confirm("WARNING: PERMANENT DELETION OF ALL RECORDS.")) {
-                    localStorage.removeItem(this.key);
-                    this.render();
-                }
-            }
-        };
-
-        /* --- NEXUS AI ENGINE (MONTE CARLO / HEURISTIC) --- */
-        const Nexus = {
-            // Evaluates board state. Positive = Good for AI (P2).
-            evaluate(grid, rows, cols) {
-                let score = 0;
-                for(let r=0; r<rows; r++) {
-                    for(let c=0; c<cols; c++) {
-                        let cell = grid[r][c];
-                        if(cell.owner === 2) {
-                            score += (cell.count * 10);
-                            score += 50; // Territory control
-                            // Cluster Bonus: Check neighbors
-                            for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                                if(dr===0&&dc===0) continue;
-                                let nr=r+dr, nc=c+dc;
-                                if(nr>=0 && nr<rows && nc>=0 && nc<cols && grid[nr][nc].owner===2) score+=20;
-                            }
-                        } else if(cell.owner === 1) {
-                            score -= (cell.count * 10);
-                            score -= 50;
-                        }
-                    }
-                }
-                return score;
-            },
-
-            // PHASE 1: PLACEMENT
-            getPlacement(g) {
-                // Heuristic Heatmap Analysis
-                let bestMove = null;
-                let maxScore = -Infinity;
-
-                for(let r=0; r<g.rows; r++) {
-                    for(let c=0; c<g.cols; c++) {
-                        if(g.grid[r][c].owner === 0) { // STRICT RULE: MUST BE EMPTY
-                            let score = 0;
-                            
-                            // 1. Center Control Bias
-                            let dist = Math.abs(r - g.rows/2) + Math.abs(c - g.cols/2);
-                            score -= (dist * 5);
-
-                            // 2. Neighbor Analysis
-                            let friends = 0;
-                            let enemies = 0;
-                            
-                            for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                                if(dr===0&&dc===0) continue;
-                                let nr=r+dr, nc=c+dc;
-                                if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols) {
-                                    if(g.grid[nr][nc].owner === 2) friends++;
-                                    if(g.grid[nr][nc].owner === 1) enemies++;
-                                }
-                            }
-
-                            if(g.aiType === 'strategic') {
-                                score += (friends * 15); // Cluster
-                            } else if(g.aiType === 'nexus') {
-                                score += (friends * 20); // Strong Cluster
-                                score -= (enemies * 5);  // Avoid frontline exposure early
-                                if(enemies === 0) score += 10; // Secure rear sectors
-                            }
-
-                            // Random noise to prevent identical games
-                            score += Math.random() * 5;
-
-                            if(score > maxScore) {
-                                maxScore = score;
-                                bestMove = {r, c};
-                            }
-                        }
-                    }
-                }
-                return bestMove;
-            },
-
-            // PHASE 2: ATTACK
-            getAttack(g) {
-                let moves = [];
-                
-                // Identify all legal attacks
-                for(let r=0; r<g.rows; r++) {
-                    for(let c=0; c<g.cols; c++) {
-                        if(g.grid[r][c].owner === 1) { // Enemy Target
-                            // Calc AI Power
-                            let p = 0;
-                            for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                                if(dr===0&&dc===0) continue;
-                                let nr=r+dr, nc=c+dc;
-                                if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols && g.grid[nr][nc].owner===2) {
-                                    p += g.grid[nr][nc].count;
-                                }
-                            }
-
-                            if(p > g.grid[r][c].count) {
-                                // Legal Kill. Calculate Utility.
-                                let util = g.grid[r][c].count * 10; // Base value
-                                
-                                if(g.aiType === 'nexus') {
-                                    // Simulation: Does killing this expose my units?
-                                    // Simplified: Prioritize targets that threaten my clusters
-                                    // (Actually, killing threats is good).
-                                    util += 20; 
-                                }
-                                moves.push({r, c, val: util});
-                            }
-                        }
-                    }
-                }
-
-                if(moves.length === 0) return null;
-                
-                // Sort by utility
-                moves.sort((a,b) => b.val - a.val);
-                return moves[0]; // Greedy best
-            }
-        };
-
-        /* --- GAME CORE --- */
-        const Core = {
+        /* --- ENGINE CORE --- */
+        const Engine = {
             rows:0, cols:0, grid:[],
             p1Res:0, p2Res:0, turn:1, phase:'setup', ai:null,
             firstMover:0, hasMoved:false, passCount:0,
-            logData: [],
 
             boot() {
-                SFX.boot();
-                this.rows = Math.max(3, Math.min(10, +document.getElementById('cfg-rows').value));
-                this.cols = Math.max(3, Math.min(10, +document.getElementById('cfg-cols').value));
-                const t = +document.getElementById('cfg-troops').value;
-                const aiVal = document.getElementById('cfg-ai').value;
+                // UI Transition: Strict removal of Setup from DOM flow
+                document.getElementById('setup-ui').style.display = 'none';
+                document.getElementById('game-ui').style.display = 'grid';
 
+                // Config
+                this.rows = Math.max(3, Math.min(10, +document.getElementById('set-r').value));
+                this.cols = Math.max(3, Math.min(10, +document.getElementById('set-c').value));
+                const t = +document.getElementById('set-t').value;
                 this.p1Res = t; this.p2Res = t;
+                const aiVal = document.getElementById('set-ai').value;
                 this.ai = aiVal === 'human' ? null : aiVal;
+
+                // Init State
                 this.phase = 'placement';
-                this.turn = Math.random() < 0.5 ? 1 : 2;
+                this.turn = Math.random()<0.5 ? 1 : 2;
                 this.firstMover = 0; this.hasMoved = false; this.passCount = 0;
-                this.logData = [];
-
-                this.grid = [];
-                for(let r=0; r<this.rows; r++) {
-                    let row = [];
-                    for(let c=0; c<this.cols; c++) row.push({owner: 0, count: 0});
-                    this.grid.push(row);
-                }
-
-                // UI Transition
-                document.getElementById('setup-layer').classList.add('hidden');
-                document.getElementById('hud-layer').style.display = 'grid';
-                document.getElementById('p2-label').innerText = this.ai ? `AI: ${this.ai.toUpperCase()}` : "PLAYER 2";
-
-                this.buildGrid();
-                this.updateHUD();
-                this.log("SYSTEM ONLINE. PROTOCOL STARTED.", "sys");
-                this.log(`INITIATIVE: PLAYER ${this.turn}`, this.turn===1?"p1":"p2");
                 
-                this.checkAI();
-            },
-
-            buildGrid() {
+                // Build Grid
+                this.grid = [];
                 const el = document.getElementById('grid');
                 el.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
                 el.innerHTML = '';
-                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
-                    const d = document.createElement('div');
-                    d.className = 'cell';
-                    d.id = `c-${r}-${c}`;
-                    d.onclick = () => this.interact(r, c);
-                    d.onmouseenter = () => this.hover(r, c);
-                    d.onmouseleave = () => document.getElementById('intel-popup').style.display='none';
-                    el.appendChild(d);
+
+                for(let r=0; r<this.rows; r++) {
+                    let row = [];
+                    for(let c=0; c<this.cols; c++) {
+                        row.push({ owner:0, count:0 });
+                        const d = document.createElement('div');
+                        d.className = 'cell';
+                        d.id = `c-${r}-${c}`;
+                        d.onclick = () => this.interact(r, c);
+                        d.onmouseenter = () => this.hover(r, c);
+                        d.onmouseleave = () => document.getElementById('prediction').style.display='none';
+                        el.appendChild(d);
+                    }
+                    this.grid.push(row);
+                }
+
+                document.getElementById('p2-lbl').innerText = this.ai ? `AI: ${this.ai.toUpperCase()}` : "PLAYER 2";
+                
+                this.log("SYSTEM INITIALIZED", "sys");
+                this.updateHUD();
+                this.aiCheck();
+            },
+
+            /* --- INTERACTION --- */
+            interact(r, c) {
+                if(this.phase === 'over' || (this.ai && this.turn === 2)) return;
+                
+                if(this.phase === 'placement') {
+                    const amt = +document.getElementById('deploy-input').value;
+                    this.place(r, c, amt);
+                } else {
+                    this.attack(r, c);
                 }
             },
 
@@ -712,264 +345,326 @@
                 if(cell.owner !== 2) return;
 
                 // Calc Power
-                let p = 0;
-                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0&&dc===0) continue;
-                    let nr=r+dr, nc=c+dc;
-                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===1) {
-                        p += this.grid[nr][nc].count;
-                    }
-                }
-
-                const pop = document.getElementById('intel-popup');
+                let p = this.getPower(r, c, 1);
+                const hud = document.getElementById('prediction');
                 const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                const ref = document.getElementById('battlefield').getBoundingClientRect();
-                
-                pop.style.display = 'block';
-                pop.style.left = (rect.left - ref.left + 32) + 'px';
-                pop.style.top = (rect.top - ref.top) + 'px';
-                pop.innerHTML = `ATK: <span style="color:#00f0ff">${p}</span> VS DEF: <span style="color:#ff2a2a">${cell.count}</span>`;
-                pop.style.borderColor = p > cell.count ? '#0f0' : '#f00';
+                const view = document.getElementById('viewport').getBoundingClientRect();
+
+                hud.style.display = 'block';
+                hud.style.left = (rect.left - view.left + 32) + 'px';
+                hud.style.top = (rect.top - view.top) + 'px';
+                hud.innerHTML = `ATK: <span style="color:var(--p1)">${p}</span> vs DEF: <span style="color:var(--p2)">${cell.count}</span>`;
+                hud.style.borderColor = p > cell.count ? 'var(--sys)' : 'var(--p2)';
             },
 
-            interact(r, c) {
-                if(this.phase === 'over' || (this.ai && this.turn === 2)) return;
-                if(this.phase === 'placement') this.place(r, c);
-                else this.attack(r, c);
-            },
-
-            /* --- ACTION: PLACEMENT --- */
-            place(r, c) {
+            /* --- LOGIC: PLACEMENT --- */
+            place(r, c, amt) {
                 const cell = this.grid[r][c];
                 
-                // RULE: NO STACKING
+                // RULE: NO STACKING - Must be empty
                 if(cell.owner !== 0) {
                     this.log("ERROR: SECTOR OCCUPIED", "sys");
-                    SFX.error();
+                    this.flash(r, c, '#fff');
                     return;
                 }
 
-                const amt = +document.getElementById('deploy-val').value;
                 const res = this.turn === 1 ? this.p1Res : this.p2Res;
                 const actual = Math.min(amt, res);
                 if(actual <= 0) return;
 
+                // Commit
                 cell.owner = this.turn;
                 cell.count = actual;
-                if(this.turn === 1) this.p1Res -= actual; else this.p2Res -= actual;
+                if(this.turn===1) this.p1Res -= actual; else this.p2Res -= actual;
 
                 if(!this.hasMoved) { this.firstMover = this.turn; this.hasMoved = true; }
 
-                SFX.deploy();
-                
-                // Spawn Vfx
-                const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                VFX.burst(rect.left+32, rect.top+32, this.turn===1?'#00f0ff':'#ff2a2a');
+                this.updateHUD();
+                this.checkPhase();
+            },
 
-                this.render(); this.updateHUD();
+            checkPhase() {
+                const full = this.grid.every(r => r.every(c => c.owner !== 0));
                 
-                // Phase Logic
-                const full = this.grid.every(rw => rw.every(c => c.owner !== 0));
                 if((this.p1Res === 0 && this.p2Res === 0) || full) {
-                    this.initWar();
+                    this.phase = 'attack';
+                    this.turn = this.firstMover;
+                    document.getElementById('phase-ui').innerText = "COMBAT";
+                    document.getElementById('phase-ui').style.borderColor = "var(--p2)";
+                    document.getElementById('ctrl-place').style.display='none';
+                    document.getElementById('ctrl-attack').style.display='block';
+                    this.log("PHASE SHIFT -> COMBAT", "sys");
                 } else {
-                    let next = this.turn === 1 ? 2 : 1;
+                    let next = this.turn===1 ? 2 : 1;
                     if((next===1?this.p1Res:this.p2Res) > 0 && !full) this.turn = next;
                 }
-                this.updateHUD(); this.checkAI();
+                this.updateHUD();
+                this.aiCheck();
             },
 
-            initWar() {
-                this.phase = 'attack';
-                this.turn = this.firstMover;
-                document.getElementById('phase-badge').innerText = "COMBAT PHASE";
-                document.getElementById('phase-badge').style.borderColor = "var(--red-core)";
-                document.getElementById('ctrl-place').style.display = 'none';
-                document.getElementById('ctrl-attack').style.display = 'block';
-                this.log("PHASE SHIFT: COMBAT PROTOCOLS ENGAGED", "sys");
-            },
-
-            /* --- ACTION: ATTACK --- */
+            /* --- LOGIC: ATTACK --- */
             attack(r, c) {
                 const cell = this.grid[r][c];
-                if(cell.owner === 0 || cell.owner === this.turn) { SFX.error(); return; }
+                if(cell.owner === 0 || cell.owner === this.turn) return;
 
-                let p = 0;
-                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0&&dc===0) continue;
-                    let nr=r+dr, nc=c+dc;
-                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===this.turn) {
-                        p += this.grid[nr][nc].count;
-                    }
-                }
-
+                const p = this.getPower(r, c, this.turn);
                 if(p > cell.count) {
-                    const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                    VFX.burst(rect.left+32, rect.top+32, '#fbbf24'); // Explosion color
-                    SFX.kill();
-                    this.log(`P${this.turn} NEUTRALIZED SECTOR [${r},${c}]`, this.turn===1?"p1":"p2");
+                    this.log(`P${this.turn} ELIMINATED [${r},${c}]`, this.turn===1?"p1":"p2");
                     cell.owner = 0; cell.count = 0;
                     this.passCount = 0;
                 } else {
-                    SFX.error();
-                    this.log(`ATTACK FAILED: INSUFFICIENT FORCE`, "sys");
+                    this.log("ATTACK FAILED", "sys");
+                    this.flash(r, c, 'red');
                 }
-                this.render(); this.nextTurn();
+                this.nextTurn();
             },
 
             pass() {
                 this.passCount++;
-                this.log(`P${this.turn} PASSES TURN`, this.turn===1?"p1":"p2");
+                this.log(`P${this.turn} PASSES`, this.turn===1?"p1":"p2");
                 if(this.passCount >= 2) this.gameOver(); else this.nextTurn();
             },
 
             nextTurn() {
-                this.turn = this.turn === 1 ? 2 : 1;
-                this.updateHUD(); this.checkAI();
+                this.turn = this.turn===1 ? 2 : 1;
+                this.updateHUD();
+                this.aiCheck();
             },
 
-            /* --- AI CONTROLLER --- */
-            checkAI() {
+            getPower(r, c, attacker) {
+                let p = 0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0&&dc===0) continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===attacker) {
+                        p += this.grid[nr][nc].count;
+                    }
+                }
+                return p;
+            },
+
+            /* --- TITAN AI MODULE --- */
+            aiCheck() {
                 if(!this.ai || this.turn === 1 || this.phase === 'over') return;
                 
-                document.getElementById('ai-status').style.display = 'block';
+                document.getElementById('ai-brain').style.display = 'block';
                 
                 setTimeout(() => {
                     if(this.phase === 'placement') {
-                        let move = null;
-                        if(this.ai === 'weak') move = AI.getRandomPlacement(this); // Just randomly pick empty
-                        else move = Nexus.getPlacement(this);
-
-                        // If no move possible (board full), trigger phase shift check
-                        if(!move) {
-                            this.initWar(); 
-                            this.checkAI(); 
-                            return; 
-                        }
-
-                        // Determine Amount (Nexus: Concentrates force)
-                        let amt = 1;
-                        if(this.ai === 'nexus') {
-                            amt = Math.floor(Math.random() * 5) + 3; // Aggressive stacking
-                        } else {
-                            amt = Math.floor(Math.random() * 3) + 1;
-                        }
-                        
-                        // Execute manual place
-                        const cell = this.grid[move.r][move.c];
-                        const actual = Math.min(amt, this.p2Res);
-                        cell.owner = 2; cell.count = actual; this.p2Res -= actual;
-                        
-                        if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
-                        SFX.deploy();
-                        
-                        // Check Phase dup logic for AI
-                        const full = this.grid.every(rw => rw.every(c => c.owner !== 0));
-                        if((this.p1Res === 0 && this.p2Res === 0) || full) {
-                            this.initWar();
-                        } else {
-                            if(this.p1Res > 0 && !full) this.turn = 1;
-                        }
-
-                    } else {
-                        // Combat
-                        let move = this.ai === 'weak' ? null : Nexus.getAttack(this); // Weak just passes usually or simple random
+                        const move = (this.ai === 'titan') ? AI.getTitanPlacement(this) : AI.getRandomPlacement(this);
                         
                         if(move) {
+                            // TITAN LOGIC: Decide Amount based on "Breakpoint"
+                            let amt = 1;
+                            if(this.ai === 'titan') {
+                                // Titan piles up troops on frontlines, keeps 1 on safe spots
+                                const neighbors = AI.getNeighbors(this, move.r, move.c);
+                                if(neighbors.enemies > 0) {
+                                    // It's a frontline. Stack heavily.
+                                    amt = Math.min(this.p2Res, Math.floor(Math.random()*3)+4); 
+                                } else {
+                                    // Safe spot or expansion. Save reserves.
+                                    amt = 1;
+                                }
+                            } else if (this.ai === 'strategic') {
+                                amt = Math.min(this.p2Res, 3);
+                            }
+                            
+                            // Prevent infinite loops if reserves low
+                            amt = Math.min(amt, this.p2Res);
+                            if(amt < 1) amt = 1;
+
+                            // Execute directly
                             const cell = this.grid[move.r][move.c];
-                            const rect = document.getElementById(`c-${move.r}-${move.c}`).getBoundingClientRect();
-                            VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
-                            SFX.kill();
-                            this.log(`NEXUS ELIMINATED SECTOR [${move.r},${move.c}]`, "p2");
+                            cell.owner = 2; cell.count = amt; this.p2Res -= amt;
+                            if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
+                            
+                            // Check phase duplicate logic
+                            const full = this.grid.every(r => r.every(c => c.owner !== 0));
+                            if((this.p1Res === 0 && this.p2Res === 0) || full) {
+                                this.phase = 'attack';
+                                this.turn = this.firstMover;
+                                document.getElementById('phase-ui').innerText = "COMBAT";
+                                document.getElementById('phase-ui').style.borderColor = "var(--p2)";
+                                document.getElementById('ctrl-place').style.display='none';
+                                document.getElementById('ctrl-attack').style.display='block';
+                                this.log("PHASE SHIFT -> COMBAT", "sys");
+                            } else {
+                                if(this.p1Res > 0 && !full) this.turn = 1;
+                            }
+                        } else {
+                            // Board full
+                            this.phase = 'attack';
+                            this.turn = this.firstMover;
+                            document.getElementById('phase-ui').innerText = "COMBAT";
+                            document.getElementById('phase-ui').style.borderColor = "var(--p2)";
+                            document.getElementById('ctrl-place').style.display='none';
+                            document.getElementById('ctrl-attack').style.display='block';
+                        }
+                    } else {
+                        // ATTACK PHASE
+                        const target = (this.ai === 'titan') ? AI.getTitanAttack(this) : AI.getRandomAttack(this);
+                        if(target) {
+                            const cell = this.grid[target.r][target.c];
+                            this.log(`AI ELIMINATES [${target.r},${target.c}]`, "p2");
                             cell.owner = 0; cell.count = 0; this.passCount = 0;
                         } else {
                             this.passCount++;
-                            this.log("NEXUS PASSES", "p2");
+                            this.log("AI PASSES", "p2");
                             if(this.passCount >= 2) return this.gameOver();
                         }
                         this.turn = 1;
                     }
                     
-                    document.getElementById('ai-status').style.display = 'none';
-                    this.render(); this.updateHUD();
-                }, 800);
+                    document.getElementById('ai-brain').style.display = 'none';
+                    this.updateHUD();
+                }, 600);
             },
 
             /* --- RENDER & UTIL --- */
-            render() {
-                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
-                    const el = document.getElementById(`c-${r}-${c}`);
-                    const d = this.grid[r][c];
-                    el.className = 'cell'; el.innerText = '';
-                    
-                    if(d.owner === 1) { el.classList.add('p1'); el.innerText = d.count; }
-                    if(d.owner === 2) { el.classList.add('p2'); el.innerText = d.count; }
-                    
-                    if(this.phase === 'placement' && d.owner !== 0) el.classList.add('locked');
-                    
-                    // Attack Highlight
-                    if(this.phase === 'attack' && this.turn === 1 && d.owner === 2) {
-                        // Recalc power for highlight
-                        let p = 0;
-                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                            if(dr===0&&dc===0) continue;
-                            let nr=r+dr, nc=c+dc;
-                            if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===1) {
-                                p += this.grid[nr][nc].count;
-                            }
-                        }
-                        if(p > d.count) el.classList.add('valid-target');
-                    }
-                }
-            },
-
             updateHUD() {
+                // Sidebar visual
+                const p1 = document.getElementById('p1-bar');
+                const p2 = document.getElementById('p2-bar');
+                p1.className = `sidebar panel ${this.turn===1?'active p1-glow':''}`;
+                p2.className = `sidebar panel ${this.turn===2?'active p2-glow':''}`;
+
+                // Stats
                 document.getElementById('p1-res').innerText = this.p1Res;
                 document.getElementById('p2-res').innerText = this.p2Res;
                 
-                document.getElementById('p1-deck').className = `side-deck panel p1-side ${this.turn===1?'active p1-active':''}`;
-                document.getElementById('p2-deck').className = `side-deck panel p2-side ${this.turn===2?'active p2-active':''}`;
-
                 let s1=0, s2=0;
-                this.grid.forEach(r => r.forEach(c => {
-                    if(c.owner===1) s1++; if(c.owner===2) s2++;
-                }));
-                document.getElementById('p1-score').innerText = s1;
-                document.getElementById('p2-score').innerText = s2;
+                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
+                    const cell = this.grid[r][c];
+                    const el = document.getElementById(`c-${r}-${c}`);
+                    el.className = 'cell'; el.innerText = '';
+                    
+                    if(cell.owner === 1) { s1++; el.classList.add('p1'); el.innerText=cell.count; }
+                    if(cell.owner === 2) { s2++; el.classList.add('p2'); el.innerText=cell.count; }
+                    
+                    if(this.phase === 'placement' && cell.owner !== 0) el.classList.add('locked');
+                    if(this.phase === 'attack' && this.turn === 1 && cell.owner === 2) {
+                        if(this.getPower(r, c, 1) > cell.count) el.classList.add('targetable');
+                    }
+                }
+                document.getElementById('p1-area').innerText = s1;
+                document.getElementById('p2-area').innerText = s2;
             },
 
-            log(msg, type='sys') {
-                this.logData.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
-                const el = document.getElementById('console-deck');
-                const div = document.createElement('div');
-                div.className = `log-ln ln-${type}`;
-                div.innerText = `>> ${msg}`;
-                el.prepend(div);
+            log(msg, type) {
+                const c = document.getElementById('console');
+                const d = document.createElement('div');
+                d.className = `log-msg c-${type}`;
+                d.innerHTML = `<span style="opacity:0.5">[LOG]</span> ${msg}`;
+                c.prepend(d);
+            },
+
+            flash(r, c, col) {
+                const el = document.getElementById(`c-${r}-${c}`);
+                el.style.backgroundColor = col === 'red' ? '#500' : '#fff';
+                setTimeout(() => el.style.backgroundColor = '', 100);
             },
 
             gameOver() {
                 this.phase = 'over';
-                let s1 = +document.getElementById('p1-score').innerText;
-                let s2 = +document.getElementById('p2-score').innerText;
-                let w = s1 > s2 ? "PLAYER 1" : (s2 > s1 ? "PLAYER 2" : "DRAW");
-                
-                SFX.win();
-                Archive.save(w, `${s1} - ${s2}`, this.logData);
-                setTimeout(() => alert(`SIMULATION END.\n\nVICTOR: ${w}\nSCORE: P1 ${s1} | P2 ${s2}\n\nDATA LOGGED TO ARCHIVE.`), 200);
+                let s1 = +document.getElementById('p1-area').innerText;
+                let s2 = +document.getElementById('p2-area').innerText;
+                let w = s1>s2 ? "PLAYER 1" : (s2>s1 ? "PLAYER 2" : "DRAW");
+                alert(`SIMULATION END.\n\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}`);
+                location.reload();
             }
         };
 
-        /* --- WEAK AI HELPER --- */
+        /* --- INTELLIGENCE MODULE --- */
         const AI = {
-            getRandomPlacement(g) {
-                let opts = [];
-                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
-                    if(g.grid[r][c].owner === 0) opts.push({r,c});
+            getNeighbors(g, r, c) {
+                let f=0, e=0, emp=0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0&&dc===0)continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols) {
+                        if(g.grid[nr][nc].owner===2) f++;
+                        else if(g.grid[nr][nc].owner===1) e++;
+                        else emp++;
+                    }
                 }
-                return opts.length ? opts[Math.floor(Math.random()*opts.length)] : null;
+                return {friends:f, enemies:e, empty:emp};
+            },
+
+            getTitanPlacement(g) {
+                let moves = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
+                    if(g.grid[r][c].owner === 0) { // STRICT: Only empty
+                        let score = 0;
+                        const n = this.getNeighbors(g, r, c);
+                        
+                        // 1. CLUSTERING (Critical in No-Stack)
+                        score += (n.friends * 10); 
+                        
+                        // 2. FRONTLINE LOGIC
+                        // If near enemies, high priority to block/threaten
+                        if(n.enemies > 0) score += 15; 
+                        
+                        // 3. CENTER BIAS
+                        let dist = Math.abs(r - g.rows/2) + Math.abs(c - g.cols/2);
+                        score -= dist;
+
+                        moves.push({r, c, score});
+                    }
+                }
+                moves.sort((a,b) => b.score - a.score);
+                return moves.length ? moves[0] : null;
+            },
+
+            getRandomPlacement(g) {
+                let moves = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) 
+                    if(g.grid[r][c].owner === 0) moves.push({r,c});
+                return moves.length ? moves[Math.floor(Math.random()*moves.length)] : null;
+            },
+
+            getTitanAttack(g) {
+                let attacks = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
+                    if(g.grid[r][c].owner === 1) { // Enemy
+                        // Calc Power
+                        let p = 0;
+                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                            if(dr===0&&dc===0)continue;
+                            let nr=r+dr, nc=c+dc;
+                            if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols && g.grid[nr][nc].owner===2) p+=g.grid[nr][nc].count;
+                        }
+
+                        if(p > g.grid[r][c].count) {
+                            // KILLABLE. Assess value.
+                            let val = g.grid[r][c].count * 10; // Killing big stacks is good
+                            // Threat removal?
+                            const n = this.getNeighbors(g, r, c);
+                            val += (n.friends * 5); // Saving my neighbors from this enemy
+                            attacks.push({r, c, val});
+                        }
+                    }
+                }
+                attacks.sort((a,b) => b.val - a.val); // Greedy best
+                return attacks.length ? attacks[0] : null;
+            },
+
+            getRandomAttack(g) {
+                let attacks = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
+                    if(g.grid[r][c].owner === 1) {
+                        let p=0;
+                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                            if(dr===0&&dc===0)continue;
+                            let nr=r+dr, nc=c+dc;
+                            if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols && g.grid[nr][nc].owner===2) p+=g.grid[nr][nc].count;
+                        }
+                        if(p > g.grid[r][c].count) attacks.push({r,c});
+                    }
+                }
+                return attacks.length ? attacks[Math.floor(Math.random()*attacks.length)] : null;
             }
         };
-
     </script>
 </body>
 </html>
