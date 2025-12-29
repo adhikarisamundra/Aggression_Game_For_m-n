@@ -3,137 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGGRESSION: HYPERDRIVE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    <title>AGGRESSION: ECLIPSE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         /* --- 1. CORE VARIABLES --- */
         :root {
-            --bg-void: #020204;
-            --glass-panel: rgba(10, 14, 20, 0.96);
+            --bg-void: #000000;
             
-            /* NEON PALETTE - High Contrast */
+            /* NEON PALETTE */
             --cyan: #00f3ff;
-            --cyan-glow: 0 0 20px rgba(0, 243, 255, 0.6);
+            --cyan-dim: rgba(0, 243, 255, 0.1);
+            --cyan-glow: 0 0 20px rgba(0, 243, 255, 0.5);
             
             --red: #ff003c;
-            --red-glow: 0 0 20px rgba(255, 0, 60, 0.6);
+            --red-dim: rgba(255, 0, 60, 0.1);
+            --red-glow: 0 0 20px rgba(255, 0, 60, 0.5);
             
             --gold: #fbbf24;
             --gold-glow: 0 0 15px rgba(251, 191, 36, 0.4);
             
+            --panel-bg: rgba(5, 10, 15, 0.9);
+            
             /* FONTS */
-            --font-head: 'Orbitron', sans-serif;
-            --font-ui: 'Rajdhani', sans-serif;
-            --font-data: 'JetBrains Mono', monospace;
+            --f-head: 'Orbitron', sans-serif;
+            --f-ui: 'Rajdhani', sans-serif;
+            --f-code: 'Share Tech Mono', monospace;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         
         body {
             background-color: var(--bg-void);
-            color: #e2e8f0;
-            font-family: var(--font-ui);
+            color: #fff;
+            font-family: var(--f-ui);
             height: 100vh; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
-            perspective: 1000px;
         }
 
         /* --- 2. BACKGROUND FX --- */
         #starfield {
             position: fixed; inset: 0; z-index: 0;
-            background: 
-                radial-gradient(circle at 50% 50%, rgba(20, 30, 50, 0.2) 0%, rgba(0,0,0,1) 100%),
-                linear-gradient(0deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 60px 60px, 60px 60px;
-            animation: drift 80s linear infinite;
+            background: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
             pointer-events: none;
         }
-        @keyframes drift { from { background-position: 0 0, 0 0, 0 0; } to { background-position: 0 0, 0 60px, 0 60px; } }
+        
+        /* MOVING FLOOR GRID */
+        #cyber-floor {
+            position: fixed; bottom: 0; left: -50%; width: 200%; height: 50%;
+            background: 
+                linear-gradient(transparent 0%, rgba(0, 243, 255, 0.1) 1px, transparent 2px),
+                linear-gradient(90deg, transparent 0%, rgba(0, 243, 255, 0.1) 1px, transparent 2px);
+            background-size: 60px 40px;
+            transform: perspective(500px) rotateX(60deg);
+            animation: floorMove 10s linear infinite;
+            z-index: 0; pointer-events: none;
+            mask-image: linear-gradient(to top, rgba(0,0,0,1), transparent);
+        }
+        @keyframes floorMove { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(40px); } }
 
         .scanlines {
-            position: fixed; inset: 0; z-index: 999; pointer-events: none;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
-            background-size: 100% 3px; opacity: 0.5;
+            position: fixed; inset: 0; z-index: 900; pointer-events: none;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px; opacity: 0.5;
         }
 
         #vfx-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 800; }
 
         /* --- 3. UI KIT --- */
         .panel {
-            background: var(--glass-panel);
+            background: var(--panel-bg);
             border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(12px);
-            border-radius: 2px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            transition: 0.3s;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            border-radius: 4px;
+            position: relative;
         }
-
-        /* Animated Borders */
-        @keyframes borderPulse { 0%,100% { border-color: rgba(0,243,255,0.3); } 50% { border-color: var(--cyan); box-shadow: var(--cyan-glow); } }
-        @keyframes borderPulseRed { 0%,100% { border-color: rgba(255,0,60,0.3); } 50% { border-color: var(--red); box-shadow: var(--red-glow); } }
         
-        .glow-p1 { animation: borderPulse 2s infinite; }
-        .glow-p2 { animation: borderPulseRed 2s infinite; }
-        .glow-sys { border-color: var(--gold); box-shadow: var(--gold-glow); }
+        /* Neon Borders */
+        .panel::before, .panel::after {
+            content: ''; position: absolute; width: 15px; height: 15px;
+            border: 2px solid var(--cyan); transition: 0.3s;
+        }
+        .panel::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; box-shadow: -2px -2px 10px var(--cyan-dim); }
+        .panel::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; box-shadow: 2px 2px 10px var(--cyan-dim); }
 
+        .glow-p1 { border-color: var(--cyan); box-shadow: var(--cyan-glow); }
+        .glow-p2 { border-color: var(--red); box-shadow: var(--red-glow); }
+        
         .btn {
-            background: rgba(255,255,255,0.02); color: var(--cyan);
-            border: 1px solid var(--cyan); padding: 14px; width: 100%;
-            font-family: var(--font-head); font-weight: 700; letter-spacing: 1px;
-            text-transform: uppercase; cursor: pointer; transition: 0.1s;
-            position: relative; overflow: hidden;
+            background: rgba(0, 243, 255, 0.05); color: var(--cyan);
+            border: 1px solid var(--cyan); padding: 15px; width: 100%;
+            font-family: var(--f-head); font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; transition: 0.2s;
+            position: relative; overflow: hidden; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
         .btn:hover { background: var(--cyan); color: #000; box-shadow: var(--cyan-glow); }
-        .btn:active { transform: scale(0.98); }
         
-        .btn-red { color: var(--red); border-color: var(--red); }
+        .btn-red { color: var(--red); border-color: var(--red); background: rgba(255, 0, 60, 0.05); }
         .btn-red:hover { background: var(--red); color: #000; box-shadow: var(--red-glow); }
 
         input, select {
-            background: #05080c; border: 1px solid #334155; color: #fff;
-            padding: 12px; font-family: var(--font-data); text-align: center;
+            background: #080c12; border: 1px solid #333; color: #fff;
+            padding: 12px; font-family: var(--f-code); text-align: center;
             width: 100%; outline: none; transition: 0.3s; font-size: 1.1rem;
         }
         input:focus, select:focus { border-color: var(--gold); box-shadow: var(--gold-glow); }
-        label { display: block; color: #94a3b8; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
+        label { display: block; color: #888; font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase; }
 
-        /* --- 4. ANIMATED SETUP SCREEN --- */
+        /* --- 4. INTRO / BOOT SCREEN --- */
+        #boot-screen {
+            position: fixed; inset: 0; z-index: 2000; background: #000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .boot-text { font-family: var(--f-code); color: var(--cyan); font-size: 1.5rem; animation: pulseText 1s infinite; }
+        @keyframes pulseText { 0% {opacity:0.5;} 50% {opacity:1;} 100% {opacity:0.5;} }
+        
+        /* --- 5. SETUP SCREEN (MAIN MENU) --- */
         #setup-layer {
-            position: fixed; z-index: 1000; inset: 0;
-            display: flex; justify-content: center; align-items: center;
-            background: rgba(2, 3, 5, 0.98);
-            perspective: 1000px;
+            position: fixed; inset: 0; z-index: 100;
+            display: none; /* Hidden until boot finishes */
+            justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.6);
         }
         #setup-box { 
-            width: 550px; padding: 50px; display: flex; flex-direction: column; gap: 20px;
-            transform: rotateX(0deg); transition: transform 0.1s ease-out;
-            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            width: 600px; padding: 50px; display: flex; flex-direction: column; gap: 25px;
+            animation: holoPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes slideUp { from { opacity:0; transform: translateY(50px) rotateX(10deg); } to { opacity:1; transform: translateY(0) rotateX(0); } }
+        @keyframes holoPop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
-        /* Glitch Title */
-        .glitch-title {
-            font-family: var(--font-head); font-size: 4rem; margin: 0; line-height: 1;
-            color: #fff; text-align: center; letter-spacing: -2px;
-            text-shadow: 2px 2px var(--red), -2px -2px var(--cyan);
-            animation: glitch 3s infinite alternate;
+        h1 {
+            font-family: var(--f-head); font-size: 4rem; margin: 0; line-height: 1;
+            text-align: center; letter-spacing: -2px; color: #fff;
+            text-shadow: 0 0 30px rgba(255,255,255,0.2);
         }
-        @keyframes glitch {
-            0% { text-shadow: 2px 2px var(--red), -2px -2px var(--cyan); }
-            90% { text-shadow: 2px 2px var(--red), -2px -2px var(--cyan); transform: skew(0deg); }
-            92% { text-shadow: -2px 2px var(--red), 2px -2px var(--cyan); transform: skew(2deg); }
-            94% { text-shadow: 2px -2px var(--red), -2px 2px var(--cyan); transform: skew(-2deg); }
-            100% { text-shadow: 2px 2px var(--red), -2px -2px var(--cyan); transform: skew(0deg); }
-        }
-
         .subtitle {
-            text-align: center; color: var(--gold); font-family: var(--font-data);
-            font-size: 0.85rem; letter-spacing: 6px; margin-bottom: 30px;
-            border-bottom: 1px solid rgba(251, 191, 36, 0.3); padding-bottom: 15px;
+            text-align: center; color: var(--gold); font-family: var(--f-code);
+            font-size: 0.8rem; letter-spacing: 6px; margin-bottom: 10px;
+            border-bottom: 1px solid #333; padding-bottom: 20px;
         }
 
-        /* --- 5. GAME INTERFACE --- */
+        /* --- 6. GAME INTERFACE --- */
         #game-ui {
             display: none; width: 95vw; max-width: 1400px; height: 90vh;
             margin: auto; z-index: 10;
@@ -144,114 +153,94 @@
 
         .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
         .phase-pill {
-            font-family: var(--font-head); font-size: 1.2rem; color: #fff;
-            background: rgba(255,255,255,0.05); padding: 5px 30px;
-            border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            font-family: var(--f-head); font-size: 1.2rem; color: #fff;
+            background: rgba(255,255,255,0.05); padding: 8px 30px;
+            border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         .sidebar {
             grid-row: 2 / 3; display: flex; flex-direction: column; gap: 20px;
-            padding: 25px; transition: 0.4s; opacity: 0.3; border: 1px solid transparent;
+            padding: 30px; transition: 0.3s; opacity: 0.4; border: 1px solid transparent;
         }
-        .sidebar.active { opacity: 1; transform: scale(1.02); background: rgba(15, 20, 35, 0.8); }
+        .sidebar.active { opacity: 1; transform: scale(1.02); background: rgba(10, 20, 30, 0.8); }
         
         .stat-card {
-            background: rgba(0,0,0,0.4); padding: 20px; text-align: center;
-            border-left: 4px solid #333; overflow: hidden;
+            background: rgba(0,0,0,0.4); padding: 15px; text-align: center;
+            border-left: 4px solid #333;
         }
         .p1-side .stat-card { border-color: var(--cyan); }
         .p2-side .stat-card { border-color: var(--red); }
-        
-        .stat-val { font-family: var(--font-head); font-size: 3.5rem; font-weight: 900; line-height: 1; color: #fff; }
-        .stat-lbl { font-size: 0.7rem; color: #94a3b8; letter-spacing: 2px; margin-top: 5px; font-weight: 700; }
+        .stat-val { font-family: var(--f-head); font-size: 3rem; color: #fff; text-shadow: 0 0 20px currentColor; }
 
-        /* CENTER BOARD */
+        /* GRID SYSTEM (FIXED) */
         #viewport {
             grid-column: 2 / 3; grid-row: 2 / 3;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; perspective: 1200px;
+            position: relative;
         }
-        /* FIX: Ensure this is on top of BG and receives clicks */
+        
+        /* The container for the grid - NO 3D TILT on interactive layer to fix clicks */
         #grid-mount {
-            padding: 15px; background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
-            transition: transform 0.05s linear; /* Fast, linear response for tilt */
-            transform-style: preserve-3d;
-            z-index: 20;
+            padding: 20px; background: rgba(5, 5, 5, 0.8);
+            border: 1px solid #333;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            /* Z-Index ensures it's above background FX */
+            z-index: 100;
         }
-        #grid { display: grid; gap: 5px; }
+        
+        #grid { display: grid; gap: 6px; }
 
         .cell {
-            width: 65px; height: 65px; background: #080c12;
+            width: 65px; height: 65px; background: #0f1216;
             display: flex; justify-content: center; align-items: center;
-            font-family: var(--font-head); font-weight: bold; font-size: 1.6rem;
-            cursor: pointer; border: 1px solid #1e293b; 
-            position: relative; z-index: 1;
-            /* PERFORMANCE FIX: No transition on background-color = Instant Response */
-            transition: border-color 0.1s, box-shadow 0.1s; 
+            font-family: var(--f-head); font-weight: 700; font-size: 1.6rem;
+            cursor: pointer; border: 1px solid #333; 
+            transition: all 0.1s; /* Fast transition for responsiveness */
+            position: relative;
         }
-        .cell:hover { z-index: 10; transform: translateZ(10px); border-color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+        /* Hover Effect */
+        .cell:hover { background: #222; border-color: #fff; transform: scale(1.1); z-index: 10; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
         
-        /* FACTION STYLES */
-        .cell.p1 {
-            color: var(--cyan); border-color: var(--cyan);
-            background: var(--cyan-dim); box-shadow: inset 0 0 20px var(--cyan-dim);
-        }
-        .cell.p2 {
-            color: var(--red); border-color: var(--red);
-            background: var(--red-dim); box-shadow: inset 0 0 20px var(--red-dim);
-        }
-        .cell.locked { cursor: not-allowed; opacity: 0.5; filter: grayscale(0.8); }
+        /* Player Styles */
+        .cell.p1 { color: var(--cyan); border-color: var(--cyan); background: rgba(0, 243, 255, 0.15); box-shadow: inset 0 0 15px var(--cyan-dim); }
+        .cell.p2 { color: var(--red); border-color: var(--red); background: rgba(255, 0, 60, 0.15); box-shadow: inset 0 0 15px var(--red-dim); }
         
-        .cell.target { animation: pulse 1s infinite; cursor: crosshair; }
-        @keyframes pulse { 0% {box-shadow: inset 0 0 0 var(--red);} 50% {box-shadow: inset 0 0 25px var(--red);} }
+        /* Locked/Target Styles */
+        .cell.locked { cursor: not-allowed; opacity: 0.6; }
+        .cell.locked:hover { transform: none; box-shadow: none; border-color: #333; }
+        .cell.target { animation: pulseRed 1s infinite; cursor: crosshair; }
+        @keyframes pulseRed { 0% {box-shadow:inset 0 0 0 var(--red);} 50% {box-shadow:inset 0 0 25px var(--red);} }
 
-        #console-wrap { grid-column: 1 / 3; grid-row: 3 / 4; background: #020406; border: 1px solid #333; padding: 15px; font-family: var(--font-data); font-size: 0.75rem; color: #94a3b8; overflow-y: auto; display: flex; flex-direction: column-reverse; }
+        #console-wrap { grid-column: 1 / 3; grid-row: 3 / 4; background: #020406; border: 1px solid #333; padding: 15px; font-family: var(--f-code); font-size: 0.75rem; color: #888; overflow-y: auto; display: flex; flex-direction: column-reverse; }
         .log-entry { margin-bottom: 3px; border-bottom: 1px solid #111; padding-bottom: 2px; }
         .ln-p1 { color: var(--cyan); } .ln-p2 { color: var(--red); } .ln-sys { color: var(--gold); }
 
         #controls { grid-column: 3 / 4; grid-row: 3 / 4; display: flex; flex-direction: column; justify-content: center; gap: 15px; padding: 20px; }
 
-        /* --- 6. MODALS --- */
+        /* --- 7. MODALS --- */
         .modal-veil {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.96);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             z-index: 2000; display: none; justify-content: center; align-items: center;
         }
         .modal-box {
             background: #080c10; border: 1px solid var(--gold); padding: 40px;
-            width: 800px; max-width: 90%; max-height: 90vh; overflow-y: auto;
-            box-shadow: 0 0 80px rgba(255, 215, 0, 0.15); border-radius: 4px;
+            width: 700px; max-width: 90%; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 0 80px rgba(251, 191, 36, 0.15);
         }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-family: var(--font-data); font-size: 0.85rem; text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-family: var(--f-code); font-size: 0.85rem; text-align: left; }
         th { color: var(--gold); border-bottom: 2px solid #333; padding: 10px; }
-        td { padding: 10px; border-bottom: 1px solid #222; color: #888; }
+        td { padding: 10px; border-bottom: 1px solid #222; color: #aaa; }
         
-        #ai-think { 
-            position: absolute; top: -40px; color: var(--red); font-family: var(--font-data); 
-            font-size: 0.9rem; display: none; text-shadow: 0 0 10px var(--red); font-weight: bold;
-            pointer-events: none; /* FIX: Ensure AI text doesn't block clicks */
-        }
+        #ai-think { position: absolute; top: -40px; color: var(--red); font-family: var(--f-code); font-size: 0.8rem; display: none; text-shadow: 0 0 10px var(--red); }
         
-        /* PREDICTOR TOOLTIP */
         #predict-hud {
-            position: absolute; pointer-events: none; z-index: 100;
+            position: absolute; pointer-events: none; z-index: 500;
             background: rgba(0,0,0,0.95); border: 1px solid #fff;
-            padding: 10px 15px; font-size: 0.8rem; color: #fff; font-family: var(--font-data);
+            padding: 8px 12px; font-size: 0.75rem; color: #fff; font-family: var(--f-code);
             white-space: nowrap; transform: translate(-50%, -140%);
             display: none; box-shadow: 0 10px 40px #000;
         }
-
-        /* --- 7. WIN SCREEN --- */
-        #win-overlay {
-            position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,0.95);
-            display: none; justify-content: center; align-items: center; flex-direction: column;
-            animation: fadeIn 1s forwards;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .win-title { font-family: var(--font-head); font-size: 6rem; font-weight: 900; letter-spacing: 15px; margin-bottom: 10px; }
-        .win-sub { font-family: var(--font-ui); font-size: 1.5rem; letter-spacing: 5px; color: #fff; }
 
         @media (max-width: 1200px) { #game-ui { width: 100vw; height: 100vh; grid-template-columns: 240px 1fr 240px; } }
         @media (max-width: 900px) {
@@ -264,13 +253,18 @@
 <body>
 
     <div id="starfield"></div>
+    <div id="cyber-floor"></div>
     <div class="scanlines"></div>
     <canvas id="vfx-canvas"></canvas>
 
+    <div id="boot-screen" onclick="Engine.initMenu()">
+        <div class="boot-text">Click to Initiate Launch Sequence...</div>
+    </div>
+
     <div id="setup-layer">
-        <div id="setup-box" class="panel glow-sys">
-            <h1 class="glitch-title">AGGRESSION</h1>
-            <div class="subtitle">TACTICAL WARFARE SIMULATOR</div>
+        <div id="setup-box" class="panel">
+            <h1>AGGRESSION</h1>
+            <div class="subtitle">TACTICAL WARFARE SYSTEM</div>
             
             <div style="display:flex; gap:15px;">
                 <div style="flex:1"><label>Grid Rows</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
@@ -278,43 +272,37 @@
             </div>
             
             <div>
-                <label>Total Troops</label>
+                <label>Troops Per Player</label>
                 <input type="number" id="set-t" value="36" min="1">
-                <div style="font-size:0.7rem; color:var(--red); margin-top:8px; font-family:var(--font-data);">
-                    WARNING: UNIT STACKING PROHIBITED ON OCCUPIED SECTORS
+                <div style="font-size:0.7rem; color:var(--red); margin-top:8px; font-family:var(--f-code);">
+                    * Rule: Cannot place on occupied tiles.
                 </div>
             </div>
 
             <div>
-                <label>Opponent Intelligence</label>
+                <label>Opponent Type</label>
                 <select id="set-ai">
                     <option value="human">Human vs Human</option>
                     <option value="weak">Weak AI (Random)</option>
                     <option value="strategic">Strategic AI (Aggressive)</option>
-                    <option value="smart" selected>Smart AI (Simulation)</option>
+                    <option value="smart" selected>Smart AI (Tactical)</option>
                 </select>
             </div>
 
-            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">Initialize System</button>
-            <button class="btn btn-red" onclick="Archive.open()">Mission Logs</button>
+            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">Start Simulation</button>
+            <button class="btn btn-red" onclick="Archive.open()">View Logs</button>
         </div>
-    </div>
-
-    <div id="win-overlay">
-        <div id="win-title" class="win-title">VICTORY</div>
-        <div id="win-sub" class="win-sub">PLAYER 1 DOMINANCE</div>
-        <button class="btn" style="width:200px; margin-top:50px;" onclick="location.reload()">REBOOT SYSTEM</button>
     </div>
 
     <div id="game-ui">
         <div class="top-bar panel glow-sys">
-            <div style="font-weight:bold; color:#fff; font-size:1.2rem; font-family:var(--font-head);">AGGRESSION // ACTIVE</div>
-            <div id="phase-ui" class="phase-pill">PLACEMENT PHASE</div>
-            <div onclick="location.reload()" style="cursor:pointer; color:var(--text-muted); font-size:0.9rem;">[ABORT]</div>
+            <div style="font-weight:bold; color:#fff; font-size:1.2rem;">AGGRESSION // LIVE</div>
+            <div id="phase-ui" class="phase-pill">PLACEMENT</div>
+            <div onclick="location.reload()" style="cursor:pointer; color:#666;">[QUIT]</div>
         </div>
 
         <div class="sidebar panel p1-side" id="p1-deck">
-            <div style="color:var(--cyan); font-weight:bold; text-align:center; font-size:1.4rem; font-family:var(--font-head);">PLAYER 1</div>
+            <div style="color:var(--cyan); font-weight:bold; text-align:center; font-size:1.4rem;">PLAYER 1</div>
             <div class="stat-card">
                 <div class="stat-val" id="p1-res">0</div><div class="stat-lbl">RESERVES</div>
             </div>
@@ -324,7 +312,7 @@
         </div>
 
         <div id="viewport">
-            <div id="ai-think">>> OPPONENT COMPUTING OPTIMAL VECTOR...</div>
+            <div id="ai-think">>> OPPONENT THINKING...</div>
             <div id="grid-mount">
                 <div id="grid"></div>
                 <div id="predict-hud"></div>
@@ -332,7 +320,7 @@
         </div>
 
         <div class="sidebar panel p2-side" id="p2-deck">
-            <div style="color:var(--red); font-weight:bold; text-align:center; font-size:1.4rem; font-family:var(--font-head);" id="p2-name">PLAYER 2</div>
+            <div style="color:var(--red); font-weight:bold; text-align:center; font-size:1.4rem;" id="p2-name">PLAYER 2</div>
             <div class="stat-card">
                 <div class="stat-val" id="p2-res">0</div><div class="stat-lbl">RESERVES</div>
             </div>
@@ -345,12 +333,12 @@
 
         <div id="controls" class="panel glow-sys">
             <div id="ui-place">
-                <label>Deployment Size</label>
+                <label>Troops to Place</label>
                 <input type="number" id="deploy-val" value="1" min="1" style="background:#000; font-size:1.4rem; margin:10px 0;">
-                <div style="font-size:0.65rem; color:#666; text-align:center;">CLICK EMPTY TILE TO CONFIRM</div>
+                <div style="font-size:0.65rem; color:#666; text-align:center;">CLICK EMPTY TILE</div>
             </div>
             <div id="ui-attack" style="display:none;">
-                <div style="text-align:center; color:var(--red); font-weight:bold; margin-bottom:10px; font-size:1.2rem;">COMBAT ACTIVE</div>
+                <div style="text-align:center; color:var(--red); font-weight:bold; margin-bottom:10px; font-size:1.2rem;">ATTACK PHASE</div>
                 <button class="btn btn-red" onclick="Engine.pass()">PASS TURN</button>
             </div>
         </div>
@@ -359,7 +347,7 @@
     <div id="log-modal" class="modal-veil" style="display:none;">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0; color:var(--gold);">MISSION LOGS</h2>
+                <h2 style="margin:0; color:var(--gold);">GAME LOGS</h2>
                 <span style="cursor:pointer; font-size:1.5rem;" onclick="Archive.close()">×</span>
             </div>
             <table>
@@ -368,156 +356,128 @@
             </table>
             
             <div style="margin-top:25px; border-top:1px solid #333; padding-top:15px;">
-                <label>DATA SYNC (EXPORT/IMPORT)</label>
-                <textarea id="sync-code" style="width:100%; height:60px; background:#000; color:#10b981; border:1px solid #333; font-family:monospace; font-size:0.7rem; resize:none; padding:10px;" readonly placeholder="Export string will appear here..."></textarea>
+                <label>DATA SYNC (COPY/PASTE)</label>
+                <textarea id="sync-code" style="width:100%; height:60px; background:#000; color:var(--cyan); border:1px solid #333; font-family:monospace; font-size:0.7rem; resize:none; padding:10px;" readonly placeholder="Export string will appear here..."></textarea>
                 <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Archive.export()">COPY CODE</button>
-                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Archive.import()">IMPORT CODE</button>
+                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Archive.export()">COPY DATA</button>
+                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Archive.import()">IMPORT DATA</button>
                 </div>
             </div>
 
             <div style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
-                <button class="btn btn-red" onclick="Archive.wipe()">SECURE DELETE (PASSWORD REQ)</button>
+                <button class="btn btn-red" onclick="Archive.wipe()">CLEAR LOGS (PASSWORD REQ)</button>
             </div>
         </div>
     </div>
 
     <script>
-        /* --- 1. PRO AUDIO ENGINE --- */
-        const AudioSys = {
-            ctx: null,
-            init() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-            playP1() {
-                if(!this.ctx) this.init(); if(this.ctx.state==='suspended') this.ctx.resume();
-                const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
-                o.type='sine'; o.frequency.setValueAtTime(400,t); o.frequency.exponentialRampToValueAtTime(800,t+0.1);
-                g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
-                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(t+0.3);
-            },
-            playP2() {
-                if(!this.ctx) this.init(); if(this.ctx.state==='suspended') this.ctx.resume();
-                const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
-                o.type='square'; o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(50,t+0.2);
-                g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
-                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(t+0.3);
-            },
-            playCombat() {
-                if(!this.ctx) this.init();
-                const t=this.ctx.currentTime, b=this.ctx.createBuffer(1,this.ctx.sampleRate*0.5,this.ctx.sampleRate), d=b.getChannelData(0);
-                for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-                const n=this.ctx.createBufferSource(); n.buffer=b;
-                const f=this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.setValueAtTime(1000,t); f.frequency.exponentialRampToValueAtTime(100,t+0.4);
-                const g=this.ctx.createGain(); g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.4);
-                n.connect(f); f.connect(g); g.connect(this.ctx.destination); n.start();
-            },
-            playWin() {
-                const notes=[440,554,659,880];
-                notes.forEach((freq,i)=>{
-                    setTimeout(()=>{
-                        const o=this.ctx.createOscillator(), g=this.ctx.createGain();
-                        o.type='triangle'; o.frequency.setValueAtTime(freq,this.ctx.currentTime);
-                        g.gain.setValueAtTime(0.2,this.ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,this.ctx.currentTime+1);
-                        o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(this.ctx.currentTime+1);
-                    }, i*150);
-                });
-            }
-        };
-
-        /* --- 2. VFX ENGINE --- */
+        /* --- 1. VISUAL FX --- */
         const VFX = {
             canvas: document.getElementById('vfx-canvas'),
             ctx: document.getElementById('vfx-canvas').getContext('2d'),
-            particles: [], fireworks: [],
+            particles: [],
             init() { window.addEventListener('resize', ()=>this.resize()); this.resize(); this.loop(); },
             resize() { this.canvas.width=window.innerWidth; this.canvas.height=window.innerHeight; },
-            spawnPlacement(x,y,p) {
-                const color = p===1 ? '#00f3ff' : '#ff003c';
-                for(let i=0; i<20; i++) {
-                    const a=Math.random()*Math.PI*2, s=Math.random()*4+2;
-                    this.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:Math.random()*0.03+0.02,color,type:p});
+            burst(x, y, color) {
+                for(let i=0; i<25; i++) {
+                    const a=Math.random()*Math.PI*2, s=Math.random()*6+2;
+                    this.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:0.04,color,size:Math.random()*3+2});
                 }
-            },
-            spawnExplosion(x,y) {
-                for(let i=0; i<40; i++) {
-                    const a=Math.random()*Math.PI*2, s=Math.random()*8+2;
-                    this.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:0.02,color:'#fbbf24',type:3});
-                }
-            },
-            spawnFirework(c) {
-                const x=Math.random()*this.canvas.width, y=this.canvas.height, ty=Math.random()*(this.canvas.height/2);
-                this.fireworks.push({x,y,tx:x,ty,vy:-10,color:c,explode:false});
             },
             loop() {
                 this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-                for(let i=this.particles.length-1;i>=0;i--) {
-                    let p=this.particles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
+                for(let i=this.particles.length-1; i>=0; i--) {
+                    let p=this.particles[i];
+                    p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
                     this.ctx.globalAlpha=p.life; this.ctx.fillStyle=p.color;
-                    if(p.type===1) { this.ctx.beginPath(); this.ctx.arc(p.x,p.y,3,0,Math.PI*2); this.ctx.fill(); }
-                    else { this.ctx.fillRect(p.x,p.y,p.type===2?5:2,p.type===2?5:2); }
+                    this.ctx.beginPath(); this.ctx.arc(p.x,p.y,p.size,0,Math.PI*2); this.ctx.fill();
                     if(p.life<=0) this.particles.splice(i,1);
-                }
-                for(let i=this.fireworks.length-1;i>=0;i--) {
-                    let f=this.fireworks[i];
-                    if(!f.explode) {
-                        f.y+=f.vy; f.vy+=0.2; this.ctx.fillStyle=f.color; this.ctx.fillRect(f.x,f.y,4,4);
-                        if(f.vy>=0||f.y<=f.ty) {
-                            f.explode=true;
-                            for(let j=0;j<50;j++) {
-                                const a=Math.random()*Math.PI*2, s=Math.random()*5;
-                                this.particles.push({x:f.x,y:f.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:0.015,color:f.color,type:1});
-                            }
-                            this.fireworks.splice(i,1);
-                        }
-                    }
                 }
                 requestAnimationFrame(()=>this.loop());
             }
         };
         VFX.init();
 
-        /* --- 3. DATA MANAGER --- */
+        /* --- 2. AUDIO --- */
+        const Sound = {
+            ctx: null,
+            init() { if(!this.ctx) this.ctx = new (window.AudioContext||window.webkitAudioContext)(); },
+            playP1() {
+                if(!this.ctx) this.init(); if(this.ctx.state==='suspended') this.ctx.resume();
+                const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
+                o.frequency.setValueAtTime(400,t); o.frequency.linearRampToValueAtTime(800,t+0.1);
+                g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
+                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(t+0.3);
+            },
+            playP2() {
+                if(!this.ctx) this.init(); if(this.ctx.state==='suspended') this.ctx.resume();
+                const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
+                o.type='square'; o.frequency.setValueAtTime(100,t); o.frequency.linearRampToValueAtTime(50,t+0.1);
+                g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
+                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(t+0.3);
+            },
+            kill() {
+                if(!this.ctx) this.init();
+                const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
+                o.type='sawtooth'; o.frequency.setValueAtTime(100,t); o.frequency.exponentialRampToValueAtTime(10,t+0.3);
+                g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
+                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(t+0.3);
+            },
+            win() {
+                if(!this.ctx) this.init();
+                [300,400,500,600,800].forEach((f,i)=>{
+                    setTimeout(()=>{
+                        const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+                        o.frequency.setValueAtTime(f,this.ctx.currentTime);
+                        g.gain.setValueAtTime(0.1,this.ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,this.ctx.currentTime+0.5);
+                        o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(this.ctx.currentTime+0.5);
+                    },i*100);
+                });
+            }
+        };
+
+        /* --- 3. DATA --- */
         const Archive = {
-            key: 'aggr_hyper_v4',
+            key: 'aggr_data_v5',
             get() { return JSON.parse(localStorage.getItem(this.key)||"[]"); },
-            save(w, s, l) {
-                const db = this.get();
-                db.unshift({ id:Date.now().toString().slice(-6), date:new Date().toLocaleString(), winner:w, score:s, log:l });
-                localStorage.setItem(this.key, JSON.stringify(db));
+            save(w,s,l) {
+                const db=this.get(); db.unshift({id:Date.now().toString().slice(-6),date:new Date().toLocaleString(),winner:w,score:s});
+                localStorage.setItem(this.key,JSON.stringify(db));
             },
             open() {
                 document.getElementById('log-modal').style.display='flex';
-                const el = document.getElementById('log-body'); el.innerHTML = '';
-                const db = this.get();
-                if(!db.length) el.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">NO LOGS FOUND</td></tr>';
-                db.forEach(g => {
-                    const c = g.winner.includes('1') ? 'var(--cyan)' : (g.winner.includes('2') ? 'var(--red)' : '#fff');
-                    el.innerHTML += `<tr><td style="font-family:monospace; color:#666">${g.id}</td><td>${g.date}</td><td style="color:${c}">${g.winner}</td><td>${g.score}</td></tr>`;
+                const el=document.getElementById('log-body'); el.innerHTML='';
+                const db=this.get();
+                if(!db.length) el.innerHTML='<tr><td colspan="4" style="text-align:center; padding:20px;">No logs found.</td></tr>';
+                db.forEach(g=>{
+                    const c=g.winner.includes('1')?'var(--cyan)':'var(--red)';
+                    el.innerHTML+=`<tr><td style="color:#666">${g.id}</td><td>${g.date}</td><td style="color:${c}">${g.winner}</td><td>${g.score}</td></tr>`;
                 });
             },
             close() { document.getElementById('log-modal').style.display='none'; },
             export() {
-                const str = btoa(unescape(encodeURIComponent(localStorage.getItem(this.key)||"[]")));
-                document.getElementById('sync-code').value = str;
-                alert("CODE GENERATED");
+                const s = btoa(unescape(encodeURIComponent(localStorage.getItem(this.key)||"[]")));
+                document.getElementById('sync-code').value = s; alert("Code Generated.");
             },
             import() {
-                const c = prompt("PASTE CODE:");
-                if(!c) return;
-                try {
-                    const d = decodeURIComponent(escape(atob(c))); JSON.parse(d);
-                    localStorage.setItem(this.key, d); this.open(); alert("SUCCESS");
-                } catch(e) { alert("INVALID"); }
+                const c = prompt("Paste Code:"); if(!c) return;
+                try { const d = decodeURIComponent(escape(atob(c))); JSON.parse(d); localStorage.setItem(this.key,d); this.open(); alert("Success."); } catch(e){ alert("Invalid."); }
             },
             wipe() {
-                if(prompt("ENTER PASSWORD:") === "ADMIN") { localStorage.removeItem(this.key); this.open(); }
-                else alert("ACCESS DENIED");
+                if(prompt("Enter Password:")==="ADMIN") { localStorage.removeItem(this.key); this.open(); } else alert("Denied.");
             }
         };
 
-        /* --- 4. ENGINE CORE --- */
+        /* --- 4. ENGINE --- */
         const Engine = {
             rows:0, cols:0, grid:[], p1Res:0, p2Res:0, turn:1, phase:'setup', ai:null,
-            firstMover:0, hasMoved:false, passCount:0, logData: [], winMode:false,
+            firstMover:0, hasMoved:false, passCount:0,
+
+            initMenu() {
+                Sound.init(); Sound.playP1(); // Wake audio context
+                document.getElementById('boot-screen').style.display='none';
+                document.getElementById('setup-layer').style.display='flex';
+            },
 
             boot() {
                 this.rows = Math.min(10, Math.max(3, +document.getElementById('set-r').value));
@@ -528,7 +488,7 @@
                 this.ai = aiVal === 'human' ? null : aiVal;
                 
                 this.phase = 'placement'; this.turn = Math.random() < 0.5 ? 1 : 2;
-                this.firstMover = 0; this.hasMoved = false; this.passCount = 0; this.logData = [];
+                this.firstMover = 0; this.hasMoved = false; this.passCount = 0;
 
                 this.grid = [];
                 for(let r=0; r<this.rows; r++) {
@@ -538,11 +498,11 @@
 
                 document.getElementById('setup-layer').style.display = 'none';
                 document.getElementById('game-ui').style.display = 'grid';
-                document.getElementById('p2-name').innerText = this.ai ? `AI: ${this.ai.toUpperCase()}` : "PLAYER 2";
+                document.getElementById('p2-name').innerText = this.ai ? `AI (${this.ai.toUpperCase()})` : "PLAYER 2";
 
-                this.buildGrid(); this.updateHUD(); AudioSys.init();
-                this.log("SYSTEM INITIALIZED", "sys");
-                this.log(`PLAYER ${this.turn} STARTS`, this.turn===1?"p1":"p2");
+                this.buildGrid(); this.updateHUD();
+                this.log("System Online.");
+                this.log(`Player ${this.turn} starts.`);
                 this.checkAI();
             },
 
@@ -560,12 +520,6 @@
                 }
             },
 
-            interact(r, c) {
-                if(this.winMode || (this.ai && this.turn === 2)) return;
-                if(this.phase === 'placement') this.place(r, c, +document.getElementById('deploy-val').value);
-                else this.attack(r, c);
-            },
-
             hover(r, c) {
                 if(this.phase !== 'attack' || this.turn !== 1) return;
                 const cell = this.grid[r][c];
@@ -581,9 +535,15 @@
                 hud.style.borderColor = p > cell.count ? '#10b981' : '#ef4444';
             },
 
+            interact(r, c) {
+                if(this.phase === 'over' || (this.ai && this.turn === 2)) return;
+                if(this.phase === 'placement') this.place(r, c, +document.getElementById('deploy-val').value);
+                else this.attack(r, c);
+            },
+
             place(r, c, amt) {
                 const cell = this.grid[r][c];
-                if(cell.owner !== 0) { this.log("ERROR: SECTOR OCCUPIED", "sys"); return; }
+                if(cell.owner !== 0) { this.log("Error: Occupied", "sys"); return; }
                 const res = this.turn===1 ? this.p1Res : this.p2Res;
                 const actual = Math.min(amt, res);
                 if(actual <= 0) return;
@@ -592,13 +552,12 @@
                 if(this.turn===1) this.p1Res -= actual; else this.p2Res -= actual;
                 if(!this.hasMoved) { this.firstMover = this.turn; this.hasMoved = true; }
 
-                // INSTANT UPDATE FOR RESPONSIVENESS
                 const el = document.getElementById(`c-${r}-${c}`);
                 el.className = `cell p${this.turn}`; el.innerText = actual;
-                
                 const rect = el.getBoundingClientRect();
-                if(this.turn===1) { AudioSys.playP1(); VFX.spawnPlacement(rect.left+32, rect.top+32, 1); }
-                else { AudioSys.playP2(); VFX.spawnPlacement(rect.left+32, rect.top+32, 2); }
+                
+                if(this.turn===1) { Sound.playP1(); VFX.burst(rect.left+32, rect.top+32, '#00f3ff'); }
+                else { Sound.playP2(); VFX.burst(rect.left+32, rect.top+32, '#ff003c'); }
 
                 this.updateHUD();
                 
@@ -609,45 +568,43 @@
                     let next = this.turn === 1 ? 2 : 1;
                     let nextRes = next === 1 ? this.p1Res : this.p2Res;
                     if(nextRes > 0 && !full) this.turn = next;
-                    else this.log(`PLAYER ${next} DEPLETED. SKIPPED.`, "sys");
+                    else this.log(`Player ${next} Depleted. Skipping.`, "sys");
                 }
                 this.updateHUD(); this.checkAI();
             },
 
             startCombat() {
                 this.phase = 'attack'; this.turn = this.firstMover;
-                document.getElementById('phase-ui').innerText = "COMBAT PHASE";
-                document.getElementById('phase-ui').style.borderColor = "var(--red)";
+                document.getElementById('phase-ui').innerText = "ATTACK PHASE";
                 document.getElementById('phase-ui').style.color = "var(--red)";
+                document.getElementById('phase-ui').style.borderColor = "var(--red)";
                 document.getElementById('ui-place').style.display = 'none';
                 document.getElementById('ui-attack').style.display = 'block';
-                this.log("PHASE SHIFT: COMBAT", "sys");
+                this.log("Phase: Attack", "sys");
             },
 
             attack(r, c) {
                 const cell = this.grid[r][c];
-                if(cell.owner === 0 || cell.owner === this.turn) { AudioSys.play(150,'sawtooth',0.3); return; }
+                if(cell.owner === 0 || cell.owner === this.turn) return;
                 const p = this.getPower(r, c, this.turn);
                 
                 if(p > cell.count) {
-                    this.log(`P${this.turn} NEUTRALIZED [${r},${c}]`, this.turn===1?'p1':'p2');
-                    AudioSys.playCombat();
-                    
+                    this.log(`Player ${this.turn} captured [${r},${c}]`, this.turn===1?'p1':'p2');
+                    Sound.kill();
                     const el = document.getElementById(`c-${r}-${c}`);
                     el.className = 'cell'; el.innerText = '';
                     const rect = el.getBoundingClientRect();
-                    VFX.spawnExplosion(rect.left+32, rect.top+32);
-                    
+                    VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
                     cell.owner = 0; cell.count = 0; this.passCount = 0;
                 } else {
-                    this.log("ATTACK FAILED", "sys"); AudioSys.play(150,'sawtooth',0.3);
+                    this.log("Attack Failed", "sys");
                 }
                 this.nextTurn();
             },
 
             pass() {
                 this.passCount++;
-                this.log(`P${this.turn} PASSED`, this.turn===1?'p1':'p2');
+                this.log(`Player ${this.turn} Passed`, this.turn===1?'p1':'p2');
                 if(this.passCount >= 2) this.end(); else this.nextTurn();
             },
 
@@ -658,91 +615,57 @@
                 for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
                     if(dr===0 && dc===0) continue;
                     let nr=r+dr, nc=c+dc;
-                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===who) {
-                        p += this.grid[nr][nc].count;
-                    }
+                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===who) p += this.grid[nr][nc].count;
                 }
                 return p;
             },
 
             checkAI() {
-                if(!this.ai || this.turn === 1 || this.winMode) return;
+                if(!this.ai || this.turn === 1 || this.phase === 'over') return;
                 document.getElementById('ai-think').style.display = 'block';
                 
                 setTimeout(() => {
                     if(this.phase === 'placement') {
-                        let best = null, maxScore = -Infinity;
-                        for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
-                            if(this.grid[r][c].owner === 0) {
-                                let score = 0;
-                                let f=0, e=0;
-                                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                                    if(dr===0&&dc===0)continue;
-                                    let nr=r+dr, nc=c+dc;
-                                    if(nr>=0&&nr<this.rows&&nc>=0&&nc<this.cols) {
-                                        if(this.grid[nr][nc].owner===2) f++;
-                                        if(this.grid[nr][nc].owner===1) e++;
-                                    }
-                                }
-                                if(this.ai === 'smart') { score += (f*10) + (e*20); }
-                                else score = Math.random();
-                                if(score > maxScore) { maxScore = score; best = {r,c,e}; }
-                            }
-                        }
-
-                        if(best) {
+                        const move = AI.getPlacement(this);
+                        if(move) {
                             let amt = 1;
-                            if(this.ai === 'smart') amt = (best.e > 0) ? Math.min(this.p2Res, Math.floor(Math.random()*4)+4) : 1;
-                            if(this.ai === 'strategic') amt = 3;
+                            if(this.ai === 'smart') {
+                                const n = AI.scan(this, move.r, move.c);
+                                amt = (n.e > 0) ? Math.min(this.p2Res, Math.floor(Math.random()*4)+4) : 1;
+                            } else if (this.ai === 'strategic') amt = 3;
                             
                             const val = Math.min(amt, this.p2Res);
-                            const cell = this.grid[best.r][best.c];
-                            
-                            // Instant AI Update
+                            const cell = this.grid[move.r][move.c];
                             cell.owner = 2; cell.count = val; this.p2Res -= val;
-                            const el = document.getElementById(`c-${best.r}-${best.c}`);
+                            
+                            const el = document.getElementById(`c-${move.r}-${move.c}`);
                             el.className = 'cell p2'; el.innerText = val;
                             const rect = el.getBoundingClientRect();
-                            AudioSys.playP2(); VFX.spawnPlacement(rect.left+32, rect.top+32, 2);
+                            Sound.playP2(); VFX.burst(rect.left+32, rect.top+32, '#ff003c');
                             
                             if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
                             
                             const full = this.grid.every(r=>r.every(c=>c.owner!==0));
-                            if((this.p1Res===0 && this.p2Res===0) || full) this.startCombat();
-                            else if(this.p1Res > 0 && !full) this.turn = 1;
+                            if((this.p1Res===0 && this.p2Res===0) || full) {
+                                this.startCombat();
+                            } else {
+                                if(this.p1Res > 0 && !full) this.turn = 1;
+                            }
                         } else this.startCombat();
                     } else {
-                        // Combat
-                        let moves = [];
-                        for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
-                            if(this.grid[r][c].owner === 1) { 
-                                let p = 0;
-                                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                                    if(dr===0&&dc===0)continue;
-                                    let nr=r+dr, nc=c+dc;
-                                    if(nr>=0&&nr<this.rows&&nc>=0&&nc<this.cols && this.grid[nr][nc].owner===2) p+=this.grid[nr][nc].count;
-                                }
-                                if(p > this.grid[r][c].count) moves.push({r,c,val:this.grid[r][c].count});
-                            }
-                        }
-                        
-                        if(moves.length > 0) {
-                            moves.sort((a,b)=>b.val-a.val);
-                            let t = moves[0];
-                            const cell = this.grid[t.r][t.c];
-                            
-                            // Instant AI Attack
-                            AudioSys.playCombat();
-                            const el = document.getElementById(`c-${t.r}-${t.c}`);
+                        const atk = this.ai==='weak' ? null : AI.getAttack(this);
+                        if(atk) {
+                            const cell = this.grid[atk.r][atk.c];
+                            this.log(`AI Captured [${atk.r},${atk.c}]`, 'p2');
+                            Sound.kill();
+                            const el = document.getElementById(`c-${atk.r}-${atk.c}`);
                             el.className = 'cell'; el.innerText = '';
                             const rect = el.getBoundingClientRect();
-                            VFX.spawnExplosion(rect.left+32, rect.top+32);
-                            
-                            this.log(`AI ELIMINATED [${t.r},${t.c}]`, 'p2');
+                            VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
                             cell.owner = 0; cell.count = 0; this.passCount = 0;
                         } else {
                             this.passCount++;
-                            this.log("AI PASSED", 'p2');
+                            this.log("AI Passed", 'p2');
                             if(this.passCount >= 2) return this.end();
                         }
                         this.turn = 1;
@@ -758,13 +681,9 @@
                 
                 const p1 = document.getElementById('p1-deck');
                 const p2 = document.getElementById('p2-deck');
+                p1.className = `sidebar panel p1-side ${this.turn===1?'active glow-p1':''}`;
+                p2.className = `sidebar panel p2-side ${this.turn===2?'active glow-p2':''}`;
                 
-                p1.className = 'sidebar panel p1-side';
-                p2.className = 'sidebar panel p2-side';
-                
-                if(this.turn === 1) p1.classList.add('active', 'glow-p1');
-                else p2.classList.add('active', 'glow-p2');
-
                 let s1=0, s2=0;
                 this.grid.forEach(r => r.forEach(c => { if(c.owner===1)s1++; if(c.owner===2)s2++; }));
                 document.getElementById('p1-score').innerText = s1;
@@ -772,7 +691,6 @@
             },
 
             log(msg, type='sys') {
-                this.logData.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
                 const w = document.getElementById('console-wrap');
                 const d = document.createElement('div');
                 d.className = `log-entry ln-${type}`;
@@ -781,39 +699,61 @@
             },
 
             end() {
-                this.winMode = true;
+                this.phase = 'over';
                 let s1 = +document.getElementById('p1-score').innerText;
                 let s2 = +document.getElementById('p2-score').innerText;
                 let w = s1>s2 ? "PLAYER 1" : (s2>s1 ? "PLAYER 2" : "DRAW");
-                let c = s1>s2 ? '#00f3ff' : '#ff003c';
-                
-                document.getElementById('game-ui').style.opacity = '0.1';
-                document.getElementById('win-overlay').style.display = 'flex';
-                document.getElementById('win-title').innerText = w;
-                document.getElementById('win-title').style.color = c;
-                document.getElementById('win-sub').innerText = `SCORE: ${s1} - ${s2}`;
-                
-                AudioSys.playWin();
+                Sound.win();
                 Archive.save(w, `${s1} - ${s2}`, this.logData);
-                
-                setInterval(() => VFX.spawnFirework(c), 800);
+                setTimeout(() => alert(`GAME OVER\n\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}`), 200);
             }
         };
 
-        // 3D Tilt Logic (Debounced for performance)
-        let ticking = false;
-        document.body.addEventListener('mousemove', e => {
-            if(!ticking) {
-                window.requestAnimationFrame(() => {
-                    const x = (window.innerWidth/2 - e.clientX)/50;
-                    const y = (window.innerHeight/2 - e.clientY)/50;
-                    if(document.getElementById('setup-box')) document.getElementById('setup-box').style.transform = `rotateX(${y}deg) rotateY(${-x}deg)`;
-                    if(document.getElementById('grid-mount')) document.getElementById('grid-mount').style.transform = `rotateX(${10+y}deg) rotateY(${-x}deg)`;
-                    ticking = false;
-                });
-                ticking = true;
+        const AI = {
+            scan(g, r, c) {
+                let f=0, e=0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0 && dc===0) continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols) {
+                        if(g.grid[nr][nc].owner===2) f++;
+                        else if(g.grid[nr][nc].owner===1) e++;
+                    }
+                }
+                return {f, e};
+            },
+            getPlacement(g) {
+                let moves = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
+                    if(g.grid[r][c].owner === 0) {
+                        let score = 0; const n = this.scan(g, r, c);
+                        score += (n.f * 10);
+                        if(n.e > 0) score += 15;
+                        let dist = Math.abs(r - g.rows/2) + Math.abs(c - g.cols/2);
+                        score -= dist;
+                        moves.push({r, c, score});
+                    }
+                }
+                moves.sort((a,b) => b.score - a.score);
+                return moves.length ? moves[0] : null;
+            },
+            getAttack(g) {
+                let moves = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
+                    if(g.grid[r][c].owner === 1) {
+                        let p = 0;
+                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                            if(dr===0&&dc===0) continue;
+                            let nr=r+dr, nc=c+dc;
+                            if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols && g.grid[nr][nc].owner===2) p+=g.grid[nr][nc].count;
+                        }
+                        if(p > g.grid[r][c].count) moves.push({r, c, val: g.grid[r][c].count});
+                    }
+                }
+                moves.sort((a,b) => b.val - a.val);
+                return moves.length ? moves[0] : null;
             }
-        });
+        };
     </script>
 </body>
 </html>
