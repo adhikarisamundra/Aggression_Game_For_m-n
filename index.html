@@ -3,526 +3,542 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGGRESSION - Strategic Warfare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <title>PROJECT: SINGULARITY // ULTIMATE STRATEGY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Krajown+Wulkan+Display&family=JetBrains+Mono:wght@400;800&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        /* --- CORE VISUALS (MODERN DARK THEME) --- */
+        /* --- 1. CORE VARIABLES & THEME CONFIGURATION --- */
         :root {
-            --bg-void: #0b1116;
-            --panel-glass: rgba(18, 24, 33, 0.96);
-            --border-dim: rgba(255, 255, 255, 0.1);
+            /* DIMENSIONS & SPACING */
+            --cell-size: 65px;
+            --gap: 6px;
             
-            /* PLAYER COLORS */
-            --p1-cyan: #38bdf8;
-            --p1-glow: rgba(56, 189, 248, 0.2);
-            --p2-red: #ef4444;
-            --p2-glow: rgba(239, 68, 68, 0.2);
+            /* COLOR PALETTE (NEON MATH) */
+            --void-bg: #030508;
+            --glass-surface: rgba(12, 20, 30, 0.94);
+            --border-primary: rgba(56, 189, 248, 0.2);
             
-            /* SYSTEM COLORS */
-            --sys-accent: #60a5fa;
-            --sys-success: #34d399;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
+            /* FACTION: FUNCTION (PLAYER 1) */
+            --p1-pri: #00f3ff;
+            --p1-sec: rgba(0, 243, 255, 0.15);
+            --p1-glow: 0 0 20px rgba(0, 243, 255, 0.4);
             
-            /* FONTS */
-            --font-ui: 'Rajdhani', sans-serif;
-            --font-mono: 'Space Mono', monospace;
+            /* FACTION: VARIABLE (PLAYER 2) */
+            --p2-pri: #ff0055;
+            --p2-sec: rgba(255, 0, 85, 0.15);
+            --p2-glow: 0 0 20px rgba(255, 0, 85, 0.4);
+            
+            /* SYSTEM STATUS COLORS */
+            --sys-gold: #fbbf24;
+            --sys-success: #10b981;
+            --sys-warn: #f59e0b;
+            
+            /* TYPOGRAPHY */
+            --font-display: 'Orbitron', sans-serif;
+            --font-data: 'JetBrains Mono', monospace;
         }
 
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-
+        /* --- 2. GLOBAL RESET & LAYOUT --- */
+        * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; cursor: default; }
+        
         body {
-            background: var(--bg-void);
-            color: var(--text-main);
-            font-family: var(--font-ui);
-            margin: 0; height: 100vh; overflow: hidden;
+            background-color: var(--void-bg);
+            color: #e2e8f0;
+            font-family: var(--font-data);
+            height: 100vh; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
+            perspective: 1200px; /* For 3D Tilt */
         }
 
-        /* --- BACKGROUND FX --- */
-        #starfield {
+        /* --- 3. AMBIENT BACKGROUND FX --- */
+        #render-canvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.3) 0%, rgba(11, 17, 22, 1) 90%),
-                linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            z-index: 0;
+            z-index: 0; pointer-events: none;
+        }
+        
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 999;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            opacity: 0.3;
         }
 
-        #vfx-canvas { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 50; }
-
-        /* --- UI COMPONENTS --- */
+        /* --- 4. UI COMPONENT LIBRARY --- */
         .panel {
-            background: var(--panel-glass);
-            border: 1px solid var(--border-dim);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            backdrop-filter: blur(12px);
-            position: relative;
-            padding: 25px;
+            background: var(--glass-surface);
+            border: 1px solid var(--border-primary);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
             border-radius: 4px;
+            position: relative;
+            transform-style: preserve-3d;
         }
+        
+        /* High-Tech Decorators */
+        .panel::before, .panel::after {
+            content: ''; position: absolute; width: 10px; height: 10px;
+            border: 2px solid var(--sys-gold); transition: 0.3s;
+        }
+        .panel::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+        .panel::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 
         .btn {
-            background: rgba(255,255,255,0.05);
-            color: var(--p1-cyan);
-            border: 1px solid var(--p1-cyan);
-            padding: 12px 24px;
-            font-family: var(--font-ui);
-            font-size: 1rem; letter-spacing: 1px; font-weight: bold;
+            background: rgba(255,255,255,0.02);
+            color: var(--p1-pri);
+            border: 1px solid var(--p1-pri);
+            padding: 14px 0; width: 100%;
+            font-family: var(--font-display);
+            font-weight: 900; letter-spacing: 2px;
             text-transform: uppercase; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 4px;
+            position: relative; overflow: hidden;
         }
-        .btn:hover { background: var(--p1-cyan); color: #000; box-shadow: 0 0 15px var(--p1-glow); }
+        .btn:hover { background: var(--p1-pri); color: #000; box-shadow: var(--p1-glow); }
+        .btn:active { transform: scale(0.98); }
         
-        .btn-red { color: var(--p2-red); border-color: var(--p2-red); }
-        .btn-red:hover { background: var(--p2-red); color: #000; box-shadow: 0 0 15px var(--p2-glow); }
-        
+        .btn-warn { color: var(--p2-pri); border-color: var(--p2-pri); }
+        .btn-warn:hover { background: var(--p2-pri); color: #fff; box-shadow: var(--p2-glow); }
+
         input, select {
-            background: #0f172a; border: 1px solid #334155; color: #fff;
-            padding: 10px; font-family: var(--font-mono); text-align: center;
-            width: 100%; outline: none; transition: 0.3s; border-radius: 4px;
+            background: #050910; border: 1px solid #334155; color: #fff;
+            padding: 12px; font-family: var(--font-data); text-align: center;
+            width: 100%; outline: none; transition: 0.3s; font-size: 1rem;
         }
-        input:focus, select:focus { border-color: var(--sys-accent); box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2); }
-        label { display: block; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+        input:focus, select:focus { border-color: var(--sys-gold); box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
 
-        /* --- SETUP SCREEN --- */
+        /* --- 5. SETUP SCREEN --- */
         #setup-layer {
-            position: fixed; z-index: 100; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            background: rgba(11, 17, 22, 0.95);
+            position: absolute; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+            padding: 50px; width: 600px; max-width: 95%;
+            transform: translateZ(20px); /* 3D pop */
         }
-        #setup-box { width: 500px; display: flex; flex-direction: column; gap: 20px; }
-
+        
         h1 {
-            font-family: var(--font-ui); font-size: 3.5rem; margin: 0; line-height: 1;
-            background: linear-gradient(180deg, #fff, #94a3b8);
+            font-family: var(--font-display); font-size: 3.5rem; margin: 0; line-height: 0.9;
+            background: linear-gradient(180deg, #fff, #64748b);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-align: center; letter-spacing: 2px; text-transform: uppercase;
+            text-align: center; text-shadow: 0 0 30px rgba(255,255,255,0.1);
         }
         .subtitle {
-            text-align: center; color: var(--sys-accent); font-family: var(--font-mono);
-            font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 15px;
-            border-bottom: 1px solid rgba(96, 165, 250, 0.2); padding-bottom: 15px;
+            color: var(--sys-gold); font-size: 0.75rem; letter-spacing: 5px;
+            margin-bottom: 30px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px;
         }
 
-        /* --- GAME HUD LAYOUT --- */
-        #game-ui {
-            display: none; width: 100vw; height: 100vh;
-            grid-template-columns: 280px 1fr 280px;
-            grid-template-rows: 60px 1fr 140px;
-            gap: 15px; padding: 20px; z-index: 10;
+        /* --- 6. GAME INTERFACE GRID --- */
+        #interface-layer {
+            display: none; /* Hidden on load */
+            width: 98vw; height: 95vh;
+            grid-template-columns: 320px 1fr 320px;
+            grid-template-rows: 70px 1fr 180px;
+            gap: 20px; padding: 20px; z-index: 10;
         }
 
-        /* TOP BAR */
-        .top-deck { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; }
-        .phase-badge {
-            font-family: var(--font-mono); font-size: 0.9rem; font-weight: bold;
+        /* HEADER */
+        .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
+        .phase-indicator {
+            font-family: var(--font-display); font-size: 1.2rem;
             color: #fff; background: rgba(255,255,255,0.05);
-            padding: 6px 16px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 24px; border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         /* SIDEBARS */
-        .side-deck {
-            grid-row: 2 / 3; display: flex; flex-direction: column; gap: 15px;
-            padding: 20px; transition: 0.4s; border: 1px solid transparent; opacity: 0.5;
-            border-radius: 4px;
+        .sidebar {
+            grid-row: 2 / 3; display: flex; flex-direction: column; gap: 20px;
+            padding: 30px; transition: 0.4s; opacity: 0.4; border: 1px solid transparent;
         }
-        .side-deck.active { opacity: 1; transform: scale(1.02); background: rgba(30, 41, 59, 0.6); }
-        .p1-active { border-color: var(--p1-cyan); box-shadow: 0 0 20px var(--p1-glow); }
-        .p2-active { border-color: var(--p2-red); box-shadow: 0 0 20px var(--p2-glow); }
+        .sidebar.active { opacity: 1; transform: scale(1.02); background: rgba(20, 25, 40, 0.95); }
+        .p1-active { border-color: var(--p1-pri); box-shadow: 0 0 40px rgba(0, 243, 255, 0.1); }
+        .p2-active { border-color: var(--p2-pri); box-shadow: 0 0 40px rgba(255, 0, 85, 0.1); }
 
-        .stat-block {
-            background: rgba(0,0,0,0.3); padding: 15px;
-            text-align: center; border-radius: 4px;
+        .stat-card {
+            background: rgba(0,0,0,0.4); padding: 20px; text-align: center;
+            border-left: 3px solid #333; position: relative; overflow: hidden;
         }
+        .p1-side .stat-card { border-color: var(--p1-pri); }
+        .p2-side .stat-card { border-color: var(--p2-pri); }
         
-        .stat-num { font-family: var(--font-mono); font-size: 2.5rem; font-weight: 700; color: #fff; }
-        .stat-lbl { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; margin-top: 5px; font-weight: bold; }
+        .stat-value { font-family: var(--font-display); font-size: 3.5rem; font-weight: 900; line-height: 1; color: #fff; }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; margin-top: 5px; font-weight: 700; }
 
-        /* BATTLEFIELD */
-        #battlefield {
+        /* CENTER STAGE */
+        #viewport {
             grid-column: 2 / 3; grid-row: 2 / 3;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative;
+            position: relative; perspective: 1000px;
         }
-        #grid-mount {
-            padding: 10px; background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border-radius: 8px;
-        }
-        #grid { display: grid; gap: 4px; }
-
-        .cell {
-            width: 64px; height: 64px; background: #0f172a;
-            display: flex; justify-content: center; align-items: center;
-            font-family: var(--font-mono); font-weight: 700; font-size: 1.4rem;
-            cursor: pointer; position: relative; border: 1px solid #1e293b;
-            transition: all 0.15s; border-radius: 4px;
-        }
-        .cell:hover { z-index: 10; transform: scale(1.1); border-color: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         
-        /* Unit Colors */
+        #grid-container {
+            padding: 15px; background: rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            transform: rotateX(10deg); /* 3D TILT EFFECT */
+            transition: transform 0.1s ease-out;
+        }
+        #grid { display: grid; gap: var(--gap); }
+
+        /* GRID CELLS */
+        .cell {
+            width: var(--cell-size); height: var(--cell-size);
+            background: #0a0e14; border: 1px solid #1e293b;
+            display: flex; justify-content: center; align-items: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 1.6rem;
+            cursor: pointer; position: relative; z-index: 1;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .cell:hover { z-index: 10; transform: scale(1.15) translateZ(20px); border-color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
         .cell.p1 {
-            color: var(--p1-cyan); border-color: var(--p1-cyan);
-            background: rgba(56, 189, 248, 0.1);
+            color: var(--p1-pri); border-color: var(--p1-pri);
+            background: var(--p1-sec); box-shadow: inset 0 0 20px var(--p1-sec);
         }
         .cell.p2 {
-            color: var(--p2-red); border-color: var(--p2-red);
-            background: rgba(239, 68, 68, 0.1);
+            color: var(--p2-pri); border-color: var(--p2-pri);
+            background: var(--p2-sec); box-shadow: inset 0 0 20px var(--p2-sec);
         }
-        .cell.locked { cursor: not-allowed; opacity: 0.7; filter: grayscale(0.2); }
-        .cell.locked:hover { transform: none; border-color: #1e293b; box-shadow: none; }
-
-        /* Hover Tooltip */
-        #intel-popup {
-            position: absolute; pointer-events: none; z-index: 100;
-            background: rgba(15, 23, 42, 0.95); border: 1px solid #fff;
-            padding: 8px 12px; font-size: 0.8rem; color: #fff; font-family: var(--font-mono);
-            white-space: nowrap; transform: translate(-50%, -130%);
-            display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.5); border-radius: 4px;
+        .cell.locked { cursor: not-allowed; opacity: 0.6; filter: grayscale(0.8); }
+        
+        /* TARGETING SYSTEM */
+        .cell.target { animation: lockOn 0.8s infinite; cursor: crosshair; }
+        @keyframes lockOn { 
+            0% { box-shadow: inset 0 0 0 var(--p2-pri); border-color: var(--p2-pri); } 
+            50% { box-shadow: inset 0 0 30px var(--p2-pri); border-color: #fff; } 
         }
 
         /* CONSOLE & CONTROLS */
-        #console-deck {
+        #console-wrap {
             grid-column: 1 / 3; grid-row: 3 / 4;
-            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); padding: 10px;
-            font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);
-            overflow-y: auto; display: flex; flex-direction: column-reverse; border-radius: 4px;
+            background: #020406; border: 1px solid #333; padding: 15px;
+            font-size: 0.75rem; color: #94a3b8; overflow-y: auto;
+            display: flex; flex-direction: column-reverse;
+            box-shadow: inset 0 0 30px #000;
         }
-        .log-ln { margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; }
-        .ln-p1 { color: var(--p1-cyan); }
-        .ln-p2 { color: var(--p2-red); }
-        .ln-sys { color: var(--sys-accent); }
+        .log-entry { padding: 3px 0; border-bottom: 1px solid #111; display: flex; }
+        .log-ts { color: #444; margin-right: 10px; width: 70px; }
+        .log-msg { flex: 1; }
+        .t-p1 { color: var(--p1-pri); } .t-p2 { color: var(--p2-pri); } .t-sys { color: var(--sys-gold); }
 
-        #command-deck {
+        #controls {
             grid-column: 3 / 4; grid-row: 3 / 4;
-            display: flex; flex-direction: column; gap: 10px; justify-content: center;
+            display: flex; flex-direction: column; justify-content: center; gap: 15px; padding: 20px;
         }
 
-        /* MODALS */
-        .modal-veil {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 17, 22, 0.9); z-index: 200; display: none;
-            justify-content: center; align-items: center;
-        }
-        .modal-core {
-            background: #1e293b; border: 1px solid var(--p1-cyan); padding: 30px;
-            width: 700px; max-width: 90%; max-height: 90vh; overflow-y: auto;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); border-radius: 8px;
+        /* HOVER PREDICTION */
+        #predict-hud {
+            position: absolute; pointer-events: none; z-index: 100;
+            background: rgba(0,0,0,0.95); border: 1px solid #fff;
+            padding: 10px 15px; font-size: 0.75rem; color: #fff;
+            white-space: nowrap; transform: translate(-50%, -140%);
+            display: none; box-shadow: 0 10px 40px #000;
         }
 
-        /* DATA TABLE */
-        .data-grid { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; font-size: 0.85rem; font-family: var(--font-mono); }
-        .data-grid th { color: var(--sys-accent); border-bottom: 2px solid #334155; padding: 10px; }
-        .data-grid td { padding: 10px; border-bottom: 1px solid #334155; color: #cbd5e1; }
-        .data-grid tr:hover td { background: rgba(255,255,255,0.05); }
-
-        /* LOADING SPINNER */
-        .loader {
-            width: 16px; height: 16px; border: 2px solid var(--p2-red);
-            border-bottom-color: transparent; border-radius: 50%;
-            display: inline-block; animation: spin 1s linear infinite;
-            vertical-align: middle; margin-right: 8px;
+        /* --- 7. DATA MODAL --- */
+        #modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
+            z-index: 200; display: none; justify-content: center; align-items: center;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #modal-card {
+            background: #0a0e14; border: 1px solid var(--sys-gold); padding: 40px;
+            width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 0 100px rgba(251, 191, 36, 0.1);
+        }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.8rem; }
+        th { text-align: left; color: var(--sys-gold); padding: 10px; border-bottom: 2px solid #333; }
+        td { padding: 10px; border-bottom: 1px solid #222; }
+        tr:hover td { background: #111; color: #fff; }
 
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            #game-interface { grid-template-columns: 240px 1fr 240px; }
+            :root { --cell-size: 55px; }
+        }
         @media (max-width: 900px) {
-            #game-ui { display: flex; flex-direction: column; height: auto; overflow-y: auto; }
-            .side-deck { flex-direction: row; justify-content: space-around; }
-            #console-deck { height: 120px; }
+            #game-interface { display: flex; flex-direction: column; height: auto; overflow-y: auto; padding-bottom: 50px; }
+            .sidebar { flex-direction: row; justify-content: space-around; }
+            #console-wrap { height: 150px; }
         }
     </style>
 </head>
 <body>
 
     <div id="starfield"></div>
-    <canvas id="vfx-canvas"></canvas>
+    <div class="scanlines"></div>
+    <canvas id="render-canvas"></canvas>
 
     <div id="setup-layer">
         <div id="setup-box" class="panel">
             <h1>AGGRESSION</h1>
-            <div class="subtitle">TACTICAL WARFARE SIMULATOR</div>
+            <div class="subtitle">PROJECT: SINGULARITY // V.FINAL</div>
             
-            <div style="display:flex; gap:15px;">
+            <div style="display:flex; gap:15px; margin-bottom:15px;">
                 <div style="flex:1">
-                    <label>Grid Rows</label>
+                    <label>MATRIX ROWS</label>
                     <input type="number" id="cfg-rows" value="6" min="3" max="10">
                 </div>
                 <div style="flex:1">
-                    <label>Grid Columns</label>
+                    <label>MATRIX COLS</label>
                     <input type="number" id="cfg-cols" value="6" min="3" max="10">
                 </div>
             </div>
             
-            <div>
-                <label>Troops Per Player</label>
+            <div style="margin-bottom:15px;">
+                <label>UNIT ALLOCATION (PER COMMANDER)</label>
                 <input type="number" id="cfg-troops" value="36" min="1">
-                <div style="font-size:0.75rem; color:var(--p2-red); margin-top:8px; font-family:var(--font-mono);">
-                    ⚠ RULE: NO STACKING ON OCCUPIED TILES
+                <div style="font-size:0.65rem; color:var(--p2-pri); margin-top:5px; font-family:var(--font-data);">
+                    WARNING: UNIT STACKING PROHIBITED ON OCCUPIED NODES
                 </div>
             </div>
 
-            <div>
-                <label>Opponent Type</label>
+            <div style="margin-bottom:25px;">
+                <label>OPPOSING INTELLIGENCE</label>
                 <select id="cfg-ai">
-                    <option value="human">Human vs Human</option>
-                    <option value="weak">Weak AI (Random)</option>
-                    <option value="strategic">Strategic AI (Aggressive)</option>
-                    <option value="smart" selected>Smart AI (Advanced Simulation)</option>
+                    <option value="human">HUMAN VS HUMAN</option>
+                    <option value="weak">CLASS 1: WEAK (STOCHASTIC)</option>
+                    <option value="strategic">CLASS 2: STRATEGIC (HEURISTIC)</option>
+                    <option value="smart" selected>CLASS 3: SMART (MINIMAX SIM)</option>
                 </select>
             </div>
 
-            <button class="btn" style="width:100%; margin-top:15px;" onclick="Core.boot()">Start Match</button>
-            <button class="btn btn-red" style="width:100%" onclick="Archive.open()">View Logs</button>
+            <button class="btn" style="margin-bottom:10px;" onclick="Core.boot()">INITIALIZE SIMULATION</button>
+            <button class="btn btn-warn" onclick="Data.open()">ACCESS ARCHIVES</button>
         </div>
     </div>
 
-    <div id="game-ui">
+    <div id="interface-layer">
         
-        <div class="top-deck panel">
-            <div style="font-weight:700; color:#fff; font-family:var(--font-ui); font-size:1.2rem;">AGGRESSION</div>
-            <div id="phase-badge" class="phase-badge">PLACEMENT PHASE</div>
-            <div onclick="location.reload()" style="cursor:pointer; color:var(--text-muted); font-size:0.9rem;">[EXIT]</div>
+        <div class="top-bar panel">
+            <div style="font-weight:bold; color:#fff; font-family:var(--font-display); font-size:1.2rem;">AGGRESSION // ACTIVE</div>
+            <div id="phase-badge" class="phase-indicator">PLACEMENT PHASE</div>
+            <div onclick="location.reload()" style="cursor:pointer; color:var(--text-muted); font-size:0.8rem;">[ABORT]</div>
         </div>
 
-        <div class="side-deck panel p1-side" id="p1-deck">
-            <div style="color:var(--p1-cyan); font-family:var(--font-ui); font-weight:700; text-align:center; font-size:1.2rem;">PLAYER 1</div>
-            <div class="stat-block">
-                <div class="stat-num" id="p1-res">0</div>
-                <div class="stat-lbl">RESERVES</div>
+        <div class="sidebar panel p1-side" id="p1-deck">
+            <div style="color:var(--p1-pri); font-weight:bold; text-align:center; font-family:var(--font-display); font-size:1.2rem;">PLAYER 1</div>
+            <div class="stat-card">
+                <div class="stat-value" id="p1-res">0</div>
+                <div class="stat-label">RESERVES</div>
             </div>
-            <div class="stat-block">
-                <div class="stat-num" id="p1-score">0</div>
-                <div class="stat-lbl">TERRITORY</div>
+            <div class="stat-card">
+                <div class="stat-value" id="p1-score">0</div>
+                <div class="stat-label">TERRITORY</div>
             </div>
         </div>
 
-        <div id="battlefield">
-            <div id="ai-status" style="position:absolute; top:-35px; color:var(--p2-red); font-family:var(--font-mono); font-size:0.85rem; display:none; background:rgba(0,0,0,0.8); padding:5px 10px; border-radius:4px;">
-                <span class="loader"></span>OPPONENT THINKING...
+        <div id="viewport">
+            <div id="ai-thinking" style="position:absolute; top:-40px; color:var(--p2-pri); font-family:var(--font-data); font-size:0.8rem; display:none; text-shadow:0 0 10px var(--p2-pri);">
+                >> OMEGA AI COMPUTING OPTIMAL VECTOR...
             </div>
-            <div id="grid-mount">
+            <div id="grid-container">
                 <div id="grid"></div>
-                <div id="intel-popup"></div>
+                <div id="predict-hud"></div>
             </div>
         </div>
 
-        <div class="side-deck panel p2-side" id="p2-deck">
-            <div style="color:var(--p2-red); font-family:var(--font-ui); font-weight:700; text-align:center; font-size:1.2rem;" id="p2-label">PLAYER 2</div>
-            <div class="stat-block">
-                <div class="stat-num" id="p2-res">0</div>
-                <div class="stat-lbl">RESERVES</div>
+        <div class="sidebar panel p2-side" id="p2-deck">
+            <div style="color:var(--p2-pri); font-weight:bold; text-align:center; font-family:var(--font-display); font-size:1.2rem;" id="p2-name">PLAYER 2</div>
+            <div class="stat-card">
+                <div class="stat-value" id="p2-res">0</div>
+                <div class="stat-label">RESERVES</div>
             </div>
-            <div class="stat-block">
-                <div class="stat-num" id="p2-score">0</div>
-                <div class="stat-lbl">TERRITORY</div>
+            <div class="stat-card">
+                <div class="stat-value" id="p2-score">0</div>
+                <div class="stat-label">TERRITORY</div>
             </div>
         </div>
 
-        <div id="console-deck"></div>
+        <div id="console-wrap"></div>
 
-        <div id="command-deck" class="panel" style="padding:15px;">
-            <div id="ctrl-place">
-                <label>Troops to Deploy</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="deploy-val" value="1" min="1" style="background:#0f172a; border-color:#334155;">
+        <div id="controls" class="panel">
+            <div id="ui-place">
+                <label style="color:var(--text-muted); font-size:0.75rem;">TROOPS TO DEPLOY</label>
+                <div style="display:flex; gap:10px; margin-top:5px; margin-bottom:10px;">
+                    <input type="number" id="deploy-val" value="1" min="1" style="background:#020406; font-size:1.2rem; font-weight:bold;">
                 </div>
-                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">CLICK EMPTY TILE TO CONFIRM</div>
+                <div style="font-size:0.65rem; color:#64748b;">SELECT EMPTY NODE TO CONFIRM</div>
             </div>
-            <div id="ctrl-attack" style="display:none;">
-                <div style="text-align:center; margin-bottom:10px; color:var(--p2-red); font-size:0.9rem; font-weight:bold;">COMBAT ACTIVE</div>
-                <button class="btn btn-red" style="width:100%" onclick="Core.pass()">End Turn</button>
+            <div id="ui-attack" style="display:none;">
+                <div style="text-align:center; color:var(--p2-pri); font-weight:bold; margin-bottom:10px; font-family:var(--font-display);">COMBAT AUTHORIZED</div>
+                <button class="btn btn-warn" onclick="Core.pass()">PASS TURN</button>
             </div>
         </div>
 
     </div>
 
-    <div id="archive-modal" class="modal-veil">
-        <div class="modal-core">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0; font-family:var(--font-ui); color:var(--sys-accent);">GAME LOGS</h2>
-                <span style="cursor:pointer; font-size:1.5rem;" onclick="Archive.close()">×</span>
+    <div id="modal-overlay">
+        <div id="modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="color:var(--sys-gold); font-family:var(--font-display); margin:0;">MISSION ARCHIVES</h2>
+                <span style="cursor:pointer; font-size:1.5rem;" onclick="Data.close()">×</span>
             </div>
             
             <table class="data-grid">
-                <thead><tr><th>ID</th><th>DATE</th><th>WINNER</th><th>SCORE</th><th>ACTION</th></tr></thead>
-                <tbody id="archive-rows"></tbody>
+                <thead><tr><th>ID</th><th>TIMESTAMP</th><th>RESULT</th><th>SCORE</th><th>DATA</th></tr></thead>
+                <tbody id="log-table-body"></tbody>
             </table>
 
-            <div style="margin-top:25px; border-top:1px solid #334155; padding-top:15px;">
-                <label>Save Data (Export/Import)</label>
-                <textarea id="sync-code" style="width:100%; height:60px; background:#0f172a; color:var(--sys-success); border:1px solid #334155; font-family:monospace; font-size:0.75rem; resize:none; border-radius:4px; padding:5px;" readonly placeholder="Export string will appear here..."></textarea>
+            <div style="margin-top:25px; border-top:1px solid #333; padding-top:15px;">
+                <label>CROSS-DEVICE SYNC CODE</label>
+                <textarea id="export-area" style="width:100%; height:60px; background:#000; color:var(--sys-success); border:1px solid #333; font-family:monospace; font-size:0.7rem; padding:10px; resize:none;" readonly placeholder="Export string will appear here..."></textarea>
                 <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn" style="flex:1" onclick="Archive.export()">Copy Save Code</button>
-                    <button class="btn" style="flex:1" onclick="Archive.import()">Import Save Code</button>
+                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Data.export()">COPY CODE</button>
+                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Data.import()">IMPORT CODE</button>
                 </div>
             </div>
             
-            <button class="btn btn-red" style="width:100%; margin-top:20px;" onclick="Archive.wipe()">Delete All History</button>
+            <button class="btn btn-warn" style="width:100%; margin-top:20px;" onclick="Data.wipe()">PURGE ALL RECORDS</button>
         </div>
     </div>
 
     <script>
-        /* --- VISUAL FX SYSTEM --- */
-        const VFX = {
-            canvas: document.getElementById('vfx-canvas'),
-            ctx: document.getElementById('vfx-canvas').getContext('2d'),
-            particles: [],
-            
+        /* =========================================
+           1. AUDIO ENGINE (SYNTHESIZER)
+           ========================================= */
+        const Sound = {
+            ctx: null,
             init() {
-                window.addEventListener('resize', () => this.resize());
-                this.resize();
-                this.loop();
+                if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
             },
-            
-            resize() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
-            },
-            
-            burst(x, y, color) {
-                for(let i=0; i<20; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const speed = Math.random() * 6 + 2;
-                    this.particles.push({
-                        x, y,
-                        vx: Math.cos(angle) * speed,
-                        vy: Math.sin(angle) * speed,
-                        life: 1.0,
-                        decay: Math.random() * 0.03 + 0.02,
-                        color: color,
-                        size: Math.random() * 4 + 2
-                    });
-                }
-            },
-            
-            loop() {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                for (let i = this.particles.length - 1; i >= 0; i--) {
-                    const p = this.particles[i];
-                    p.x += p.vx; p.y += p.vy;
-                    p.life -= p.decay;
-                    
-                    this.ctx.globalAlpha = p.life;
-                    this.ctx.fillStyle = p.color;
-                    this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    this.ctx.fill();
-                    
-                    if (p.life <= 0) this.particles.splice(i, 1);
-                }
-                requestAnimationFrame(() => this.loop());
-            }
-        };
-        VFX.init();
-
-        /* --- SOUND ENGINE --- */
-        const SFX = {
-            ctx: new (window.AudioContext || window.webkitAudioContext)(),
-            play(freq, type, dur, vol=0.1) {
+            play(freq, type, duration, vol=0.1) {
+                if(!this.ctx) this.init();
                 if(this.ctx.state === 'suspended') this.ctx.resume();
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
                 gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + dur);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + duration);
             },
-            boot: () => SFX.play(200, 'sine', 0.5),
-            deploy: () => SFX.play(400, 'triangle', 0.15),
-            kill: () => { SFX.play(100, 'sawtooth', 0.1); setTimeout(()=>SFX.play(60, 'square', 0.3), 80); },
-            win: () => [300,400,500,600,800].forEach((f,i)=>setTimeout(()=>SFX.play(f,'square',0.2), i*100)),
-            error: () => SFX.play(150, 'sawtooth', 0.3)
+            boot: () => { Sound.play(200, 'sine', 0.5); Sound.play(400, 'sine', 0.5); },
+            click: () => Sound.play(800, 'square', 0.05, 0.05),
+            deploy: () => Sound.play(400, 'triangle', 0.15),
+            error: () => Sound.play(150, 'sawtooth', 0.3),
+            kill: () => { Sound.play(100, 'sawtooth', 0.1); setTimeout(()=>Sound.play(50, 'square', 0.3), 80); },
+            win: () => [300, 400, 500, 600, 800].forEach((f,i) => setTimeout(() => Sound.play(f, 'square', 0.2), i*100))
         };
 
-        /* --- DATA PERSISTENCE --- */
-        const Archive = {
-            key: 'aggression_save_v2',
+        /* =========================================
+           2. VISUAL ENGINE (PARTICLE PHYSICS)
+           ========================================= */
+        const VFX = {
+            canvas: document.getElementById('render-canvas'),
+            ctx: document.getElementById('render-canvas').getContext('2d'),
+            particles: [],
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.loop();
+            },
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+            spawn(x, y, color, count=15) {
+                for(let i=0; i<count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 5 + 2;
+                    this.particles.push({
+                        x, y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 1.0,
+                        decay: Math.random() * 0.03 + 0.01,
+                        color,
+                        char: Math.random() > 0.5 ? '1' : '0' // Matrix style
+                    });
+                }
+            },
+            loop() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for(let i=this.particles.length-1; i>=0; i--) {
+                    let p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+                    this.ctx.globalAlpha = p.life;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.font = "12px monospace";
+                    this.ctx.fillText(p.char, p.x, p.y);
+                    if(p.life <= 0) this.particles.splice(i, 1);
+                }
+                requestAnimationFrame(() => this.loop());
+            }
+        };
+        VFX.init();
+
+        /* =========================================
+           3. DATA PERSISTENCE (ARCHIVES)
+           ========================================= */
+        const Data = {
+            key: 'aggr_omega_v3',
             get() { return JSON.parse(localStorage.getItem(this.key) || "[]"); },
-            save(winner, score, log) {
+            save(winner, score, logs) {
                 const db = this.get();
-                db.unshift({
-                    id: Math.random().toString(36).substr(2, 9).toUpperCase(),
-                    date: new Date().toLocaleString(),
-                    winner, score, log
-                });
-                if(db.length > 50) db.pop(); 
+                db.unshift({ id: Date.now().toString(36).toUpperCase(), date: new Date().toLocaleString(), winner, score, logs });
+                if(db.length > 50) db.pop();
                 localStorage.setItem(this.key, JSON.stringify(db));
             },
             open() {
-                document.getElementById('archive-modal').style.display = 'flex';
+                document.getElementById('modal-overlay').style.display = 'flex';
                 this.render();
             },
-            close() { document.getElementById('archive-modal').style.display = 'none'; },
+            close() { document.getElementById('modal-overlay').style.display = 'none'; },
             render() {
                 const db = this.get();
-                const el = document.getElementById('archive-rows');
+                const el = document.getElementById('log-table-body');
                 el.innerHTML = '';
-                if(!db.length) { el.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">NO LOGS FOUND</td></tr>'; return; }
-                
+                if(!db.length) el.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">NO DATA FOUND</td></tr>';
                 db.forEach(g => {
                     const row = document.createElement('tr');
-                    const color = g.winner.includes('1') ? 'var(--p1-cyan)' : (g.winner.includes('2') ? 'var(--p2-red)' : '#fff');
+                    const c = g.winner.includes('1') ? 'var(--p1-pri)' : (g.winner.includes('2') ? 'var(--p2-pri)' : '#fff');
                     row.innerHTML = `
                         <td style="font-family:monospace; color:#666;">${g.id}</td>
                         <td>${g.date}</td>
-                        <td style="color:${color}; font-weight:bold;">${g.winner}</td>
+                        <td style="color:${c}; font-weight:bold;">${g.winner}</td>
                         <td>${g.score}</td>
-                        <td><button class="btn" style="padding:4px 8px; font-size:0.7rem;" onclick="Archive.dl('${g.id}')">DL</button></td>
+                        <td><button class="btn" style="padding:5px; font-size:0.6rem;" onclick="Data.dl('${g.id}')">DL</button></td>
                     `;
                     el.appendChild(row);
                 });
             },
             dl(id) {
                 const g = this.get().find(x => x.id === id);
-                const blob = new Blob([JSON.stringify(g, null, 2)], {type: 'application/json'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `GAME_LOG_${id}.json`; a.click();
+                const b = new Blob([JSON.stringify(g,null,2)], {type:'application/json'});
+                const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `LOG_${id}.json`; a.click();
             },
             export() {
-                const str = localStorage.getItem(this.key) || "[]";
-                const code = btoa(unescape(encodeURIComponent(str)));
-                document.getElementById('sync-code').value = code;
-                alert("CODE GENERATED. COPY TO TRANSFER.");
+                const str = btoa(unescape(encodeURIComponent(localStorage.getItem(this.key)||"[]")));
+                document.getElementById('export-area').value = str;
+                alert("CODE GENERATED. COPY TO CLIPBOARD.");
             },
             import() {
-                const code = prompt("PASTE CODE:");
-                if(!code) return;
+                const str = prompt("PASTE CODE:");
+                if(!str) return;
                 try {
-                    const str = decodeURIComponent(escape(atob(code)));
-                    JSON.parse(str); 
-                    localStorage.setItem(this.key, str);
-                    this.render();
-                    alert("DATABASE UPDATED SUCCESSFULLY.");
-                } catch(e) { alert("ERROR: INVALID CODE."); }
+                    const dec = decodeURIComponent(escape(atob(str)));
+                    JSON.parse(dec); // validate
+                    localStorage.setItem(this.key, dec);
+                    this.render(); alert("DATABASE UPDATED");
+                } catch(e) { alert("INVALID CODE"); }
             },
-            wipe() {
-                if(confirm("DELETE ALL RECORDS?")) {
-                    localStorage.removeItem(this.key);
-                    this.render();
-                }
-            }
+            wipe() { if(confirm("PERMANENTLY DELETE ALL LOGS?")) { localStorage.removeItem(this.key); this.render(); } }
         };
 
-        /* --- CORE ENGINE --- */
+        /* =========================================
+           4. CORE GAME ENGINE
+           ========================================= */
         const Core = {
-            rows:0, cols:0, grid:[],
-            p1Res:0, p2Res:0, turn:1, phase:'setup', ai:null,
-            firstMover:0, hasMoved:false, passCount:0,
-            logData: [],
+            rows: 0, cols: 0, grid: [],
+            p1Res: 0, p2Res: 0,
+            turn: 1, phase: 'setup', ai: null,
+            firstMover: 0, hasMoved: false, passCount: 0,
+            logs: [],
 
             boot() {
-                // UI Clean Swap
+                // UI Switch
                 document.getElementById('setup-layer').style.display = 'none';
-                document.getElementById('game-ui').style.display = 'grid';
-                
+                document.getElementById('interface-layer').style.display = 'grid';
+
                 // Config
                 this.rows = Math.max(3, Math.min(10, +document.getElementById('cfg-rows').value));
                 this.cols = Math.max(3, Math.min(10, +document.getElementById('cfg-cols').value));
@@ -534,7 +550,7 @@
                 this.phase = 'placement';
                 this.turn = Math.random() < 0.5 ? 1 : 2;
                 this.firstMover = 0; this.hasMoved = false; this.passCount = 0;
-                this.logData = [];
+                this.logs = [];
 
                 // Grid
                 this.grid = [];
@@ -544,18 +560,13 @@
                     this.grid.push(row);
                 }
 
-                // AI Label
-                let aiName = "PLAYER 2";
-                if(this.ai === 'weak') aiName = "WEAK AI";
-                if(this.ai === 'strategic') aiName = "STRATEGIC AI";
-                if(this.ai === 'smart') aiName = "SMART AI";
-                document.getElementById('p2-label').innerText = aiName;
-
+                document.getElementById('p2-name').innerText = this.ai ? `AI: ${this.ai.toUpperCase()}` : "PLAYER 2";
+                
                 this.buildGrid();
                 this.updateHUD();
-                SFX.boot();
-                this.log("GAME STARTED", "sys");
-                this.log(`PLAYER ${this.turn} STARTS`, this.turn===1?"p1":"p2");
+                Sound.boot();
+                this.log("SYSTEM ONLINE. INITIALIZATION COMPLETE.", "sys");
+                this.log(`INITIATIVE ASSIGNED TO PLAYER ${this.turn}`, this.turn===1?"p1":"p2");
                 this.checkAI();
             },
 
@@ -569,9 +580,16 @@
                     d.id = `c-${r}-${c}`;
                     d.onclick = () => this.interact(r, c);
                     d.onmouseenter = () => this.hover(r, c);
-                    d.onmouseleave = () => document.getElementById('intel-popup').style.display='none';
+                    d.onmouseleave = () => document.getElementById('predict-hud').style.display='none';
                     el.appendChild(d);
                 }
+            },
+
+            // 3D Parallax Effect
+            tilt(e) {
+                const x = (window.innerWidth / 2 - e.clientX) / 30;
+                const y = (window.innerHeight / 2 - e.clientY) / 30;
+                document.getElementById('grid-container').style.transform = `rotateX(${10 + y}deg) rotateY(${x * -1}deg)`;
             },
 
             hover(r, c) {
@@ -579,44 +597,30 @@
                 const cell = this.grid[r][c];
                 if(cell.owner !== 2) return;
 
-                let p = 0;
-                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0&&dc===0) continue;
-                    let nr=r+dr, nc=c+dc;
-                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===1) {
-                        p += this.grid[nr][nc].count;
-                    }
-                }
-
-                const pop = document.getElementById('intel-popup');
+                const p = this.getPower(r, c, 1);
+                const hud = document.getElementById('predict-hud');
                 const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                const ref = document.getElementById('battlefield').getBoundingClientRect();
-                
-                pop.style.display = 'block';
-                pop.style.left = (rect.left - ref.left + 32) + 'px';
-                pop.style.top = (rect.top - ref.top) + 'px';
-                pop.innerHTML = `ATK: <span style="color:#00f0ff">${p}</span> VS DEF: <span style="color:#ff2a2a">${cell.count}</span>`;
-                pop.style.borderColor = p > cell.count ? '#34d399' : '#ef4444';
+                const vp = document.getElementById('viewport').getBoundingClientRect();
+
+                hud.style.display = 'block';
+                hud.style.left = (rect.left - vp.left + 32) + 'px';
+                hud.style.top = (rect.top - vp.top) + 'px';
+                hud.innerHTML = `ATK: <span style="color:var(--p1-pri)">${p}</span> VS DEF: <span style="color:var(--p2-pri)">${cell.count}</span>`;
+                hud.style.borderColor = p > cell.count ? 'var(--sys-success)' : 'var(--p2-pri)';
             },
 
             interact(r, c) {
                 if(this.phase === 'over' || (this.ai && this.turn === 2)) return;
-                if(this.phase === 'placement') this.place(r, c);
+                if(this.phase === 'placement') this.place(r, c, +document.getElementById('deploy-val').value);
                 else this.attack(r, c);
             },
 
-            place(r, c) {
+            place(r, c, amt) {
                 const cell = this.grid[r][c];
-                // STRICT RULE: No Stacking
-                if(cell.owner !== 0) {
-                    this.log("INVALID: TILE OCCUPIED", "sys");
-                    SFX.error();
-                    return;
-                }
+                if(cell.owner !== 0) { this.log("ERROR: NODE OCCUPIED", "sys"); Sound.error(); return; }
 
-                const amtInput = +document.getElementById('deploy-val').value;
                 const res = this.turn === 1 ? this.p1Res : this.p2Res;
-                const actual = Math.min(amtInput, res);
+                const actual = Math.min(amt, res);
                 if(actual <= 0) return;
 
                 cell.owner = this.turn;
@@ -625,16 +629,15 @@
 
                 if(!this.hasMoved) { this.firstMover = this.turn; this.hasMoved = true; }
 
-                SFX.deploy();
+                Sound.deploy();
                 const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                VFX.burst(rect.left+32, rect.top+32, this.turn===1?'#38bdf8':'#ef4444');
+                VFX.spawn(rect.left+32, rect.top+32, this.turn===1?'#00f3ff':'#ff0055');
 
                 this.render(); this.updateHUD();
                 
-                // Phase Check
-                const full = this.grid.every(rw => rw.every(c => c.owner !== 0));
+                const full = this.grid.every(r => r.every(c => c.owner !== 0));
                 if((this.p1Res === 0 && this.p2Res === 0) || full) {
-                    this.initCombat();
+                    this.startCombat();
                 } else {
                     let next = this.turn === 1 ? 2 : 1;
                     if((next===1?this.p1Res:this.p2Res) > 0 && !full) this.turn = next;
@@ -642,148 +645,117 @@
                 this.updateHUD(); this.checkAI();
             },
 
-            initCombat() {
+            startCombat() {
                 this.phase = 'attack';
                 this.turn = this.firstMover;
                 document.getElementById('phase-badge').innerText = "COMBAT PHASE";
-                document.getElementById('phase-badge').style.borderColor = "var(--p2-red)";
-                document.getElementById('phase-badge').style.color = "var(--p2-red)";
-                document.getElementById('ctrl-place').style.display = 'none';
-                document.getElementById('ctrl-attack').style.display = 'block';
-                this.log("PHASE SHIFT: COMBAT", "sys");
+                document.getElementById('phase-badge').style.borderColor = "var(--p2-pri)";
+                document.getElementById('phase-badge').style.color = "var(--p2-pri)";
+                document.getElementById('ui-place').style.display = 'none';
+                document.getElementById('ui-attack').style.display = 'block';
+                this.log("ALLOCATION COMPLETE. COMBAT PHASE INITIATED.", "sys");
             },
 
             attack(r, c) {
                 const cell = this.grid[r][c];
-                if(cell.owner === 0 || cell.owner === this.turn) { SFX.error(); return; }
+                if(cell.owner === 0 || cell.owner === this.turn) { Sound.error(); return; }
 
-                let p = 0;
-                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0&&dc===0) continue;
-                    let nr=r+dr, nc=c+dc;
-                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===this.turn) {
-                        p += this.grid[nr][nc].count;
-                    }
-                }
-
+                const p = this.getPower(r, c, this.turn);
                 if(p > cell.count) {
+                    this.log(`P${this.turn} NEUTRALIZED NODE [${r},${c}]`, this.turn===1?'p1':'p2');
+                    Sound.kill();
                     const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                    VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
-                    SFX.kill();
-                    this.log(`P${this.turn} CAPTURED [${r},${c}]`, this.turn===1?"p1":"p2");
-                    cell.owner = 0; cell.count = 0;
-                    this.passCount = 0;
+                    VFX.spawn(rect.left+32, rect.top+32, '#fbbf24', 30);
+                    cell.owner = 0; cell.count = 0; this.passCount = 0;
                 } else {
-                    SFX.error();
-                    this.log(`ATTACK FAILED`, "sys");
+                    this.log(`ATTACK FAILED. INSUFFICIENT POWER.`, "sys");
+                    Sound.error();
                 }
                 this.render(); this.nextTurn();
             },
 
             pass() {
                 this.passCount++;
-                this.log(`P${this.turn} PASSED`, this.turn===1?"p1":"p2");
-                if(this.passCount >= 2) this.gameOver(); else this.nextTurn();
+                this.log(`P${this.turn} PASSES TURN`, this.turn===1?'p1':'p2');
+                if(this.passCount >= 2) this.end(); else this.nextTurn();
             },
 
-            nextTurn() {
-                this.turn = this.turn === 1 ? 2 : 1;
-                this.updateHUD(); this.checkAI();
+            nextTurn() { this.turn = this.turn === 1 ? 2 : 1; this.updateHUD(); this.checkAI(); },
+
+            getPower(r, c, who) {
+                let p = 0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0&&dc===0) continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===who) {
+                        p += this.grid[nr][nc].count;
+                    }
+                }
+                return p;
             },
 
             checkAI() {
                 if(!this.ai || this.turn === 1 || this.phase === 'over') return;
-                document.getElementById('ai-status').style.display = 'block';
+                document.getElementById('ai-thinking').style.display = 'block';
                 
                 setTimeout(() => {
                     if(this.phase === 'placement') {
                         const move = AI.getPlacement(this);
-                        
                         if(move) {
-                            // Smart Logic: Breakpoints (Don't waste troops)
                             let amt = 1;
+                            // AI SMART STACKING LOGIC
                             if(this.ai === 'smart') {
-                                // Analyze location safety
                                 const n = AI.scan(this, move.r, move.c);
-                                if(n.e > 0) {
-                                    // Frontline: Stack heavily (4-8)
-                                    amt = Math.min(this.p2Res, Math.floor(Math.random()*5)+4);
-                                } else {
-                                    // Safe rear: Min stack (1-2) to save reserves
-                                    amt = Math.min(this.p2Res, Math.floor(Math.random()*2)+1);
-                                }
-                            } else if (this.ai === 'strategic') {
-                                amt = 3; // Fixed stack
+                                if(n.e > 0) amt = Math.min(this.p2Res, Math.floor(Math.random()*4)+4); // Frontline: Heavy
+                                else amt = 1; // Rear: Light
+                            } else if(this.ai === 'strategic') {
+                                amt = 3; 
                             }
                             
-                            const actual = Math.min(amt, this.p2Res);
+                            const val = Math.min(amt, this.p2Res);
                             const cell = this.grid[move.r][move.c];
-                            cell.owner = 2; cell.count = actual; this.p2Res -= actual;
-                            
+                            cell.owner = 2; cell.count = val; this.p2Res -= val;
                             if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
-                            SFX.deploy();
+                            Sound.deploy();
                             
-                            // Check for phase change (dup logic)
-                            const full = this.grid.every(r => r.every(c => c.owner !== 0));
-                            if((this.p1Res === 0 && this.p2Res === 0) || full) {
-                                this.initCombat();
-                            } else {
-                                if(this.p1Res > 0 && !full) this.turn = 1;
-                            }
+                            const full = this.grid.every(r=>r.every(c=>c.owner!==0));
+                            if((this.p1Res===0 && this.p2Res===0) || full) this.startCombat();
+                            else if(this.p1Res > 0 && !full) this.turn = 1;
                         } else {
-                            this.initCombat(); // Board full
+                            this.startCombat();
                         }
                     } else {
-                        // Combat
-                        const atk = (this.ai === 'weak') ? null : AI.getAttack(this); // Weak passes usually
+                        const atk = this.ai==='weak' ? null : AI.getAttack(this);
                         if(atk) {
                             const cell = this.grid[atk.r][atk.c];
+                            this.log(`AI ELIMINATES [${atk.r},${atk.c}]`, 'p2');
+                            Sound.kill();
                             const rect = document.getElementById(`c-${atk.r}-${atk.c}`).getBoundingClientRect();
-                            VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
-                            SFX.kill();
-                            this.log(`AI KILLED [${atk.r},${atk.c}]`, "p2");
+                            VFX.spawn(rect.left+32, rect.top+32, '#fbbf24', 30);
                             cell.owner = 0; cell.count = 0; this.passCount = 0;
                         } else {
                             this.passCount++;
-                            this.log("AI PASSED", "p2");
-                            if(this.passCount >= 2) return this.gameOver();
+                            this.log("AI PASSES", 'p2');
+                            if(this.passCount >= 2) return this.end();
                         }
                         this.turn = 1;
                     }
-                    document.getElementById('ai-status').style.display = 'none';
+                    document.getElementById('ai-thinking').style.display = 'none';
                     this.render(); this.updateHUD();
                 }, 800);
             },
 
             render() {
                 for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
-                    const d = this.grid[r][c];
                     const el = document.getElementById(`c-${r}-${c}`);
+                    const d = this.grid[r][c];
                     el.className = 'cell'; el.innerText = '';
-                    
-                    if(d.owner === 1) { el.classList.add('p1'); el.innerText = d.count; }
-                    if(d.owner === 2) { el.classList.add('p2'); el.innerText = d.count; }
+                    if(d.owner === 1) { el.classList.add('p1'); el.innerText=d.count; }
+                    if(d.owner === 2) { el.classList.add('p2'); el.innerText=d.count; }
                     if(this.phase === 'placement' && d.owner !== 0) el.classList.add('locked');
                     
                     if(this.phase === 'attack' && this.turn === 1 && d.owner === 2) {
-                        // Highlight targetable
-                        let p = 0;
-                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                            if(dr===0&&dc===0) continue;
-                            let nr=r+dr, nc=c+dc;
-                            if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===1) {
-                                p += this.grid[nr][nc].count;
-                            }
-                        }
-                        if(p > d.count) {
-                            el.style.boxShadow = "inset 0 0 20px #ef4444";
-                            el.style.borderColor = "#fff";
-                            el.style.cursor = "crosshair";
-                        } else {
-                            el.style.boxShadow = "";
-                            el.style.borderColor = "";
-                            el.style.cursor = "default";
-                        }
+                        if(this.getPower(r, c, 1) > d.count) el.classList.add('target');
                     }
                 }
             },
@@ -791,112 +763,98 @@
             updateHUD() {
                 document.getElementById('p1-res').innerText = this.p1Res;
                 document.getElementById('p2-res').innerText = this.p2Res;
+                document.getElementById('p1-deck').className = `sidebar panel p1-side ${this.turn===1?'active p1-active':''}`;
+                document.getElementById('p2-deck').className = `sidebar panel p2-side ${this.turn===2?'active p2-active':''}`;
                 
-                document.getElementById('p1-deck').className = `side-deck panel p1-side ${this.turn===1?'active p1-active':''}`;
-                document.getElementById('p2-deck').className = `side-deck panel p2-side ${this.turn===2?'active p2-active':''}`;
-
                 let s1=0, s2=0;
-                this.grid.forEach(r => r.forEach(c => { if(c.owner===1) s1++; if(c.owner===2) s2++; }));
+                this.grid.forEach(r => r.forEach(c => { if(c.owner===1)s1++; if(c.owner===2)s2++; }));
                 document.getElementById('p1-score').innerText = s1;
                 document.getElementById('p2-score').innerText = s2;
             },
 
             log(msg, type='sys') {
-                this.logData.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
-                const el = document.getElementById('console-deck');
+                const wrap = document.getElementById('console-wrap');
                 const div = document.createElement('div');
-                div.className = `log-ln ln-${type}`;
-                div.innerText = `> ${msg}`;
-                el.prepend(div);
+                div.className = 'log-entry';
+                div.innerHTML = `<span class="log-ts">[${new Date().toLocaleTimeString().split(' ')[0]}]</span><span class="log-msg t-${type}">> ${msg}</span>`;
+                wrap.prepend(div);
+                this.logs.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
             },
 
-            gameOver() {
+            end() {
                 this.phase = 'over';
                 let s1 = +document.getElementById('p1-score').innerText;
                 let s2 = +document.getElementById('p2-score').innerText;
                 let w = s1>s2 ? "PLAYER 1" : (s2>s1 ? "PLAYER 2" : "DRAW");
-                
-                SFX.win();
-                Archive.save(w, `${s1} - ${s2}`, this.logData);
-                setTimeout(() => alert(`GAME OVER.\n\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}`), 300);
+                Sound.win();
+                Data.save(w, `${s1} - ${s2}`, this.logs);
+                setTimeout(() => alert(`GAME OVER\n\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}`), 300);
             }
         };
 
-        /* --- AI INTELLIGENCE --- */
+        /* =========================================
+           5. INTELLIGENCE (AI)
+           ========================================= */
         const AI = {
             scan(g, r, c) {
-                let f=0, e=0, empty=0;
+                let f=0, e=0;
                 for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
                     if(dr===0 && dc===0) continue;
                     let nr=r+dr, nc=c+dc;
                     if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols) {
-                        if(g.grid[nr][nc].owner === 2) f++;
-                        else if(g.grid[nr][nc].owner === 1) e++;
-                        else empty++;
+                        if(g.grid[nr][nc].owner===2) f++;
+                        else if(g.grid[nr][nc].owner===1) e++;
                     }
                 }
-                return {f, e, empty};
+                return {f, e};
             },
-
             getPlacement(g) {
                 let moves = [];
                 for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
-                    if(g.grid[r][c].owner === 0) { // STRICT RULE: Empty only
+                    if(g.grid[r][c].owner === 0) {
                         let score = 0;
                         const n = this.scan(g, r, c);
-                        
-                        // Center Bias
+                        score += (n.f * 10); // Clustering
+                        if(n.e > 0) score += 15; // Frontline
                         let dist = Math.abs(r - g.rows/2) + Math.abs(c - g.cols/2);
-                        score -= dist * 5;
-
-                        // Smart Logic
-                        if(g.aiType === 'smart') {
-                            score += (n.f * 20); // Cluster strongly with friends
-                            if(n.e === 0) score += 10; // Secure safe spots
-                            else score += (n.e * 2); // Block enemies if necessary
-                        } else if (g.aiType === 'strategic') {
-                            score += (n.f * 10);
-                        } else {
-                            score = Math.random(); // Weak
-                        }
-                        
+                        score -= dist; // Center bias
                         moves.push({r, c, score});
                     }
                 }
-                
                 moves.sort((a,b) => b.score - a.score);
                 return moves.length ? moves[0] : null;
             },
-
             getAttack(g) {
                 let attacks = [];
                 for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
-                    if(g.grid[r][c].owner === 1) { // Enemy
-                        // Calculate Power
+                    if(g.grid[r][c].owner === 1) {
                         let p = 0;
                         for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
                             if(dr===0&&dc===0) continue;
                             let nr=r+dr, nc=c+dc;
-                            if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols && g.grid[nr][nc].owner===2) {
-                                p += g.grid[nr][nc].count;
-                            }
+                            if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols && g.grid[nr][nc].owner===2) p += g.grid[nr][nc].count;
                         }
-
                         if(p > g.grid[r][c].count) {
-                            let value = g.grid[r][c].count * 10;
-                            // Smart AI prioritizes killing isolated units
+                            let v = g.grid[r][c].count * 10;
                             if(g.aiType === 'smart') {
                                 const n = this.scan(g, r, c);
-                                value -= (n.e * 5); // Harder to kill if surrounded by enemies
+                                v -= (n.e * 5); // Avoid hard targets
                             }
-                            attacks.push({r, c, value});
+                            attacks.push({r, c, val: v});
                         }
                     }
                 }
-                attacks.sort((a,b) => b.value - a.value);
+                attacks.sort((a,b) => b.val - a.val);
                 return attacks.length ? attacks[0] : null;
             }
         };
+
+        // 3D Tilt
+        document.body.addEventListener('mousemove', e => {
+            const x = (window.innerWidth/2 - e.clientX)/40;
+            const y = (window.innerHeight/2 - e.clientY)/40;
+            document.getElementById('grid-container').style.transform = `rotateX(${10+y}deg) rotateY(${-x}deg)`;
+        });
     </script>
 </body>
 </html>
