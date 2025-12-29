@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGGRESSION - Ultimate Edition</title>
+    <title>AGGRESSION // OMNI EDITION</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <style>
         /* --- 1. CORE VARIABLES --- */
         :root {
-            --bg-void: #020406;
-            --glass-panel: rgba(8, 12, 18, 0.96);
+            --bg-void: #010204;
+            --glass-panel: rgba(8, 12, 18, 0.94);
             --border-dim: rgba(255, 255, 255, 0.08);
             
             /* FACTION COLORS */
             --cyan-core: #00f3ff;
+            --cyan-dim: rgba(0, 243, 255, 0.1);
             --cyan-glow: 0 0 20px rgba(0, 243, 255, 0.4);
+            
             --red-core: #ff003c;
+            --red-dim: rgba(255, 0, 60, 0.1);
             --red-glow: 0 0 20px rgba(255, 0, 60, 0.4);
             
             /* SYSTEM COLORS */
             --gold-core: #ffd700;
             --gold-glow: 0 0 15px rgba(255, 215, 0, 0.3);
+            --sys-success: #10b981;
             --text-main: #e2e8f0;
             --text-muted: #64748b;
             
@@ -39,7 +43,7 @@
             font-family: var(--font-ui);
             height: 100vh; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
-            perspective: 1200px;
+            perspective: 1200px; /* For 3D Tilt */
         }
 
         /* --- 3. BACKGROUND FX --- */
@@ -172,9 +176,8 @@
             cursor: pointer; border: 1px solid #1e293b; transition: 0.15s;
             position: relative; z-index: 1;
         }
-        .cell:hover { z-index: 10; transform: scale(1.15) translateZ(10px); border-color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .cell:hover { z-index: 10; transform: scale(1.15) translateZ(15px); border-color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
         
-        /* FACTION STYLES */
         .cell.p1 {
             color: var(--cyan-core); border-color: var(--cyan-core);
             background: var(--cyan-dim); box-shadow: inset 0 0 20px var(--cyan-dim);
@@ -185,10 +188,7 @@
         }
         .cell.locked { cursor: not-allowed; opacity: 0.6; filter: grayscale(0.5); }
         .cell.target { animation: pulse 1s infinite; cursor: crosshair; }
-        @keyframes pulse { 
-            0% {box-shadow: inset 0 0 0 var(--red-core);} 
-            50% {box-shadow: inset 0 0 25px var(--red-core);} 
-        }
+        @keyframes pulse { 0% {box-shadow: inset 0 0 0 var(--red-core);} 50% {box-shadow: inset 0 0 25px var(--red-core);} }
 
         /* CONSOLE & CONTROLS */
         #console-wrap {
@@ -246,6 +246,7 @@
     </style>
 </head>
 <body>
+
     <div id="starfield"></div>
     <div class="scanlines"></div>
     <canvas id="vfx-canvas"></canvas>
@@ -253,7 +254,7 @@
     <div id="setup-layer">
         <div id="setup-box" class="panel glow-sys">
             <h1>AGGRESSION</h1>
-            <div class="subtitle">STRATEGIC WARFARE SIMULATOR</div>
+            <div class="subtitle">TACTICAL WARFARE SIMULATOR</div>
             
             <div style="display:flex; gap:15px;">
                 <div style="flex:1"><label>Grid Rows</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
@@ -334,7 +335,7 @@
         </div>
     </div>
 
-    <div id="log-modal" class="modal-veil">
+    <div id="log-modal" class="modal-veil" style="display:none;">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                 <h2 style="margin:0; color:var(--gold-core);">MISSION LOGS</h2>
@@ -360,18 +361,18 @@
         </div>
     </div>
 
-    <div id="rules-modal" class="modal-veil">
+    <div id="rules-modal" class="modal-veil" style="display:none;">
         <div class="modal-box">
             <h2 style="color:var(--cyan-core); margin-bottom:20px;">GAME PROTOCOLS</h2>
             <div class="rules-text">
-                <h3>Phase 1: Placement</h3>
-                <p>Players take turns placing troops. You can place multiple troops on a single tile to create strongholds. <strong>Constraint:</strong> You cannot place troops on a tile that is already occupied.</p>
+                <h3 style="color:var(--cyan-core)">Phase 1: Placement</h3>
+                <p style="color:#aaa; margin-bottom:10px;">Players take turns placing troops. You can place multiple troops on a single tile to create strongholds. <strong>Constraint:</strong> You cannot place troops on a tile that is already occupied.</p>
                 
                 <h3 style="color:var(--red-core)">Phase 2: Attack</h3>
-                <p>The player who placed the <strong>very first troop</strong> attacks first. Click an enemy tile to attack. <br><strong>The Math:</strong> Add up ALL your troops surrounding the target. If Sum > Enemy Stack, target is removed.</p>
+                <p style="color:#aaa; margin-bottom:10px;">The player who placed the <strong>very first troop</strong> attacks first. Click an enemy tile to attack. <br><strong>The Math:</strong> Add up ALL your troops surrounding the target. If Sum > Enemy Stack, target is removed.</p>
                 
                 <h3 style="color:var(--gold-core)">AI Personalities</h3>
-                <ul class="ai-list" style="list-style:none; padding:0;">
+                <ul class="ai-list" style="list-style:none; padding:0; color:#aaa;">
                     <li><strong>Weak AI:</strong> Moves completely randomly.</li>
                     <li><strong>Strategic AI:</strong> Groups troops (clustering) and targets large stacks.</li>
                     <li><strong>Smart AI:</strong> Calculates threat levels, simulates future moves, and builds defensive walls.</li>
@@ -381,4 +382,400 @@
         </div>
     </div>
 
-    
+    <script>
+        /* --- VISUAL FX SYSTEM --- */
+        const VFX = {
+            canvas: document.getElementById('vfx-canvas'),
+            ctx: document.getElementById('vfx-canvas').getContext('2d'),
+            particles: [],
+            init() { window.addEventListener('resize', ()=>this.resize()); this.resize(); this.loop(); },
+            resize() { this.canvas.width=window.innerWidth; this.canvas.height=window.innerHeight; },
+            burst(x, y, color) {
+                for(let i=0; i<25; i++) {
+                    const a = Math.random()*Math.PI*2, s = Math.random()*6+2;
+                    this.particles.push({ x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, life:1, decay:Math.random()*0.03+0.02, color, size:Math.random()*3+2 });
+                }
+            },
+            loop() {
+                this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+                for(let i=this.particles.length-1; i>=0; i--) {
+                    let p = this.particles[i];
+                    p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
+                    this.ctx.globalAlpha=p.life; this.ctx.fillStyle=p.color;
+                    this.ctx.beginPath(); this.ctx.arc(p.x,p.y,p.size,0,Math.PI*2); this.ctx.fill();
+                    if(p.life<=0) this.particles.splice(i,1);
+                }
+                requestAnimationFrame(()=>this.loop());
+            }
+        };
+        VFX.init();
+
+        /* --- SOUND ENGINE --- */
+        const Sound = {
+            ctx: new (window.AudioContext||window.webkitAudioContext)(),
+            play(f,t,d,v=0.1) {
+                if(this.ctx.state==='suspended') this.ctx.resume();
+                const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+                o.type=t; o.frequency.setValueAtTime(f,this.ctx.currentTime);
+                g.gain.setValueAtTime(v,this.ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01,this.ctx.currentTime+d);
+                o.connect(g); g.connect(this.ctx.destination);
+                o.start(); o.stop(this.ctx.currentTime+d);
+            },
+            boot:()=>Sound.play(200,'sine',0.5), deploy:()=>Sound.play(400,'triangle',0.15),
+            kill:()=>{Sound.play(100,'sawtooth',0.1);setTimeout(()=>Sound.play(60,'square',0.3),80);},
+            win:()=>[300,500,800].forEach((f,i)=>setTimeout(()=>Sound.play(f,'square',0.2),i*100)),
+            error:()=>Sound.play(150,'sawtooth',0.3)
+        };
+
+        /* --- DATA MANAGER --- */
+        const Archive = {
+            key: 'aggression_logs_final_v3',
+            get() { return JSON.parse(localStorage.getItem(this.key)||"[]"); },
+            save(w, s, l) {
+                const db = this.get();
+                db.unshift({ id:Date.now().toString().slice(-6), date:new Date().toLocaleString(), winner:w, score:s, log:l });
+                localStorage.setItem(this.key, JSON.stringify(db));
+            },
+            open() {
+                document.getElementById('log-modal').style.display='flex';
+                const el = document.getElementById('log-body');
+                el.innerHTML = '';
+                const db = this.get();
+                if(!db.length) el.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">NO LOGS FOUND</td></tr>';
+                db.forEach(g => {
+                    const c = g.winner.includes('1') ? 'var(--cyan-core)' : (g.winner.includes('2') ? 'var(--red-core)' : '#fff');
+                    el.innerHTML += `<tr><td style="font-family:monospace; color:#666">${g.id}</td><td>${g.date}</td><td style="color:${c}">${g.winner}</td><td>${g.score}</td></tr>`;
+                });
+            },
+            close() { document.getElementById('log-modal').style.display='none'; },
+            export() {
+                const str = btoa(unescape(encodeURIComponent(localStorage.getItem(this.key)||"[]")));
+                document.getElementById('sync-code').value = str;
+                alert("CODE GENERATED");
+            },
+            import() {
+                const c = prompt("PASTE CODE:");
+                if(!c) return;
+                try {
+                    const d = decodeURIComponent(escape(atob(c))); JSON.parse(d);
+                    localStorage.setItem(this.key, d); this.open(); alert("SUCCESS");
+                } catch(e) { alert("INVALID"); }
+            },
+            wipe() {
+                if(prompt("ENTER PASSWORD:") === "ADMIN") { localStorage.removeItem(this.key); this.open(); }
+                else alert("ACCESS DENIED");
+            }
+        };
+
+        const Rules = {
+            open() { document.getElementById('rules-modal').style.display = 'flex'; },
+            close() { document.getElementById('rules-modal').style.display = 'none'; }
+        };
+
+        /* --- ENGINE CORE --- */
+        const Engine = {
+            rows:0, cols:0, grid:[], p1Res:0, p2Res:0, turn:1, phase:'setup', ai:null,
+            firstMover:0, hasMoved:false, passCount:0, logData: [],
+
+            boot() {
+                this.rows = Math.min(10, Math.max(3, +document.getElementById('set-r').value));
+                this.cols = Math.min(10, Math.max(3, +document.getElementById('set-c').value));
+                const t = +document.getElementById('set-t').value;
+                this.p1Res = t; this.p2Res = t;
+                const aiVal = document.getElementById('set-ai').value;
+                this.ai = aiVal === 'human' ? null : aiVal;
+                
+                this.phase = 'placement'; this.turn = Math.random() < 0.5 ? 1 : 2;
+                this.firstMover = 0; this.hasMoved = false; this.passCount = 0; this.logData = [];
+
+                this.grid = [];
+                for(let r=0; r<this.rows; r++) {
+                    let row = []; for(let c=0; c<this.cols; c++) row.push({owner:0, count:0});
+                    this.grid.push(row);
+                }
+
+                document.getElementById('setup-layer').style.display = 'none';
+                document.getElementById('game-ui').style.display = 'grid';
+                document.getElementById('p2-name').innerText = this.ai ? `AI: ${this.ai.toUpperCase()}` : "PLAYER 2";
+
+                this.buildGrid(); this.updateHUD(); Sound.boot();
+                this.log("SYSTEM INITIALIZED", "sys");
+                this.log(`PLAYER ${this.turn} STARTS`, this.turn===1?"p1":"p2");
+                this.checkAI();
+            },
+
+            buildGrid() {
+                const el = document.getElementById('grid');
+                el.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
+                el.innerHTML = '';
+                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
+                    const d = document.createElement('div');
+                    d.className = 'cell'; d.id = `c-${r}-${c}`;
+                    d.onclick = () => this.interact(r, c);
+                    d.onmouseenter = () => this.hover(r, c);
+                    d.onmouseleave = () => document.getElementById('predict-hud').style.display='none';
+                    el.appendChild(d);
+                }
+            },
+
+            hover(r, c) {
+                if(this.phase !== 'attack' || this.turn !== 1) return;
+                const cell = this.grid[r][c];
+                if(cell.owner !== 2) return;
+                let p = this.getPower(r, c, 1);
+                const hud = document.getElementById('predict-hud');
+                const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
+                const vp = document.getElementById('viewport').getBoundingClientRect();
+                hud.style.display = 'block';
+                hud.style.left = (rect.left - vp.left + 32) + 'px';
+                hud.style.top = (rect.top - vp.top) + 'px';
+                hud.innerHTML = `ATK: <span style="color:var(--cyan-core)">${p}</span> VS DEF: <span style="color:var(--red-core)">${cell.count}</span>`;
+                hud.style.borderColor = p > cell.count ? '#10b981' : '#ef4444';
+            },
+
+            interact(r, c) {
+                if(this.phase === 'over' || (this.ai && this.turn === 2)) return;
+                if(this.phase === 'placement') this.place(r, c, +document.getElementById('deploy-val').value);
+                else this.attack(r, c);
+            },
+
+            place(r, c, amt) {
+                const cell = this.grid[r][c];
+                if(cell.owner !== 0) { this.log("ERROR: SECTOR OCCUPIED", "sys"); return; }
+                const res = this.turn===1 ? this.p1Res : this.p2Res;
+                const actual = Math.min(amt, res);
+                if(actual <= 0) return;
+
+                cell.owner = this.turn; cell.count = actual;
+                if(this.turn===1) this.p1Res -= actual; else this.p2Res -= actual;
+                if(!this.hasMoved) { this.firstMover = this.turn; this.hasMoved = true; }
+
+                Sound.deploy();
+                const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
+                VFX.burst(rect.left+32, rect.top+32, this.turn===1?'#00f3ff':'#ff003c');
+                this.updateHUD();
+
+                // Check Phase & Turn
+                const full = this.grid.every(r => r.every(c => c.owner !== 0));
+                
+                if((this.p1Res === 0 && this.p2Res === 0) || full) {
+                    this.startCombat();
+                } else {
+                    let next = this.turn === 1 ? 2 : 1;
+                    let nextRes = next === 1 ? this.p1Res : this.p2Res;
+                    
+                    if(nextRes > 0 && !full) {
+                        this.turn = next;
+                    } else {
+                        // Current player keeps turn
+                        this.log(`PLAYER ${next} DEPLETED. SKIPPED.`, "sys");
+                    }
+                }
+                this.updateHUD(); this.checkAI();
+            },
+
+            startCombat() {
+                this.phase = 'attack'; this.turn = this.firstMover;
+                document.getElementById('phase-ui').innerText = "COMBAT PHASE";
+                document.getElementById('phase-ui').style.borderColor = "var(--red-core)";
+                document.getElementById('phase-ui').style.color = "var(--red-core)";
+                document.getElementById('ui-place').style.display = 'none';
+                document.getElementById('ui-attack').style.display = 'block';
+                this.log("PHASE SHIFT: COMBAT", "sys");
+            },
+
+            attack(r, c) {
+                const cell = this.grid[r][c];
+                if(cell.owner === 0 || cell.owner === this.turn) { Sound.error(); return; }
+                const p = this.getPower(r, c, this.turn);
+                if(p > cell.count) {
+                    this.log(`P${this.turn} NEUTRALIZED [${r},${c}]`, this.turn===1?'p1':'p2');
+                    Sound.kill();
+                    const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
+                    VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
+                    cell.owner = 0; cell.count = 0; this.passCount = 0;
+                } else {
+                    this.log("ATTACK FAILED", "sys"); Sound.error();
+                }
+                this.render(); this.nextTurn();
+            },
+
+            pass() {
+                this.passCount++;
+                this.log(`P${this.turn} PASSED`, this.turn===1?'p1':'p2');
+                if(this.passCount >= 2) this.end(); else this.nextTurn();
+            },
+
+            nextTurn() { this.turn = this.turn===1?2:1; this.updateHUD(); this.checkAI(); },
+
+            getPower(r, c, who) {
+                let p = 0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0 && dc===0) continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===who) p += this.grid[nr][nc].count;
+                }
+                return p;
+            },
+
+            checkAI() {
+                if(!this.ai || this.turn === 1 || this.phase === 'over') return;
+                document.getElementById('ai-think').style.display = 'block';
+                
+                setTimeout(() => {
+                    if(this.phase === 'placement') {
+                        // AI Logic
+                        const move = AI.getPlacement(this);
+                        if(move) {
+                            let amt = 1;
+                            if(this.ai === 'smart') {
+                                const n = AI.scan(this, move.r, move.c);
+                                // Frontline = Heavy stack
+                                amt = (n.e > 0) ? Math.min(this.p2Res, Math.floor(Math.random()*4)+4) : 1;
+                            } else if (this.ai === 'strategic') amt = 3;
+                            
+                            const val = Math.min(amt, this.p2Res);
+                            const cell = this.grid[move.r][move.c];
+                            cell.owner = 2; cell.count = val; this.p2Res -= val;
+                            if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
+                            Sound.deploy();
+                            
+                            const full = this.grid.every(r=>r.every(c=>c.owner!==0));
+                            if((this.p1Res===0 && this.p2Res===0) || full) {
+                                this.startCombat();
+                            } else {
+                                if(this.p1Res > 0 && !full) this.turn = 1;
+                            }
+                        } else {
+                            this.startCombat();
+                        }
+                    } else {
+                        // Combat
+                        const atk = this.ai==='weak' ? null : AI.getAttack(this);
+                        if(atk) {
+                            const cell = this.grid[atk.r][atk.c];
+                            this.log(`AI ELIMINATES [${atk.r},${atk.c}]`, 'p2');
+                            Sound.kill();
+                            const rect = document.getElementById(`c-${atk.r}-${atk.c}`).getBoundingClientRect();
+                            VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
+                            cell.owner = 0; cell.count = 0; this.passCount = 0;
+                        } else {
+                            this.passCount++;
+                            this.log("AI PASSED", 'p2');
+                            if(this.passCount >= 2) return this.end();
+                        }
+                        this.turn = 1;
+                    }
+                    document.getElementById('ai-think').style.display = 'none';
+                    this.render(); this.updateHUD();
+                }, 600);
+            },
+
+            render() {
+                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
+                    const el = document.getElementById(`c-${r}-${c}`);
+                    const d = this.grid[r][c];
+                    el.className = 'cell'; el.innerText = '';
+                    if(d.owner === 1) { el.classList.add('p1'); el.innerText=d.count; }
+                    if(d.owner === 2) { el.classList.add('p2'); el.innerText=d.count; }
+                    if(this.phase === 'placement' && d.owner !== 0) el.classList.add('locked');
+                    
+                    if(this.phase === 'attack' && this.turn === 1 && d.owner === 2) {
+                        let p = 0;
+                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                            if(dr===0&&dc===0) continue;
+                            let nr=r+dr, nc=c+dc;
+                            if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===1) p+=this.grid[nr][nc].count;
+                        }
+                        if(p > d.count) el.classList.add('target');
+                    }
+                }
+            },
+
+            updateHUD() {
+                document.getElementById('p1-res').innerText = this.p1Res;
+                document.getElementById('p2-res').innerText = this.p2Res;
+                document.getElementById('p1-deck').className = `sidebar panel p1-side ${this.turn===1?'active glow-p1':''}`;
+                document.getElementById('p2-deck').className = `sidebar panel p2-side ${this.turn===2?'active glow-p2':''}`;
+                let s1=0, s2=0;
+                this.grid.forEach(r => r.forEach(c => { if(c.owner===1)s1++; if(c.owner===2)s2++; }));
+                document.getElementById('p1-score').innerText = s1;
+                document.getElementById('p2-score').innerText = s2;
+            },
+
+            log(msg, type='sys') {
+                this.logData.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
+                const w = document.getElementById('console-wrap');
+                const d = document.createElement('div');
+                d.className = `log-entry ln-${type}`;
+                d.innerText = `>> ${msg}`;
+                w.prepend(d);
+            },
+
+            end() {
+                this.phase = 'over';
+                let s1 = +document.getElementById('p1-score').innerText;
+                let s2 = +document.getElementById('p2-score').innerText;
+                let w = s1>s2 ? "PLAYER 1" : (s2>s1 ? "PLAYER 2" : "DRAW");
+                Sound.win();
+                Archive.save(w, `${s1} - ${s2}`, this.logData);
+                setTimeout(() => alert(`GAME OVER\n\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}`), 200);
+            }
+        };
+
+        const AI = {
+            scan(g, r, c) {
+                let f=0, e=0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0 && dc===0) continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols) {
+                        if(g.grid[nr][nc].owner===2) f++;
+                        else if(g.grid[nr][nc].owner===1) e++;
+                    }
+                }
+                return {f, e};
+            },
+            getPlacement(g) {
+                let moves = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
+                    if(g.grid[r][c].owner === 0) {
+                        let score = 0; const n = this.scan(g, r, c);
+                        score += (n.f * 10);
+                        if(n.e > 0) score += 15;
+                        let dist = Math.abs(r - g.rows/2) + Math.abs(c - g.cols/2);
+                        score -= dist;
+                        moves.push({r, c, score});
+                    }
+                }
+                moves.sort((a,b) => b.score - a.score);
+                return moves.length ? moves[0] : null;
+            },
+            getAttack(g) {
+                let moves = [];
+                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
+                    if(g.grid[r][c].owner === 1) {
+                        let p = 0;
+                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                            if(dr===0&&dc===0) continue;
+                            let nr=r+dr, nc=c+dc;
+                            if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols && g.grid[nr][nc].owner===2) p+=g.grid[nr][nc].count;
+                        }
+                        if(p > g.grid[r][c].count) moves.push({r, c, val: g.grid[r][c].count});
+                    }
+                }
+                moves.sort((a,b) => b.val - a.val);
+                return moves.length ? moves[0] : null;
+            }
+        };
+
+        // 3D Tilt
+        document.body.addEventListener('mousemove', e => {
+            const x = (window.innerWidth/2 - e.clientX)/40;
+            const y = (window.innerHeight/2 - e.clientY)/40;
+            document.getElementById('grid-mount').style.transform = `rotateX(${10+y}deg) rotateY(${-x}deg)`;
+        });
+    </script>
+</body>
+</html>
