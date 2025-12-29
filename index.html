@@ -3,330 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGGRESSION: ADAPTIVE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    <title>AGGRESSION: HORIZON</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         /* --- 1. CORE VARIABLES --- */
         :root {
-            --bg-void: #000205;
-            --glass: rgba(10, 15, 20, 0.96);
-            --border: rgba(255, 255, 255, 0.1);
+            --bg-deep: #030507;
+            --panel-bg: rgba(8, 12, 16, 0.95);
             
-            /* NEON PALETTE */
-            --cyan: #00f3ff;
-            --cyan-glow: 0 0 15px rgba(0, 243, 255, 0.5);
-            --red: #ff003c;
-            --red-glow: 0 0 15px rgba(255, 0, 60, 0.5);
-            --gold: #fbbf24;
-            --gold-glow: 0 0 15px rgba(251, 191, 36, 0.4);
+            /* HIGH CONTRAST NEON */
+            --p1-color: #00f0ff; /* Cyan */
+            --p1-dim: rgba(0, 240, 255, 0.15);
+            
+            --p2-color: #ff003c; /* Red */
+            --p2-dim: rgba(255, 0, 60, 0.15);
+            
+            --sys-gold: #ffd700;
+            --text-main: #e2e8f0;
+            
+            /* DYNAMIC SIZE (Set by JS) */
+            --grid-dim: 500px; 
             
             /* FONTS */
             --f-head: 'Orbitron', sans-serif;
             --f-ui: 'Rajdhani', sans-serif;
-            --f-data: 'JetBrains Mono', monospace;
+            --f-code: 'Share Tech Mono', monospace;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         
         body {
-            background-color: var(--bg-void);
-            color: #fff;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
             font-family: var(--f-ui);
             height: 100vh; width: 100vw; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
-            perspective: 1200px;
         }
 
-        /* --- 2. BACKGROUND FX --- */
+        /* --- 2. FX LAYERS --- */
         #starfield {
             position: fixed; inset: 0; z-index: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(20, 30, 45, 0.3) 0%, #000 100%);
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000 100%);
             pointer-events: none;
         }
-        
-        .scanlines {
-            position: fixed; inset: 0; z-index: 999; pointer-events: none;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 3px; opacity: 0.3;
+        .grid-floor {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(20deg) scale(1.5);
+            opacity: 0.3;
         }
-
-        #vfx-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 800; }
+        #vfx-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 900; }
 
         /* --- 3. UI COMPONENTS --- */
         .panel {
-            background: var(--glass);
-            border: 1px solid var(--border);
+            background: var(--panel-bg);
+            border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(12px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             border-radius: 4px;
-            transition: 0.3s;
         }
 
-        /* GLOWS */
-        .glow-p1 { border-color: var(--cyan); box-shadow: var(--cyan-glow); z-index: 5; }
-        .glow-p2 { border-color: var(--red); box-shadow: var(--red-glow); z-index: 5; }
-        .glow-sys { border-color: var(--gold); box-shadow: var(--gold-glow); }
+        .glow-p1 { border-color: var(--p1-color); box-shadow: 0 0 15px var(--p1-dim); }
+        .glow-p2 { border-color: var(--p2-color); box-shadow: 0 0 15px var(--p2-dim); }
+        .glow-sys { border-color: var(--sys-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
 
         .btn {
-            background: rgba(0, 243, 255, 0.05); color: var(--cyan);
-            border: 1px solid var(--cyan); padding: 14px; width: 100%;
-            font-family: var(--f-head); font-weight: 700; letter-spacing: 2px;
+            background: rgba(0, 240, 255, 0.05); color: var(--p1-color);
+            border: 1px solid var(--p1-color); padding: 12px; width: 100%;
+            font-family: var(--f-head); font-weight: 700; letter-spacing: 1px;
             text-transform: uppercase; cursor: pointer; transition: 0.1s;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .btn:hover { background: var(--cyan); color: #000; box-shadow: var(--cyan-glow); }
+        .btn:hover { background: var(--p1-color); color: #000; box-shadow: 0 0 20px var(--p1-color); }
         .btn:active { transform: scale(0.98); }
         
-        .btn-red { color: var(--red); border-color: var(--red); background: rgba(255, 0, 60, 0.05); }
-        .btn-red:hover { background: var(--red); color: #000; box-shadow: var(--red-glow); }
+        .btn-red { color: var(--p2-color); border-color: var(--p2-color); background: rgba(255, 0, 60, 0.05); }
+        .btn-red:hover { background: var(--p2-color); color: #000; box-shadow: 0 0 20px var(--p2-color); }
 
         input, select {
-            background: #080c10; border: 1px solid #333; color: #fff;
-            padding: 12px; font-family: var(--f-data); text-align: center;
+            background: #0a0f14; border: 1px solid #333; color: #fff;
+            padding: 10px; font-family: var(--f-code); text-align: center;
             width: 100%; outline: none; transition: 0.3s; font-size: 1rem;
         }
-        input:focus, select:focus { border-color: var(--gold); box-shadow: var(--gold-glow); }
-        label { display: block; color: #888; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
+        input:focus { border-color: var(--sys-gold); }
+        label { display: block; color: #888; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
 
-        /* --- 4. HACKER BOOT SCREEN --- */
-        #boot-layer {
-            position: fixed; inset: 0; z-index: 5000; background: #000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-family: var(--f-data); color: var(--cyan);
-        }
-        #boot-text { font-size: 1.2rem; margin-bottom: 20px; letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan); }
-        .loader-bar { width: 300px; height: 2px; background: #222; overflow: hidden; }
-        .loader-fill { height: 100%; width: 0%; background: var(--cyan); animation: load 2s ease-in-out forwards; }
-        @keyframes load { 0% {width:0%} 40% {width:30%} 70% {width:80%} 100% {width:100%} }
-
-        /* --- 5. SETUP SCREEN --- */
+        /* --- 4. SETUP SCREEN --- */
         #setup-layer {
-            position: absolute; z-index: 100; inset: 0;
-            display: none; justify-content: center; align-items: center;
-            background: rgba(0, 0, 0, 0.85); perspective: 1000px;
+            position: fixed; inset: 0; z-index: 2000;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.9);
         }
         #setup-box { 
-            width: 550px; padding: 40px; display: flex; flex-direction: column; gap: 20px;
-            transform: rotateX(10deg); animation: float 6s ease-in-out infinite;
-            background: linear-gradient(135deg, rgba(10,15,20,0.98), rgba(5,8,10,0.98));
+            width: 500px; padding: 40px; display: flex; flex-direction: column; gap: 20px;
+            transform: rotateX(5deg); transition: transform 0.2s;
         }
-        @keyframes float { 0%,100%{transform: translateY(0) rotateX(10deg);} 50%{transform: translateY(-10px) rotateX(10deg);} }
-
         h1 {
             font-family: var(--f-head); font-size: 3.5rem; margin: 0; line-height: 1;
-            background: linear-gradient(180deg, #fff, #888);
+            background: linear-gradient(180deg, #fff, #666);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-align: center; text-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
-        }
-        .subtitle {
-            text-align: center; color: var(--gold); font-family: var(--f-data);
-            font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 20px;
-            border-bottom: 1px solid rgba(251, 191, 36, 0.2); padding-bottom: 15px;
+            text-align: center; text-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
         }
 
-        /* --- 6. ADAPTIVE GAME LAYOUT --- */
+        /* --- 5. MAIN INTERFACE --- */
         #game-ui {
             display: none; width: 100vw; height: 100vh;
             grid-template-columns: 280px 1fr 280px;
             grid-template-rows: 60px 1fr 140px;
-            gap: 15px; padding: 15px; z-index: 10;
+            gap: 15px; padding: 15px; z-index: 10; position: relative;
         }
 
+        /* TOP BAR */
         .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-        .phase-pill {
-            font-family: var(--f-head); font-size: 1.1rem; color: #fff;
+        .phase-badge {
+            font-family: var(--f-head); font-size: 1.2rem; color: #fff;
             background: rgba(255,255,255,0.05); padding: 5px 25px;
-            border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
+        /* SIDEBARS */
         .sidebar {
             grid-row: 2 / 3; display: flex; flex-direction: column; gap: 15px;
-            padding: 20px; transition: 0.3s; opacity: 0.4;
+            padding: 20px; transition: 0.3s; opacity: 0.5;
         }
         .sidebar.active { opacity: 1; transform: scale(1.02); background: rgba(15, 20, 30, 0.9); }
-        
-        .stat-card {
-            background: rgba(0,0,0,0.4); padding: 15px; text-align: center;
-            border-left: 4px solid #333;
-        }
-        .p1-side .stat-card { border-color: var(--cyan); }
-        .p2-side .stat-card { border-color: var(--red); }
+        .stat-card { background: rgba(0,0,0,0.4); padding: 15px; text-align: center; border-left: 3px solid #333; }
+        .p1-side .stat-card { border-color: var(--p1-color); }
+        .p2-side .stat-card { border-color: var(--p2-color); }
         .stat-val { font-family: var(--f-head); font-size: 2.5rem; color: #fff; }
-        .stat-lbl { font-size: 0.7rem; color: #888; letter-spacing: 2px; font-weight: bold; }
 
-        /* --- DYNAMIC VIEWPORT (THE FIX) --- */
+        /* --- THE GRID ENGINE (FIXED) --- */
         #viewport {
             grid-column: 2 / 3; grid-row: 2 / 3;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; /* Contains the grid */
+            position: relative; overflow: hidden;
         }
         
-        /* This container forces the grid to stay within bounds using Viewport Min Units */
         #grid-container {
-            /* This formula ensures the grid is never larger than 70% of the smallest screen dimension */
-            width: min(65vh, 65vw); 
-            height: min(65vh, 65vw);
-            display: grid; 
-            gap: 4px;
-            /* Center the grid inside the mount */
-            margin: auto;
+            /* This variable is set by JS based on window size */
+            width: var(--grid-dim);
+            height: var(--grid-dim);
             position: relative;
-            z-index: 50;
-        }
-
-        #grid-frame {
-            padding: 15px; background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            border-radius: 8px;
-            /* 3D Tilt applied here */
-            transition: transform 0.05s linear;
-            transform-style: preserve-3d;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            /* Centered absolutely to ensure no layout shift */
+            display: grid;
+            gap: 2px;
+            padding: 5px;
         }
 
         .cell {
-            /* Width/Height are auto-calculated by CSS Grid now */
-            background: #0b0f15; border: 1px solid #1e293b;
+            background: #0b0e14;
+            position: relative; cursor: pointer;
             display: flex; justify-content: center; align-items: center;
             font-family: var(--f-head); font-weight: bold; font-size: 1.2rem;
-            cursor: pointer; position: relative;
-            transition: none; /* No lag */
+            color: #fff; transition: none; /* Instant response */
         }
-        .cell:hover { border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.3); z-index: 100; }
+        /* Tactical Crosshairs on Cell Corners */
+        .cell::after {
+            content: ''; position: absolute; top: 0; right: 0;
+            width: 4px; height: 4px; border-top: 1px solid #333; border-right: 1px solid #333;
+        }
         
-        .cell.p1 { color: var(--cyan); border-color: var(--cyan); background: rgba(0, 243, 255, 0.15); box-shadow: inset 0 0 10px var(--cyan); }
-        .cell.p2 { color: var(--red); border-color: var(--red); background: rgba(255, 0, 60, 0.15); box-shadow: inset 0 0 10px var(--red); }
-        .cell.locked { cursor: not-allowed; opacity: 0.5; filter: grayscale(0.8); }
-        .cell.target { animation: pulse 1s infinite; cursor: crosshair; border-color:var(--red); }
-        @keyframes pulse { 0% {box-shadow:inset 0 0 0 var(--red);} 50% {box-shadow:inset 0 0 20px var(--red);} }
+        .cell:hover { background: #1a1f26; z-index: 10; border: 1px solid #fff; }
+        
+        /* OWNERSHIP STYLES */
+        .cell.p1 { 
+            background: rgba(0, 240, 255, 0.1); 
+            box-shadow: inset 0 0 15px var(--p1-dim); 
+            border: 1px solid var(--p1-color);
+            color: var(--p1-color);
+        }
+        .cell.p2 { 
+            background: rgba(255, 0, 60, 0.1); 
+            box-shadow: inset 0 0 15px var(--p2-dim); 
+            border: 1px solid var(--p2-color);
+            color: var(--p2-color);
+        }
+        
+        .cell.locked { cursor: not-allowed; opacity: 0.6; }
+        .cell.locked:hover { border-color: transparent; background: inherit; }
+        
+        .cell.target { animation: targetPulse 0.5s infinite alternate; cursor: crosshair; }
+        @keyframes targetPulse { from { background: rgba(255,0,0,0.1); } to { background: rgba(255,0,0,0.3); } }
 
+        /* CONSOLE & CONTROLS */
         #console-wrap {
             grid-column: 1 / 3; grid-row: 3 / 4;
             background: #020406; border: 1px solid #333; padding: 10px;
-            font-family: var(--f-data); font-size: 0.7rem; color: #888;
+            font-family: var(--f-code); font-size: 0.7rem; color: #888;
             overflow-y: auto; display: flex; flex-direction: column-reverse;
         }
-        .log-entry { margin-bottom: 2px; border-bottom: 1px solid #111; padding-bottom: 2px; }
-        .ln-p1 { color: var(--cyan); } .ln-p2 { color: var(--red); } .ln-sys { color: var(--gold); }
+        .log-entry { margin-bottom: 2px; border-bottom: 1px solid #111; }
+        .ln-p1 { color: var(--p1-color); } .ln-p2 { color: var(--p2-color); } .ln-sys { color: var(--sys-gold); }
 
         #controls {
             grid-column: 3 / 4; grid-row: 3 / 4;
             display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 15px;
         }
 
-        /* --- 7. MODALS --- */
+        /* --- MODALS --- */
         .modal-veil {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 2000; display: none; justify-content: center; align-items: center;
+            z-index: 3000; display: none; justify-content: center; align-items: center;
         }
         .modal-box {
-            background: #080c10; border: 1px solid var(--gold); padding: 40px;
+            background: #080c10; border: 1px solid var(--sys-gold); padding: 40px;
             width: 700px; max-width: 90%; max-height: 90vh; overflow-y: auto;
             box-shadow: 0 0 60px rgba(251, 191, 36, 0.15);
         }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-family: var(--f-data); font-size: 0.8rem; text-align: left; }
-        th { color: var(--gold); border-bottom: 2px solid #333; padding: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-family: var(--f-code); font-size: 0.8rem; text-align: left; }
+        th { color: var(--sys-gold); border-bottom: 2px solid #333; padding: 8px; }
         td { padding: 8px; border-bottom: 1px solid #222; color: #aaa; }
-        
-        #ai-think { position: absolute; top: -30px; color: var(--red); font-family: var(--f-data); font-size: 0.8rem; display: none; text-shadow: 0 0 10px var(--red); }
-        
-        #predict-hud {
-            position: absolute; pointer-events: none; z-index: 500;
-            background: rgba(0,0,0,0.95); border: 1px solid #fff;
-            padding: 5px 10px; font-size: 0.7rem; color: #fff; font-family: var(--f-data);
-            white-space: nowrap; transform: translate(-50%, -130%);
-            display: none; box-shadow: 0 10px 30px #000;
-        }
 
         @media (max-width: 1000px) {
             #game-ui { display: flex; flex-direction: column; height: auto; overflow-y: auto; }
             .sidebar { flex-direction: row; justify-content: space-around; }
             #console-wrap { height: 100px; }
-            #grid-container { width: 90vw; height: 90vw; }
         }
     </style>
 </head>
 <body>
 
     <div id="starfield"></div>
+    <div class="grid-floor"></div>
     <div class="scanlines"></div>
     <canvas id="vfx-canvas"></canvas>
-
-    <div id="boot-layer">
-        <div id="boot-text">INITIALIZING PROTOCOLS...</div>
-        <div class="loader-bar"><div class="loader-fill" id="boot-fill"></div></div>
-    </div>
 
     <div id="setup-layer">
         <div id="setup-box" class="panel glow-sys">
             <h1>AGGRESSION</h1>
-            <div class="subtitle">TACTICAL WARFARE SYSTEM</div>
+            <div style="text-align:center; color:var(--sys-gold); letter-spacing:4px; font-size:0.8rem; margin-bottom:15px;">TACTICAL HORIZON</div>
             
             <div style="display:flex; gap:15px;">
-                <div style="flex:1"><label>Grid Rows</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
-                <div style="flex:1"><label>Grid Cols</label><input type="number" id="set-c" value="6" min="3" max="10"></div>
+                <div style="flex:1"><label>ROWS</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
+                <div style="flex:1"><label>COLS</label><input type="number" id="set-c" value="6" min="3" max="10"></div>
             </div>
             
             <div>
-                <label>Troops Per Player</label>
+                <label>TROOPS</label>
                 <input type="number" id="set-t" value="36" min="1">
-                <div style="font-size:0.7rem; color:var(--red); margin-top:8px; font-family:var(--f-data);">
-                    * Rule: Cannot place on occupied tiles.
-                </div>
             </div>
 
             <div>
-                <label>Opponent Type</label>
+                <label>OPPONENT</label>
                 <select id="set-ai">
-                    <option value="human">Human vs Human</option>
-                    <option value="weak">Weak AI (Random)</option>
-                    <option value="strategic">Strategic AI (Aggressive)</option>
-                    <option value="smart" selected>Smart AI (Tactical)</option>
+                    <option value="human">HUMAN</option>
+                    <option value="weak">AI: WEAK</option>
+                    <option value="strategic">AI: STRATEGIC</option>
+                    <option value="smart" selected>AI: SMART (OMEGA)</option>
                 </select>
             </div>
 
-            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">Start Simulation</button>
-            <button class="btn btn-red" onclick="Archive.open()">Game Logs</button>
+            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">INITIATE LAUNCH SEQUENCE</button>
+            <button class="btn btn-red" onclick="Archive.open()">ARCHIVES</button>
         </div>
     </div>
 
     <div id="game-ui">
         <div class="top-bar panel glow-sys">
-            <div style="font-weight:bold; color:#fff; font-size:1.2rem;">AGGRESSION // ACTIVE</div>
-            <div id="phase-ui" class="phase-pill">PLACEMENT</div>
-            <div onclick="location.reload()" style="cursor:pointer; color:#666;">[ABORT]</div>
+            <div style="font-weight:bold; font-size:1.2rem; color:#fff;">AGGRESSION // ACTIVE</div>
+            <div id="phase-ui" class="phase-badge">PLACEMENT</div>
+            <div onclick="location.reload()" style="cursor:pointer; color:#666;">[TERMINATE]</div>
         </div>
 
         <div class="sidebar panel p1-side" id="p1-deck">
-            <div style="color:var(--cyan); font-weight:bold; text-align:center; font-size:1.4rem;">PLAYER 1</div>
+            <div style="color:var(--p1-color); font-weight:bold; text-align:center; font-size:1.4rem;">PLAYER 1</div>
             <div class="stat-card">
                 <div class="stat-val" id="p1-res">0</div><div class="stat-lbl">RESERVES</div>
             </div>
             <div class="stat-card">
-                <div class="stat-val" id="p1-score">0</div><div class="stat-lbl">TERRITORY</div>
+                <div class="stat-val" id="p1-score">0</div><div class="stat-lbl">SECTORS</div>
             </div>
         </div>
 
         <div id="viewport">
-            <div id="ai-think">>> OPPONENT COMPUTING...</div>
-            
-            <div id="grid-frame">
-                <div id="grid-container">
-                    <div id="grid"></div>
+            <div id="ai-think" style="position:absolute; top:-30px; color:var(--p2-color); display:none; font-family:var(--f-code);">>> COMPUTING...</div>
+            <div id="grid-container">
                 </div>
-            </div>
-            
-            <div id="predict-hud"></div>
         </div>
 
         <div class="sidebar panel p2-side" id="p2-deck">
-            <div style="color:var(--red); font-weight:bold; text-align:center; font-size:1.4rem;" id="p2-name">PLAYER 2</div>
+            <div style="color:var(--p2-color); font-weight:bold; text-align:center; font-size:1.4rem;" id="p2-name">PLAYER 2</div>
             <div class="stat-card">
                 <div class="stat-val" id="p2-res">0</div><div class="stat-lbl">RESERVES</div>
             </div>
             <div class="stat-card">
-                <div class="stat-val" id="p2-score">0</div><div class="stat-lbl">TERRITORY</div>
+                <div class="stat-val" id="p2-score">0</div><div class="stat-lbl">SECTORS</div>
             </div>
         </div>
 
@@ -334,63 +301,35 @@
 
         <div id="controls" class="panel glow-sys">
             <div id="ui-place">
-                <label>Troops to Place</label>
+                <label>DEPLOYMENT SIZE</label>
                 <input type="number" id="deploy-val" value="1" min="1" style="background:#000; font-size:1.4rem; margin:10px 0;">
-                <div style="font-size:0.65rem; color:#666; text-align:center;">CLICK EMPTY TILE</div>
+                <div style="font-size:0.6rem; color:#666; text-align:center;">SELECT EMPTY TILE</div>
             </div>
             <div id="ui-attack" style="display:none;">
-                <div style="text-align:center; color:var(--red); font-weight:bold; margin-bottom:10px; font-size:1.2rem;">ATTACK PHASE</div>
+                <div style="text-align:center; color:var(--p2-color); font-weight:bold; margin-bottom:10px; font-size:1.2rem;">ATTACK MODE</div>
                 <button class="btn btn-red" onclick="Engine.pass()">PASS TURN</button>
             </div>
         </div>
     </div>
 
-    <div id="log-modal" class="modal-veil" style="display:none;">
+    <div id="log-modal" class="modal-veil">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0; color:var(--gold);">GAME LOGS</h2>
-                <span style="cursor:pointer; font-size:1.5rem;" onclick="Archive.close()">×</span>
+                <h2 style="margin:0; color:var(--sys-gold);">LOGS</h2>
+                <span onclick="Archive.close()" style="cursor:pointer; font-size:1.5rem;">×</span>
             </div>
             <table>
                 <thead><tr><th>ID</th><th>DATE</th><th>WINNER</th><th>SCORE</th></tr></thead>
                 <tbody id="log-body"></tbody>
             </table>
-            
-            <div style="margin-top:25px; border-top:1px solid #333; padding-top:15px;">
-                <label>DATA SYNC (EXPORT/IMPORT)</label>
-                <textarea id="sync-code" style="width:100%; height:60px; background:#000; color:var(--cyan); border:1px solid #333; font-family:monospace; font-size:0.7rem; resize:none; padding:10px;" readonly placeholder="Export string will appear here..."></textarea>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Archive.export()">COPY CODE</button>
-                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Archive.import()">IMPORT CODE</button>
-                </div>
-            </div>
-
-            <div style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
-                <button class="btn btn-red" onclick="Archive.wipe()">SECURE DELETE (PASSWORD REQ)</button>
+            <div style="margin-top:20px;">
+                <button class="btn btn-red" onclick="Archive.wipe()">SECURE WIPE (PASSWORD: ADMIN)</button>
             </div>
         </div>
     </div>
 
     <script>
-        /* --- 0. BOOT SEQUENCE --- */
-        window.onload = () => {
-            const msgs = ["LOADING KERNEL...", "MOUNTING DRIVES...", "ESTABLISHING UPLINK...", "SYSTEM READY"];
-            let i = 0;
-            const txt = document.getElementById('boot-text');
-            const interval = setInterval(() => {
-                txt.innerText = msgs[i];
-                i++;
-                if(i >= msgs.length) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        document.getElementById('boot-layer').style.display = 'none';
-                        document.getElementById('setup-layer').style.display = 'flex';
-                    }, 500);
-                }
-            }, 600);
-        };
-
-        /* --- 1. VISUAL FX --- */
+        /* --- VISUAL FX --- */
         const VFX = {
             canvas: document.getElementById('vfx-canvas'),
             ctx: document.getElementById('vfx-canvas').getContext('2d'),
@@ -400,7 +339,7 @@
             burst(x, y, color) {
                 for(let i=0; i<20; i++) {
                     const a=Math.random()*Math.PI*2, s=Math.random()*5+2;
-                    this.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:0.04,color,size:Math.random()*3+2});
+                    this.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:0.05,color,size:Math.random()*3+2});
                 }
             },
             loop() {
@@ -417,47 +356,28 @@
         };
         VFX.init();
 
-        /* --- 2. AUDIO --- */
+        /* --- AUDIO --- */
         const Sound = {
             ctx: null,
             init() { if(!this.ctx) this.ctx = new (window.AudioContext||window.webkitAudioContext)(); },
-            playP1() {
-                if(!this.ctx) this.init(); if(this.ctx.state==='suspended') this.ctx.resume();
-                const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
-                o.frequency.setValueAtTime(400,t); o.frequency.linearRampToValueAtTime(800,t+0.1);
-                g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
-                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(t+0.3);
+            play(f,t,d,v=0.1) {
+                if(this.ctx.state==='suspended') this.ctx.resume();
+                const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+                o.type=t; o.frequency.setValueAtTime(f,this.ctx.currentTime);
+                g.gain.setValueAtTime(v,this.ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01,this.ctx.currentTime+d);
+                o.connect(g); g.connect(this.ctx.destination);
+                o.start(); o.stop(this.ctx.currentTime+d);
             },
-            playP2() {
-                if(!this.ctx) this.init(); if(this.ctx.state==='suspended') this.ctx.resume();
-                const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
-                o.type='square'; o.frequency.setValueAtTime(100,t); o.frequency.linearRampToValueAtTime(50,t+0.1);
-                g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
-                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(t+0.3);
-            },
-            kill() {
-                if(!this.ctx) this.init();
-                const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
-                o.type='sawtooth'; o.frequency.setValueAtTime(100,t); o.frequency.exponentialRampToValueAtTime(10,t+0.3);
-                g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
-                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(t+0.3);
-            },
-            win() {
-                if(!this.ctx) this.init();
-                [300,400,500,600,800].forEach((f,i)=>{
-                    setTimeout(()=>{
-                        const o=this.ctx.createOscillator(), g=this.ctx.createGain();
-                        o.frequency.setValueAtTime(f,this.ctx.currentTime);
-                        g.gain.setValueAtTime(0.1,this.ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,this.ctx.currentTime+0.5);
-                        o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(this.ctx.currentTime+0.5);
-                    },i*100);
-                });
-            }
+            boot:()=>Sound.play(200,'sine',0.5), deploy:()=>Sound.play(400,'triangle',0.15),
+            kill:()=>{Sound.play(100,'sawtooth',0.1);setTimeout(()=>Sound.play(60,'square',0.3),80);},
+            win:()=>[300,500,800].forEach((f,i)=>setTimeout(()=>Sound.play(f,'square',0.2),i*100)),
+            error:()=>Sound.play(150,'sawtooth',0.3)
         };
 
-        /* --- 3. DATA --- */
+        /* --- DATA --- */
         const Archive = {
-            key: 'aggr_data_final_fix',
+            key: 'aggr_final_db',
             get() { return JSON.parse(localStorage.getItem(this.key)||"[]"); },
             save(w,s,l) {
                 const db=this.get(); db.unshift({id:Date.now().toString().slice(-6),date:new Date().toLocaleString(),winner:w,score:s});
@@ -467,27 +387,17 @@
                 document.getElementById('log-modal').style.display='flex';
                 const el=document.getElementById('log-body'); el.innerHTML='';
                 const db=this.get();
-                if(!db.length) el.innerHTML='<tr><td colspan="4" style="text-align:center; padding:20px;">No logs found.</td></tr>';
+                if(!db.length) el.innerHTML='<tr><td colspan="4" style="text-align:center;">EMPTY</td></tr>';
                 db.forEach(g=>{
-                    const c=g.winner.includes('1')?'var(--cyan)':'var(--red)';
-                    el.innerHTML+=`<tr><td style="color:#666; font-family:monospace;">${g.id}</td><td>${g.date}</td><td style="color:${c}; font-weight:bold;">${g.winner}</td><td>${g.score}</td></tr>`;
+                    const c=g.winner.includes('1')?'var(--p1-color)':'var(--p2-color)';
+                    el.innerHTML+=`<tr><td style="color:#666">${g.id}</td><td>${g.date}</td><td style="color:${c}">${g.winner}</td><td>${g.score}</td></tr>`;
                 });
             },
             close() { document.getElementById('log-modal').style.display='none'; },
-            export() {
-                const s = btoa(unescape(encodeURIComponent(localStorage.getItem(this.key)||"[]")));
-                document.getElementById('sync-code').value = s; alert("Code Generated.");
-            },
-            import() {
-                const c = prompt("Paste Code:"); if(!c) return;
-                try { const d = decodeURIComponent(escape(atob(c))); JSON.parse(d); localStorage.setItem(this.key,d); this.open(); alert("Success."); } catch(e){ alert("Invalid."); }
-            },
-            wipe() {
-                if(prompt("Enter Password:")==="ADMIN") { localStorage.removeItem(this.key); this.open(); } else alert("Denied.");
-            }
+            wipe() { if(prompt("PASSWORD:")==="ADMIN"){localStorage.removeItem(this.key);this.open();}else alert("DENIED"); }
         };
 
-        /* --- 4. ENGINE --- */
+        /* --- ENGINE --- */
         const Engine = {
             rows:0, cols:0, grid:[], p1Res:0, p2Res:0, turn:1, phase:'setup', ai:null,
             firstMover:0, hasMoved:false, passCount:0,
@@ -513,44 +423,44 @@
                 document.getElementById('game-ui').style.display = 'grid';
                 document.getElementById('p2-name').innerText = this.ai ? `AI (${this.ai.toUpperCase()})` : "PLAYER 2";
 
-                this.buildGrid(); this.updateHUD(); Sound.playP1();
-                this.log("System Online.");
-                this.log(`Player ${this.turn} starts.`);
+                // CRITICAL FIX: RESIZE BOARD ON LOAD
+                this.resizeBoard();
+                window.addEventListener('resize', () => this.resizeBoard());
+
+                this.buildGrid(); this.updateHUD(); Sound.boot();
+                this.log("SYSTEM ONLINE");
+                this.log(`PLAYER ${this.turn} HAS INITIATIVE`, this.turn===1?"p1":"p2");
                 this.checkAI();
+            },
+
+            // --- THE LAYOUT FIX: CALCULATE EXACT SIZE ---
+            resizeBoard() {
+                const headerH = 60; 
+                const footerH = 150;
+                const sidebarW = 560; // 280 * 2
+                
+                const availableH = window.innerHeight - headerH - footerH - 40; // padding
+                const availableW = window.innerWidth - sidebarW - 40;
+                
+                // Pick smaller dimension to ensure square fit
+                const size = Math.min(availableH, availableW);
+                document.documentElement.style.setProperty('--grid-dim', `${size}px`);
             },
 
             buildGrid() {
                 const container = document.getElementById('grid-container');
-                const el = document.getElementById('grid');
+                container.innerHTML = '';
                 
-                // DYNAMIC GRID SIZING (THE FIX)
-                el.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
-                el.style.gridTemplateRows = `repeat(${this.rows}, 1fr)`;
-                
-                el.innerHTML = '';
+                // USE CSS GRID FOR PERFECT SCALING
+                container.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
+                container.style.gridTemplateRows = `repeat(${this.rows}, 1fr)`;
+
                 for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
                     const d = document.createElement('div');
                     d.className = 'cell'; d.id = `c-${r}-${c}`;
                     d.onclick = () => this.interact(r, c);
-                    d.onmouseenter = () => this.hover(r, c);
-                    d.onmouseleave = () => document.getElementById('predict-hud').style.display='none';
-                    el.appendChild(d);
+                    container.appendChild(d);
                 }
-            },
-
-            hover(r, c) {
-                if(this.phase !== 'attack' || this.turn !== 1) return;
-                const cell = this.grid[r][c];
-                if(cell.owner !== 2) return;
-                let p = this.getPower(r, c, 1);
-                const hud = document.getElementById('predict-hud');
-                const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                const vp = document.getElementById('viewport').getBoundingClientRect();
-                hud.style.display = 'block';
-                hud.style.left = (rect.left - vp.left + 32) + 'px';
-                hud.style.top = (rect.top - vp.top) + 'px';
-                hud.innerHTML = `ATK: <span style="color:var(--cyan)">${p}</span> VS DEF: <span style="color:var(--red)">${cell.count}</span>`;
-                hud.style.borderColor = p > cell.count ? '#fff' : '#f00';
             },
 
             interact(r, c) {
@@ -561,7 +471,7 @@
 
             place(r, c, amt) {
                 const cell = this.grid[r][c];
-                if(cell.owner !== 0) { this.log("Error: Occupied", "sys"); return; }
+                if(cell.owner !== 0) { this.log("SECTOR OCCUPIED", "sys"); return; }
                 const res = this.turn===1 ? this.p1Res : this.p2Res;
                 const actual = Math.min(amt, res);
                 if(actual <= 0) return;
@@ -570,15 +480,16 @@
                 if(this.turn===1) this.p1Res -= actual; else this.p2Res -= actual;
                 if(!this.hasMoved) { this.firstMover = this.turn; this.hasMoved = true; }
 
+                // Visual
                 const el = document.getElementById(`c-${r}-${c}`);
                 el.className = `cell p${this.turn}`; el.innerText = actual;
                 const rect = el.getBoundingClientRect();
-                
-                if(this.turn===1) { Sound.playP1(); VFX.burst(rect.left+32, rect.top+32, '#00f3ff'); }
-                else { Sound.playP2(); VFX.burst(rect.left+32, rect.top+32, '#ff003c'); }
+                VFX.burst(rect.left+rect.width/2, rect.top+rect.height/2, this.turn===1?'#00f0ff':'#ff003c');
+                Sound.deploy();
 
                 this.updateHUD();
                 
+                // Phase Logic
                 const full = this.grid.every(r => r.every(c => c.owner !== 0));
                 if((this.p1Res === 0 && this.p2Res === 0) || full) {
                     this.startCombat();
@@ -586,43 +497,42 @@
                     let next = this.turn === 1 ? 2 : 1;
                     let nextRes = next === 1 ? this.p1Res : this.p2Res;
                     if(nextRes > 0 && !full) this.turn = next;
-                    else this.log(`Player ${next} Depleted. Skipping.`, "sys");
+                    else this.log(`PLAYER ${next} EMPTY. SKIP.`, "sys");
                 }
                 this.updateHUD(); this.checkAI();
             },
 
             startCombat() {
                 this.phase = 'attack'; this.turn = this.firstMover;
-                document.getElementById('phase-ui').innerText = "ATTACK PHASE";
-                document.getElementById('phase-ui').style.color = "var(--red)";
-                document.getElementById('phase-ui').style.borderColor = "var(--red)";
+                document.getElementById('phase-ui').innerText = "COMBAT";
+                document.getElementById('phase-ui').style.color = "var(--p2-color)";
                 document.getElementById('ui-place').style.display = 'none';
                 document.getElementById('ui-attack').style.display = 'block';
-                this.log("Phase: Attack", "sys");
+                this.log("PHASE CHANGE: COMBAT", "sys");
             },
 
             attack(r, c) {
                 const cell = this.grid[r][c];
                 if(cell.owner === 0 || cell.owner === this.turn) return;
-                const p = this.getPower(r, c, this.turn);
+                let p = this.getPower(r, c, this.turn);
                 
                 if(p > cell.count) {
-                    this.log(`Player ${this.turn} captured [${r},${c}]`, this.turn===1?'p1':'p2');
+                    this.log(`P${this.turn} CAPTURED [${r},${c}]`, this.turn===1?'p1':'p2');
                     Sound.kill();
                     const el = document.getElementById(`c-${r}-${c}`);
                     el.className = 'cell'; el.innerText = '';
                     const rect = el.getBoundingClientRect();
-                    VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
+                    VFX.burst(rect.left+rect.width/2, rect.top+rect.height/2, '#ffd700');
                     cell.owner = 0; cell.count = 0; this.passCount = 0;
                 } else {
-                    this.log("Attack Failed", "sys");
+                    this.log("ATTACK FAILED", "sys"); Sound.error();
                 }
                 this.nextTurn();
             },
 
             pass() {
                 this.passCount++;
-                this.log(`Player ${this.turn} Passed`, this.turn===1?'p1':'p2');
+                this.log(`P${this.turn} PASSED`, this.turn===1?'p1':'p2');
                 if(this.passCount >= 2) this.end(); else this.nextTurn();
             },
 
@@ -631,7 +541,7 @@
             getPower(r, c, who) {
                 let p = 0;
                 for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0 && dc===0) continue;
+                    if(dr===0&&dc===0) continue;
                     let nr=r+dr, nc=c+dc;
                     if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===who) p += this.grid[nr][nc].count;
                 }
@@ -649,41 +559,37 @@
                             let amt = 1;
                             if(this.ai === 'smart') {
                                 const n = AI.scan(this, move.r, move.c);
-                                amt = (n.e > 0) ? Math.min(this.p2Res, Math.floor(Math.random()*4)+4) : 1;
+                                amt = (n.e > 0) ? Math.min(this.p2Res, 5) : 1;
                             } else if (this.ai === 'strategic') amt = 3;
                             
                             const val = Math.min(amt, this.p2Res);
                             const cell = this.grid[move.r][move.c];
-                            cell.owner = 2; cell.count = val; this.p2Res -= val;
                             
+                            cell.owner = 2; cell.count = val; this.p2Res -= val;
                             const el = document.getElementById(`c-${move.r}-${move.c}`);
                             el.className = 'cell p2'; el.innerText = val;
-                            const rect = el.getBoundingClientRect();
-                            Sound.playP2(); VFX.burst(rect.left+32, rect.top+32, '#ff003c');
+                            Sound.deploy();
                             
                             if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
                             
                             const full = this.grid.every(r=>r.every(c=>c.owner!==0));
-                            if((this.p1Res===0 && this.p2Res===0) || full) {
-                                this.startCombat();
-                            } else {
-                                if(this.p1Res > 0 && !full) this.turn = 1;
-                            }
+                            if((this.p1Res===0 && this.p2Res===0) || full) this.startCombat();
+                            else if(this.p1Res > 0 && !full) this.turn = 1;
                         } else this.startCombat();
                     } else {
                         const atk = this.ai==='weak' ? null : AI.getAttack(this);
                         if(atk) {
-                            const cell = this.grid[atk.r][atk.c];
-                            this.log(`AI Captured [${atk.r},${atk.c}]`, 'p2');
+                            this.log(`AI TARGETS [${atk.r},${atk.c}]`, 'p2');
                             Sound.kill();
+                            const cell = this.grid[atk.r][atk.c];
+                            cell.owner = 0; cell.count = 0; this.passCount = 0;
                             const el = document.getElementById(`c-${atk.r}-${atk.c}`);
                             el.className = 'cell'; el.innerText = '';
                             const rect = el.getBoundingClientRect();
-                            VFX.burst(rect.left+32, rect.top+32, '#fbbf24');
-                            cell.owner = 0; cell.count = 0; this.passCount = 0;
+                            VFX.burst(rect.left+rect.width/2, rect.top+rect.height/2, '#ffd700');
                         } else {
                             this.passCount++;
-                            this.log("AI Passed", 'p2');
+                            this.log("AI PASSED", 'p2');
                             if(this.passCount >= 2) return this.end();
                         }
                         this.turn = 1;
@@ -712,7 +618,7 @@
                 const w = document.getElementById('console-wrap');
                 const d = document.createElement('div');
                 d.className = `log-entry ln-${type}`;
-                d.innerText = `>> ${msg}`;
+                d.innerText = `> ${msg}`;
                 w.prepend(d);
             },
 
@@ -723,7 +629,7 @@
                 let w = s1>s2 ? "PLAYER 1" : (s2>s1 ? "PLAYER 2" : "DRAW");
                 Sound.win();
                 Archive.save(w, `${s1} - ${s2}`, this.logData);
-                setTimeout(() => alert(`GAME OVER\n\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}`), 200);
+                setTimeout(() => alert(`MISSION END.\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}`), 200);
             }
         };
 
@@ -731,9 +637,9 @@
             scan(g, r, c) {
                 let f=0, e=0;
                 for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0 && dc===0) continue;
+                    if(dr===0&&dc===0)continue;
                     let nr=r+dr, nc=c+dc;
-                    if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols) {
+                    if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols) {
                         if(g.grid[nr][nc].owner===2) f++;
                         else if(g.grid[nr][nc].owner===1) e++;
                     }
@@ -772,14 +678,6 @@
                 return moves.length ? moves[0] : null;
             }
         };
-
-        // 3D Tilt - FIXED for Frame only
-        document.body.addEventListener('mousemove', e => {
-            const x = (window.innerWidth/2 - e.clientX)/60;
-            const y = (window.innerHeight/2 - e.clientY)/60;
-            const frame = document.getElementById('grid-frame');
-            if(frame) frame.style.transform = `rotateX(${10+y}deg) rotateY(${-x}deg)`;
-        });
     </script>
 </body>
 </html>
