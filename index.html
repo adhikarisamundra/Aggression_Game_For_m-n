@@ -3,26 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGGRESSION: HORIZON</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>OBSIDIAN // TACTICAL ENGINE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- 1. CORE VARIABLES --- */
+        /* --- 1. OBSIDIAN THEME VARIABLES --- */
         :root {
-            --bg-deep: #030507;
-            --panel-bg: rgba(8, 12, 16, 0.95);
+            --bg-void: #050505;
+            --glass-dark: rgba(5, 8, 10, 0.96);
             
-            /* HIGH CONTRAST NEON */
-            --p1-color: #00f0ff; /* Cyan */
-            --p1-dim: rgba(0, 240, 255, 0.15);
+            /* FACTION COLORS */
+            --cyan: #00f3ff;
+            --cyan-dim: rgba(0, 243, 255, 0.1);
             
-            --p2-color: #ff003c; /* Red */
-            --p2-dim: rgba(255, 0, 60, 0.15);
+            --red: #ff003c;
+            --red-dim: rgba(255, 0, 60, 0.1);
             
-            --sys-gold: #ffd700;
+            --gold: #ffc400;
+            --gold-dim: rgba(255, 196, 0, 0.1);
+            
             --text-main: #e2e8f0;
+            --text-muted: #64748b;
             
-            /* DYNAMIC SIZE (Set by JS) */
-            --grid-dim: 500px; 
+            /* BORDERS */
+            --border-subtle: rgba(255, 255, 255, 0.1);
+            --border-active: rgba(255, 255, 255, 0.3);
             
             /* FONTS */
             --f-head: 'Orbitron', sans-serif;
@@ -33,290 +37,334 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         
         body {
-            background-color: var(--bg-deep);
+            background-color: var(--bg-void);
             color: var(--text-main);
             font-family: var(--f-ui);
-            height: 100vh; width: 100vw; overflow: hidden;
+            height: 100vh; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
         }
 
-        /* --- 2. FX LAYERS --- */
+        /* --- 2. BACKGROUND & FX --- */
         #starfield {
             position: fixed; inset: 0; z-index: 0;
-            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000 100%);
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(20, 25, 30, 0.4) 0%, #000 100%),
+                linear-gradient(0deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 60px 60px, 60px 60px;
             pointer-events: none;
         }
-        .grid-floor {
-            position: fixed; inset: 0; z-index: 1; pointer-events: none;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            transform: perspective(500px) rotateX(20deg) scale(1.5);
-            opacity: 0.3;
+        
+        .scanlines {
+            position: fixed; inset: 0; z-index: 900; pointer-events: none;
+            background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px; opacity: 0.6;
         }
-        #vfx-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 900; }
+
+        #vfx-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 800; }
 
         /* --- 3. UI COMPONENTS --- */
         .panel {
-            background: var(--panel-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            border-radius: 4px;
+            background: var(--glass-dark);
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
         }
 
-        .glow-p1 { border-color: var(--p1-color); box-shadow: 0 0 15px var(--p1-dim); }
-        .glow-p2 { border-color: var(--p2-color); box-shadow: 0 0 15px var(--p2-dim); }
-        .glow-sys { border-color: var(--sys-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        /* Tech Borders (The yellow corners in your screenshot) */
+        .tech-border { position: relative; }
+        .tech-border::before, .tech-border::after {
+            content: ''; position: absolute; width: 8px; height: 8px;
+            border: 2px solid var(--gold); transition: 0.3s;
+        }
+        .tech-border::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+        .tech-border::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 
         .btn {
-            background: rgba(0, 240, 255, 0.05); color: var(--p1-color);
-            border: 1px solid var(--p1-color); padding: 12px; width: 100%;
-            font-family: var(--f-head); font-weight: 700; letter-spacing: 1px;
-            text-transform: uppercase; cursor: pointer; transition: 0.1s;
+            background: rgba(255,255,255,0.05); color: var(--cyan);
+            border: 1px solid var(--cyan); padding: 14px; width: 100%;
+            font-family: var(--f-head); font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; transition: 0.2s;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .btn:hover { background: var(--p1-color); color: #000; box-shadow: 0 0 20px var(--p1-color); }
-        .btn:active { transform: scale(0.98); }
+        .btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 20px var(--cyan); }
         
-        .btn-red { color: var(--p2-color); border-color: var(--p2-color); background: rgba(255, 0, 60, 0.05); }
-        .btn-red:hover { background: var(--p2-color); color: #000; box-shadow: 0 0 20px var(--p2-color); }
+        .btn-red { color: var(--red); border-color: var(--red); }
+        .btn-red:hover { background: var(--red); color: #000; box-shadow: 0 0 20px var(--red); }
 
         input, select {
-            background: #0a0f14; border: 1px solid #333; color: #fff;
-            padding: 10px; font-family: var(--f-code); text-align: center;
+            background: #0a0d12; border: 1px solid #333; color: #fff;
+            padding: 12px; font-family: var(--f-code); text-align: center;
             width: 100%; outline: none; transition: 0.3s; font-size: 1rem;
         }
-        input:focus { border-color: var(--sys-gold); }
-        label { display: block; color: #888; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
+        input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
+        label { 
+            display: block; color: var(--text-muted); font-size: 0.7rem; 
+            letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase; font-weight: 700;
+        }
 
-        /* --- 4. SETUP SCREEN --- */
+        /* --- 4. SETUP SCREEN (MATCHING SCREENSHOT 1) --- */
         #setup-layer {
-            position: fixed; inset: 0; z-index: 2000;
+            position: fixed; inset: 0; z-index: 100;
             display: flex; justify-content: center; align-items: center;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.9);
         }
-        #setup-box { 
-            width: 500px; padding: 40px; display: flex; flex-direction: column; gap: 20px;
-            transform: rotateX(5deg); transition: transform 0.2s;
-        }
-        h1 {
+        #setup-box { width: 550px; padding: 50px 40px; display: flex; flex-direction: column; gap: 25px; }
+
+        .title-obsidian {
             font-family: var(--f-head); font-size: 3.5rem; margin: 0; line-height: 1;
-            background: linear-gradient(180deg, #fff, #666);
+            background: linear-gradient(180deg, #fff, #555); /* Metallic Gradient */
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-align: center; text-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+            text-align: center; letter-spacing: -1px;
+        }
+        .subtitle-gold {
+            text-align: center; color: var(--gold); font-family: var(--f-code);
+            font-size: 0.75rem; letter-spacing: 4px; margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 196, 0, 0.3); padding-bottom: 15px;
         }
 
-        /* --- 5. MAIN INTERFACE --- */
+        /* --- 5. GAME INTERFACE (MATCHING SCREENSHOT 3 FIXES) --- */
         #game-ui {
-            display: none; width: 100vw; height: 100vh;
-            grid-template-columns: 280px 1fr 280px;
+            display: none; width: 98vw; height: 95vh;
+            /* Balanced Grid: Sidebars are compact, center is maximized */
+            grid-template-columns: 260px 1fr 260px;
             grid-template-rows: 60px 1fr 140px;
-            gap: 15px; padding: 15px; z-index: 10; position: relative;
+            gap: 20px; padding: 20px; z-index: 10;
         }
 
-        /* TOP BAR */
+        /* Top Bar */
         .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-        .phase-badge {
-            font-family: var(--f-head); font-size: 1.2rem; color: #fff;
-            background: rgba(255,255,255,0.05); padding: 5px 25px;
+        .phase-pill {
+            font-family: var(--f-head); font-size: 1.1rem; color: #fff;
+            background: rgba(255,255,255,0.05); padding: 6px 30px;
             border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* SIDEBARS */
+        /* Sidebars (FIX: Compact 2x1 Grid for Stats) */
         .sidebar {
             grid-row: 2 / 3; display: flex; flex-direction: column; gap: 15px;
-            padding: 20px; transition: 0.3s; opacity: 0.5;
+            padding: 20px; transition: 0.4s; opacity: 0.4; border: 1px solid transparent;
         }
-        .sidebar.active { opacity: 1; transform: scale(1.02); background: rgba(15, 20, 30, 0.9); }
-        .stat-card { background: rgba(0,0,0,0.4); padding: 15px; text-align: center; border-left: 3px solid #333; }
-        .p1-side .stat-card { border-color: var(--p1-color); }
-        .p2-side .stat-card { border-color: var(--p2-color); }
-        .stat-val { font-family: var(--f-head); font-size: 2.5rem; color: #fff; }
+        .sidebar.active { opacity: 1; background: rgba(15, 20, 25, 0.9); transform: scale(1.02); }
+        
+        .p1-side.active { border-color: var(--cyan); box-shadow: 0 0 30px rgba(0, 243, 255, 0.15); }
+        .p2-side.active { border-color: var(--red); box-shadow: 0 0 30px rgba(255, 0, 60, 0.15); }
 
-        /* --- THE GRID ENGINE (FIXED) --- */
+        .player-title { 
+            text-align: center; font-family: var(--f-head); font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;
+        }
+        
+        .stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; /* SIDE BY SIDE */
+        }
+        
+        .stat-card {
+            background: rgba(0,0,0,0.4); padding: 15px 10px; text-align: center;
+            border-top: 2px solid #333;
+        }
+        .p1-side .stat-card { border-color: var(--cyan); }
+        .p2-side .stat-card { border-color: var(--red); }
+        
+        .stat-val { font-family: var(--f-head); font-size: 2rem; color: #fff; line-height: 1; }
+        .stat-lbl { font-size: 0.6rem; color: #888; letter-spacing: 1px; margin-top: 5px; font-weight: 700; }
+
+        /* VIEWPORT & GRID (FIXED LOGIC) */
         #viewport {
             grid-column: 2 / 3; grid-row: 2 / 3;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; overflow: hidden;
         }
         
-        #grid-container {
-            /* This variable is set by JS based on window size */
-            width: var(--grid-dim);
-            height: var(--grid-dim);
-            position: relative;
-            background: rgba(0,0,0,0.5);
+        #grid-mount {
+            /* Container scales to fit smallest dimension */
+            width: min(65vh, 65vw); height: min(65vh, 65vw);
+            padding: 10px; background: rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            /* Centered absolutely to ensure no layout shift */
-            display: grid;
-            gap: 2px;
-            padding: 5px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        #grid { 
+            display: grid; gap: 4px; width: 100%; height: 100%;
         }
 
         .cell {
-            background: #0b0e14;
-            position: relative; cursor: pointer;
+            background: #080a0e; border: 1px solid #1f2937;
             display: flex; justify-content: center; align-items: center;
             font-family: var(--f-head); font-weight: bold; font-size: 1.2rem;
-            color: #fff; transition: none; /* Instant response */
+            cursor: pointer; position: relative; transition: none; /* No Lag */
         }
-        /* Tactical Crosshairs on Cell Corners */
-        .cell::after {
-            content: ''; position: absolute; top: 0; right: 0;
-            width: 4px; height: 4px; border-top: 1px solid #333; border-right: 1px solid #333;
-        }
+        .cell:hover { border-color: #fff; z-index: 10; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
         
-        .cell:hover { background: #1a1f26; z-index: 10; border: 1px solid #fff; }
-        
-        /* OWNERSHIP STYLES */
-        .cell.p1 { 
-            background: rgba(0, 240, 255, 0.1); 
-            box-shadow: inset 0 0 15px var(--p1-dim); 
-            border: 1px solid var(--p1-color);
-            color: var(--p1-color);
-        }
-        .cell.p2 { 
-            background: rgba(255, 0, 60, 0.1); 
-            box-shadow: inset 0 0 15px var(--p2-dim); 
-            border: 1px solid var(--p2-color);
-            color: var(--p2-color);
-        }
-        
-        .cell.locked { cursor: not-allowed; opacity: 0.6; }
-        .cell.locked:hover { border-color: transparent; background: inherit; }
-        
-        .cell.target { animation: targetPulse 0.5s infinite alternate; cursor: crosshair; }
-        @keyframes targetPulse { from { background: rgba(255,0,0,0.1); } to { background: rgba(255,0,0,0.3); } }
+        /* Tactical Crosshairs */
+        .cell::before { content:''; position:absolute; top:2px; left:2px; width:4px; height:4px; border-top:1px solid #444; border-left:1px solid #444; }
+        .cell::after { content:''; position:absolute; bottom:2px; right:2px; width:4px; height:4px; border-bottom:1px solid #444; border-right:1px solid #444; }
 
-        /* CONSOLE & CONTROLS */
+        .cell.p1 { color: var(--cyan); border-color: var(--cyan); background: rgba(0, 243, 255, 0.1); box-shadow: inset 0 0 15px var(--cyan-dim); }
+        .cell.p2 { color: var(--red); border-color: var(--red); background: rgba(255, 0, 60, 0.1); box-shadow: inset 0 0 15px var(--red-dim); }
+        .cell.target { animation: pulse 1s infinite; cursor: crosshair; }
+        @keyframes pulse { 0% {box-shadow:inset 0 0 0 var(--red);} 50% {box-shadow:inset 0 0 20px var(--red);} }
+
+        /* BOTTOM DECK (SPLIT VIEW) */
+        #bottom-deck {
+            grid-column: 1 / -1; grid-row: 3 / 4;
+            display: grid; grid-template-columns: 1fr 300px; gap: 20px;
+        }
+
         #console-wrap {
-            grid-column: 1 / 3; grid-row: 3 / 4;
-            background: #020406; border: 1px solid #333; padding: 10px;
-            font-family: var(--f-code); font-size: 0.7rem; color: #888;
+            background: #020406; border: 1px solid #333; padding: 10px 15px;
+            font-family: var(--f-code); font-size: 0.75rem; color: #888;
             overflow-y: auto; display: flex; flex-direction: column-reverse;
         }
-        .log-entry { margin-bottom: 2px; border-bottom: 1px solid #111; }
-        .ln-p1 { color: var(--p1-color); } .ln-p2 { color: var(--p2-color); } .ln-sys { color: var(--sys-gold); }
+        .log-entry { margin-bottom: 2px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        .ln-p1 { color: var(--cyan); } .ln-p2 { color: var(--red); } .ln-sys { color: var(--gold); }
 
         #controls {
-            grid-column: 3 / 4; grid-row: 3 / 4;
             display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 15px;
+            border-left: 2px solid var(--gold);
         }
+        
+        #deploy-input-wrap {
+            border: 1px solid #333; padding: 10px; background: #000;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .p1-turn #deploy-input-wrap { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-dim); }
+        .p2-turn #deploy-input-wrap { border-color: var(--red); box-shadow: 0 0 15px var(--red-dim); }
 
-        /* --- MODALS --- */
+        /* --- 6. MODALS --- */
         .modal-veil {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 3000; display: none; justify-content: center; align-items: center;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.96);
+            z-index: 2000; display: none; justify-content: center; align-items: center;
         }
         .modal-box {
-            background: #080c10; border: 1px solid var(--sys-gold); padding: 40px;
+            background: #080c10; border: 1px solid var(--gold); padding: 40px;
             width: 700px; max-width: 90%; max-height: 90vh; overflow-y: auto;
-            box-shadow: 0 0 60px rgba(251, 191, 36, 0.15);
+            box-shadow: 0 0 60px rgba(255, 196, 0, 0.1);
         }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-family: var(--f-code); font-size: 0.8rem; text-align: left; }
-        th { color: var(--sys-gold); border-bottom: 2px solid #333; padding: 8px; }
+        th { color: var(--gold); border-bottom: 2px solid #333; padding: 8px; }
         td { padding: 8px; border-bottom: 1px solid #222; color: #aaa; }
+        
+        #ai-think { position: absolute; top: -30px; color: var(--red); font-family: var(--f-code); font-size: 0.8rem; display: none; text-shadow: 0 0 10px var(--red); }
+        #predict-hud {
+            position: absolute; pointer-events: none; z-index: 500;
+            background: rgba(0,0,0,0.95); border: 1px solid #fff;
+            padding: 5px 10px; font-size: 0.7rem; color: #fff; font-family: var(--f-code);
+            white-space: nowrap; transform: translate(-50%, -140%);
+            display: none; box-shadow: 0 10px 30px #000;
+        }
 
         @media (max-width: 1000px) {
             #game-ui { display: flex; flex-direction: column; height: auto; overflow-y: auto; }
-            .sidebar { flex-direction: row; justify-content: space-around; }
-            #console-wrap { height: 100px; }
+            #bottom-deck { display: flex; flex-direction: column-reverse; }
+            #grid-mount { width: 90vw; height: 90vw; }
         }
     </style>
 </head>
 <body>
 
     <div id="starfield"></div>
-    <div class="grid-floor"></div>
     <div class="scanlines"></div>
     <canvas id="vfx-canvas"></canvas>
 
     <div id="setup-layer">
-        <div id="setup-box" class="panel glow-sys">
-            <h1>AGGRESSION</h1>
-            <div style="text-align:center; color:var(--sys-gold); letter-spacing:4px; font-size:0.8rem; margin-bottom:15px;">TACTICAL HORIZON</div>
+        <div id="setup-box" class="panel tech-border">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px;">
+                <div style="font-family:var(--f-code); color:var(--gold); font-size:0.7rem;">OBSIDIAN PROTOCOL</div>
+                <div style="font-family:var(--f-code); color:#666; font-size:0.7rem;">[STANDBY]</div>
+            </div>
+
+            <h1 class="title-obsidian">OBSIDIAN</h1>
+            <div class="subtitle-gold">TACTICAL WARFARE ENGINE</div>
             
-            <div style="display:flex; gap:15px;">
-                <div style="flex:1"><label>ROWS</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
-                <div style="flex:1"><label>COLS</label><input type="number" id="set-c" value="6" min="3" max="10"></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div><label>GRID ROWS</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
+                <div><label>GRID COLS</label><input type="number" id="set-c" value="6" min="3" max="10"></div>
             </div>
             
             <div>
-                <label>TROOPS</label>
+                <label>UNIT ALLOCATION (PER COMMANDER)</label>
                 <input type="number" id="set-t" value="36" min="1">
             </div>
 
             <div>
-                <label>OPPONENT</label>
+                <label>OPPOSING FORCE</label>
                 <select id="set-ai">
-                    <option value="human">HUMAN</option>
-                    <option value="weak">AI: WEAK</option>
-                    <option value="strategic">AI: STRATEGIC</option>
-                    <option value="smart" selected>AI: SMART (OMEGA)</option>
+                    <option value="human">HUMAN VS HUMAN</option>
+                    <option value="weak">CLASS I: DRONE (WEAK)</option>
+                    <option value="strategic">CLASS II: COMMANDER (STRATEGIC)</option>
+                    <option value="smart" selected>CLASS III: NEXUS (SMART)</option>
                 </select>
             </div>
 
-            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">INITIATE LAUNCH SEQUENCE</button>
-            <button class="btn btn-red" onclick="Archive.open()">ARCHIVES</button>
+            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">INITIALIZE SYSTEM</button>
+            <button class="btn btn-red" onclick="Archive.open()">MISSION LOGS</button>
         </div>
     </div>
 
     <div id="game-ui">
-        <div class="top-bar panel glow-sys">
-            <div style="font-weight:bold; font-size:1.2rem; color:#fff;">AGGRESSION // ACTIVE</div>
-            <div id="phase-ui" class="phase-badge">PLACEMENT</div>
-            <div onclick="location.reload()" style="cursor:pointer; color:#666;">[TERMINATE]</div>
+        <div class="top-bar panel tech-border">
+            <div style="font-weight:bold; color:#fff; font-size:1.1rem;">OBSIDIAN // ACTIVE</div>
+            <div id="phase-ui" class="phase-pill">PLACEMENT PHASE</div>
+            <div onclick="location.reload()" style="cursor:pointer; color:#666;">[ABORT MISSION]</div>
         </div>
 
         <div class="sidebar panel p1-side" id="p1-deck">
-            <div style="color:var(--p1-color); font-weight:bold; text-align:center; font-size:1.4rem;">PLAYER 1</div>
-            <div class="stat-card">
-                <div class="stat-val" id="p1-res">0</div><div class="stat-lbl">RESERVES</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-val" id="p1-score">0</div><div class="stat-lbl">SECTORS</div>
+            <div class="player-title" style="color:var(--cyan)">PLAYER 1</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-val" id="p1-res">0</div><div class="stat-lbl">RESERVES</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="p1-score">0</div><div class="stat-lbl">TERRITORY</div>
+                </div>
             </div>
         </div>
 
         <div id="viewport">
-            <div id="ai-think" style="position:absolute; top:-30px; color:var(--p2-color); display:none; font-family:var(--f-code);">>> COMPUTING...</div>
-            <div id="grid-container">
-                </div>
+            <div id="ai-think">>> NEXUS COMPUTING...</div>
+            <div id="grid-mount">
+                <div id="grid"></div>
+            </div>
+            <div id="predict-hud"></div>
         </div>
 
         <div class="sidebar panel p2-side" id="p2-deck">
-            <div style="color:var(--p2-color); font-weight:bold; text-align:center; font-size:1.4rem;" id="p2-name">PLAYER 2</div>
-            <div class="stat-card">
-                <div class="stat-val" id="p2-res">0</div><div class="stat-lbl">RESERVES</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-val" id="p2-score">0</div><div class="stat-lbl">SECTORS</div>
+            <div class="player-title" style="color:var(--red)" id="p2-name">PLAYER 2</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-val" id="p2-res">0</div><div class="stat-lbl">RESERVES</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="p2-score">0</div><div class="stat-lbl">TERRITORY</div>
+                </div>
             </div>
         </div>
 
-        <div id="console-wrap" class="panel"></div>
-
-        <div id="controls" class="panel glow-sys">
-            <div id="ui-place">
-                <label>DEPLOYMENT SIZE</label>
-                <input type="number" id="deploy-val" value="1" min="1" style="background:#000; font-size:1.4rem; margin:10px 0;">
-                <div style="font-size:0.6rem; color:#666; text-align:center;">SELECT EMPTY TILE</div>
-            </div>
-            <div id="ui-attack" style="display:none;">
-                <div style="text-align:center; color:var(--p2-color); font-weight:bold; margin-bottom:10px; font-size:1.2rem;">ATTACK MODE</div>
-                <button class="btn btn-red" onclick="Engine.pass()">PASS TURN</button>
+        <div id="bottom-deck">
+            <div id="console-wrap" class="panel"></div>
+            
+            <div id="controls" class="panel">
+                <div id="ui-place">
+                    <label style="text-align:center;">DEPLOYMENT SIZE</label>
+                    <div id="deploy-input-wrap">
+                        <input type="number" id="deploy-val" value="1" min="1" style="border:none; background:transparent; font-size:1.8rem; font-weight:bold; padding:0;">
+                    </div>
+                    <div style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px;">SELECT EMPTY SECTOR</div>
+                </div>
+                <div id="ui-attack" style="display:none;">
+                    <div style="text-align:center; color:var(--red); font-weight:bold; margin-bottom:10px; font-size:1.1rem;">COMBAT MODE</div>
+                    <button class="btn btn-red" onclick="Engine.pass()">PASS TURN</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="log-modal" class="modal-veil">
-        <div class="modal-box">
+    <div id="log-modal" class="modal-veil" style="display:none;">
+        <div class="modal-box tech-border">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0; color:var(--sys-gold);">LOGS</h2>
-                <span onclick="Archive.close()" style="cursor:pointer; font-size:1.5rem;">×</span>
+                <h2 style="margin:0; color:var(--gold);">MISSION ARCHIVES</h2>
+                <span style="cursor:pointer; font-size:1.5rem;" onclick="Archive.close()">×</span>
             </div>
             <table>
                 <thead><tr><th>ID</th><th>DATE</th><th>WINNER</th><th>SCORE</th></tr></thead>
@@ -337,9 +385,9 @@
             init() { window.addEventListener('resize', ()=>this.resize()); this.resize(); this.loop(); },
             resize() { this.canvas.width=window.innerWidth; this.canvas.height=window.innerHeight; },
             burst(x, y, color) {
-                for(let i=0; i<20; i++) {
+                for(let i=0; i<25; i++) {
                     const a=Math.random()*Math.PI*2, s=Math.random()*5+2;
-                    this.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:0.05,color,size:Math.random()*3+2});
+                    this.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:0.04,color,size:Math.random()*3+2});
                 }
             },
             loop() {
@@ -377,7 +425,7 @@
 
         /* --- DATA --- */
         const Archive = {
-            key: 'aggr_final_db',
+            key: 'obsidian_logs_v1',
             get() { return JSON.parse(localStorage.getItem(this.key)||"[]"); },
             save(w,s,l) {
                 const db=this.get(); db.unshift({id:Date.now().toString().slice(-6),date:new Date().toLocaleString(),winner:w,score:s});
@@ -387,10 +435,10 @@
                 document.getElementById('log-modal').style.display='flex';
                 const el=document.getElementById('log-body'); el.innerHTML='';
                 const db=this.get();
-                if(!db.length) el.innerHTML='<tr><td colspan="4" style="text-align:center;">EMPTY</td></tr>';
+                if(!db.length) el.innerHTML='<tr><td colspan="4" style="text-align:center;">NO LOGS FOUND</td></tr>';
                 db.forEach(g=>{
-                    const c=g.winner.includes('1')?'var(--p1-color)':'var(--p2-color)';
-                    el.innerHTML+=`<tr><td style="color:#666">${g.id}</td><td>${g.date}</td><td style="color:${c}">${g.winner}</td><td>${g.score}</td></tr>`;
+                    const c=g.winner.includes('1')?'var(--cyan)':'var(--red)';
+                    el.innerHTML+=`<tr><td style="color:#666; font-family:monospace;">${g.id}</td><td>${g.date}</td><td style="color:${c}; font-weight:bold;">${g.winner}</td><td>${g.score}</td></tr>`;
                 });
             },
             close() { document.getElementById('log-modal').style.display='none'; },
@@ -423,44 +471,40 @@
                 document.getElementById('game-ui').style.display = 'grid';
                 document.getElementById('p2-name').innerText = this.ai ? `AI (${this.ai.toUpperCase()})` : "PLAYER 2";
 
-                // CRITICAL FIX: RESIZE BOARD ON LOAD
-                this.resizeBoard();
-                window.addEventListener('resize', () => this.resizeBoard());
-
                 this.buildGrid(); this.updateHUD(); Sound.boot();
-                this.log("SYSTEM ONLINE");
+                this.log("SYSTEM INITIALIZED", "sys");
                 this.log(`PLAYER ${this.turn} HAS INITIATIVE`, this.turn===1?"p1":"p2");
                 this.checkAI();
             },
 
-            // --- THE LAYOUT FIX: CALCULATE EXACT SIZE ---
-            resizeBoard() {
-                const headerH = 60; 
-                const footerH = 150;
-                const sidebarW = 560; // 280 * 2
-                
-                const availableH = window.innerHeight - headerH - footerH - 40; // padding
-                const availableW = window.innerWidth - sidebarW - 40;
-                
-                // Pick smaller dimension to ensure square fit
-                const size = Math.min(availableH, availableW);
-                document.documentElement.style.setProperty('--grid-dim', `${size}px`);
-            },
-
             buildGrid() {
-                const container = document.getElementById('grid-container');
-                container.innerHTML = '';
-                
-                // USE CSS GRID FOR PERFECT SCALING
-                container.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
-                container.style.gridTemplateRows = `repeat(${this.rows}, 1fr)`;
-
+                const el = document.getElementById('grid');
+                el.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
+                el.style.gridTemplateRows = `repeat(${this.rows}, 1fr)`;
+                el.innerHTML = '';
                 for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
                     const d = document.createElement('div');
                     d.className = 'cell'; d.id = `c-${r}-${c}`;
                     d.onclick = () => this.interact(r, c);
-                    container.appendChild(d);
+                    d.onmouseenter = () => this.hover(r, c);
+                    d.onmouseleave = () => document.getElementById('predict-hud').style.display='none';
+                    el.appendChild(d);
                 }
+            },
+
+            hover(r, c) {
+                if(this.phase !== 'attack' || this.turn !== 1) return;
+                const cell = this.grid[r][c];
+                if(cell.owner !== 2) return;
+                let p = this.getPower(r, c, 1);
+                const hud = document.getElementById('predict-hud');
+                const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
+                const vp = document.getElementById('viewport').getBoundingClientRect();
+                hud.style.display = 'block';
+                hud.style.left = (rect.left - vp.left + 32) + 'px';
+                hud.style.top = (rect.top - vp.top) + 'px';
+                hud.innerHTML = `ATK: <span style="color:var(--cyan)">${p}</span> VS DEF: <span style="color:var(--red)">${cell.count}</span>`;
+                hud.style.borderColor = p > cell.count ? '#fff' : '#f00';
             },
 
             interact(r, c) {
@@ -471,7 +515,7 @@
 
             place(r, c, amt) {
                 const cell = this.grid[r][c];
-                if(cell.owner !== 0) { this.log("SECTOR OCCUPIED", "sys"); return; }
+                if(cell.owner !== 0) { this.log("ERROR: SECTOR OCCUPIED", "sys"); return; }
                 const res = this.turn===1 ? this.p1Res : this.p2Res;
                 const actual = Math.min(amt, res);
                 if(actual <= 0) return;
@@ -480,16 +524,14 @@
                 if(this.turn===1) this.p1Res -= actual; else this.p2Res -= actual;
                 if(!this.hasMoved) { this.firstMover = this.turn; this.hasMoved = true; }
 
-                // Visual
                 const el = document.getElementById(`c-${r}-${c}`);
                 el.className = `cell p${this.turn}`; el.innerText = actual;
                 const rect = el.getBoundingClientRect();
-                VFX.burst(rect.left+rect.width/2, rect.top+rect.height/2, this.turn===1?'#00f0ff':'#ff003c');
+                VFX.burst(rect.left+32, rect.top+32, this.turn===1?'#00f3ff':'#ff003c');
                 Sound.deploy();
 
                 this.updateHUD();
                 
-                // Phase Logic
                 const full = this.grid.every(r => r.every(c => c.owner !== 0));
                 if((this.p1Res === 0 && this.p2Res === 0) || full) {
                     this.startCombat();
@@ -497,32 +539,33 @@
                     let next = this.turn === 1 ? 2 : 1;
                     let nextRes = next === 1 ? this.p1Res : this.p2Res;
                     if(nextRes > 0 && !full) this.turn = next;
-                    else this.log(`PLAYER ${next} EMPTY. SKIP.`, "sys");
+                    else this.log(`PLAYER ${next} DEPLETED. SKIPPED.`, "sys");
                 }
                 this.updateHUD(); this.checkAI();
             },
 
             startCombat() {
                 this.phase = 'attack'; this.turn = this.firstMover;
-                document.getElementById('phase-ui').innerText = "COMBAT";
-                document.getElementById('phase-ui').style.color = "var(--p2-color)";
+                document.getElementById('phase-ui').innerText = "COMBAT PHASE";
+                document.getElementById('phase-ui').style.color = "var(--red)";
+                document.getElementById('phase-ui').style.borderColor = "var(--red)";
                 document.getElementById('ui-place').style.display = 'none';
                 document.getElementById('ui-attack').style.display = 'block';
-                this.log("PHASE CHANGE: COMBAT", "sys");
+                this.log("PHASE SHIFT: COMBAT", "sys");
             },
 
             attack(r, c) {
                 const cell = this.grid[r][c];
-                if(cell.owner === 0 || cell.owner === this.turn) return;
-                let p = this.getPower(r, c, this.turn);
+                if(cell.owner === 0 || cell.owner === this.turn) { Sound.error(); return; }
+                const p = this.getPower(r, c, this.turn);
                 
                 if(p > cell.count) {
-                    this.log(`P${this.turn} CAPTURED [${r},${c}]`, this.turn===1?'p1':'p2');
+                    this.log(`P${this.turn} NEUTRALIZED [${r},${c}]`, this.turn===1?'p1':'p2');
                     Sound.kill();
                     const el = document.getElementById(`c-${r}-${c}`);
                     el.className = 'cell'; el.innerText = '';
                     const rect = el.getBoundingClientRect();
-                    VFX.burst(rect.left+rect.width/2, rect.top+rect.height/2, '#ffd700');
+                    VFX.burst(rect.left+32, rect.top+32, '#ffd700');
                     cell.owner = 0; cell.count = 0; this.passCount = 0;
                 } else {
                     this.log("ATTACK FAILED", "sys"); Sound.error();
@@ -541,7 +584,7 @@
             getPower(r, c, who) {
                 let p = 0;
                 for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0&&dc===0) continue;
+                    if(dr===0 && dc===0) continue;
                     let nr=r+dr, nc=c+dc;
                     if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===who) p += this.grid[nr][nc].count;
                 }
@@ -573,8 +616,11 @@
                             if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
                             
                             const full = this.grid.every(r=>r.every(c=>c.owner!==0));
-                            if((this.p1Res===0 && this.p2Res===0) || full) this.startCombat();
-                            else if(this.p1Res > 0 && !full) this.turn = 1;
+                            if((this.p1Res===0 && this.p2Res===0) || full) {
+                                this.startCombat();
+                            } else {
+                                if(this.p1Res > 0 && !full) this.turn = 1;
+                            }
                         } else this.startCombat();
                     } else {
                         const atk = this.ai==='weak' ? null : AI.getAttack(this);
@@ -586,7 +632,7 @@
                             const el = document.getElementById(`c-${atk.r}-${atk.c}`);
                             el.className = 'cell'; el.innerText = '';
                             const rect = el.getBoundingClientRect();
-                            VFX.burst(rect.left+rect.width/2, rect.top+rect.height/2, '#ffd700');
+                            VFX.burst(rect.left+32, rect.top+32, '#ffd700');
                         } else {
                             this.passCount++;
                             this.log("AI PASSED", 'p2');
@@ -605,9 +651,23 @@
                 
                 const p1 = document.getElementById('p1-deck');
                 const p2 = document.getElementById('p2-deck');
-                p1.className = `sidebar panel p1-side ${this.turn===1?'active glow-p1':''}`;
-                p2.className = `sidebar panel p2-side ${this.turn===2?'active glow-p2':''}`;
+                const ctrls = document.getElementById('controls');
                 
+                // Clear old
+                p1.className = `sidebar panel p1-side`;
+                p2.className = `sidebar panel p2-side`;
+                ctrls.className = `panel`;
+                
+                if(this.turn === 1) {
+                    p1.classList.add('active');
+                    ctrls.classList.add('p1-turn');
+                    ctrls.classList.remove('p2-turn');
+                } else {
+                    p2.classList.add('active');
+                    ctrls.classList.add('p2-turn');
+                    ctrls.classList.remove('p1-turn');
+                }
+
                 let s1=0, s2=0;
                 this.grid.forEach(r => r.forEach(c => { if(c.owner===1)s1++; if(c.owner===2)s2++; }));
                 document.getElementById('p1-score').innerText = s1;
@@ -618,7 +678,7 @@
                 const w = document.getElementById('console-wrap');
                 const d = document.createElement('div');
                 d.className = `log-entry ln-${type}`;
-                d.innerText = `> ${msg}`;
+                d.innerText = `>> ${msg}`;
                 w.prepend(d);
             },
 
