@@ -31,7 +31,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow: hidden; /* Prevent scrolling on small screens if possible */
+            overflow: hidden; 
         }
 
         h1, h2, h3 { font-family: 'Rajdhani', sans-serif; margin: 0; }
@@ -43,23 +43,25 @@
             display: none; /* Hidden by default */
             justify-content: center; 
             align-items: center;
-            z-index: 100;
-            backdrop-filter: blur(5px);
+            z-index: 9999; /* Highest priority */
+            backdrop-filter: blur(8px);
             padding: 20px;
         }
 
         .modal-content {
             background: var(--panel-bg);
-            padding: 30px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
             max-width: 600px;
             width: 100%;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             position: relative;
-            max-height: 90vh;
-            overflow-y: auto;
+            text-align: center;
+            animation: zoomIn 0.3s ease-out;
         }
+
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .close-btn {
             position: absolute; top: 15px; right: 20px;
@@ -69,22 +71,28 @@
         .close-btn:hover { color: white; }
 
         /* RULES CONTENT */
-        .rule-section { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .rule-section { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; text-align: left; }
         .rule-section:last-child { border-bottom: none; }
         .rule-title { color: var(--accent); font-weight: bold; margin-bottom: 5px; font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; }
         .ai-list li { margin-bottom: 8px; }
         .ai-name { font-weight: bold; color: var(--p1-color); }
 
         /* GAME OVER CONTENT */
-        #winner-display { font-size: 3rem; font-family: 'Rajdhani', sans-serif; margin-bottom: 10px; text-align: center; }
-        #final-score { font-size: 1.2rem; text-align: center; color: var(--text-muted); margin-bottom: 30px; }
+        #winner-display { font-size: 4rem; font-family: 'Rajdhani', sans-serif; margin-bottom: 10px; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        #final-score { font-size: 1.5rem; color: var(--text-muted); margin-bottom: 30px; font-weight: bold; }
         
         .restart-btn {
-            background: var(--accent); color: white; border: none; padding: 15px 30px;
-            font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;
-            transition: background 0.2s;
+            background: var(--accent); color: white; border: none; padding: 15px 40px;
+            font-size: 1.3rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-        .restart-btn:hover { background: #059669; }
+        .restart-btn:hover { background: #059669; transform: translateY(-2px); }
+        .menu-btn {
+            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+            padding: 10px; width: 100%; margin-top: 10px; border-radius: 8px; cursor: pointer;
+        }
+        .menu-btn:hover { background: rgba(255,255,255,0.05); color: white; }
 
         /* SETUP SCREEN */
         #setup-screen {
@@ -97,7 +105,6 @@
             border: 1px solid var(--border);
             text-align: center;
         }
-
         .setup-group { margin-bottom: 20px; text-align: left; }
         .setup-group label { display: block; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px; }
         .setup-group input, .setup-group select {
@@ -106,18 +113,14 @@
             font-size: 1rem; outline: none;
         }
         .row-col-inputs { display: flex; gap: 10px; }
-
         #start-btn {
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white; border: none; padding: 15px; width: 100%;
             border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
         }
-        #start-btn:hover { transform: translateY(-2px); }
 
         /* GAME SCREEN */
         #game-screen { display: none; width: 100%; max-width: 900px; flex-direction: column; align-items: center; position: relative; }
-
-        /* HELP BUTTON */
         #help-btn {
             position: absolute; top: -50px; right: 0;
             background: var(--panel-bg); color: var(--text-muted);
@@ -125,9 +128,6 @@
             border-radius: 50%; font-weight: bold; cursor: pointer;
             display: flex; justify-content: center; align-items: center;
         }
-        #help-btn:hover { color: white; border-color: white; }
-
-        /* HUD */
         #hud {
             display: flex; justify-content: space-between; width: 100%;
             margin-bottom: 20px; background: var(--panel-bg); padding: 15px 30px;
@@ -138,7 +138,6 @@
         .p-name { font-weight: bold; font-size: 1.2rem; }
         .p1-text { color: var(--p1-color); }
         .p2-text { color: var(--p2-color); }
-
         #phase-indicator {
             background: #0f172a; padding: 8px 20px; border-radius: 20px;
             border: 1px solid var(--border); font-family: 'Rajdhani', sans-serif;
@@ -157,7 +156,6 @@
             font-size: 1.5rem; font-weight: bold; cursor: pointer;
             border: 2px solid #1e293b; color: white; position: relative;
         }
-        .cell:hover { border-color: var(--text-muted); }
         .cell.p1 { background: var(--p1-color); box-shadow: 0 0 10px var(--p1-glow); border-color: #60a5fa; }
         .cell.p2 { background: var(--p2-color); box-shadow: 0 0 10px var(--p2-glow); border-color: #f87171; }
         .cell.valid-target { animation: pulse-border 1.5s infinite; cursor: crosshair; }
@@ -170,23 +168,27 @@
         }
         #amount-input { width: 80px; text-align: center; padding: 10px; border-radius: 6px; border: none; font-weight: bold; font-size: 1.1rem; }
         .action-btn { padding: 10px 20px; background: #475569; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .action-btn:hover { background: #64748b; }
 
         /* LOG */
         #log-area {
-            width: 100%; height: 100px; background: #0f172a; margin-top: 20px;
+            width: 100%; height: 120px; background: #0f172a; margin-top: 20px;
             border-radius: 8px; padding: 10px; overflow-y: auto; font-family: monospace;
             font-size: 0.9rem; color: #94a3b8; border: 1px solid var(--border);
         }
         .log-line { margin-bottom: 4px; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
         .log-highlight { color: var(--accent); }
         .log-error { color: var(--p2-color); }
+        .save-log-btn {
+            background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+            padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; float: right;
+            margin-bottom: 5px;
+        }
+        .save-log-btn:hover { color: white; border-color: white; }
 
         @media(max-width: 600px) {
             .cell { width: 40px; height: 40px; font-size: 1rem; }
             #setup-screen { width: 95%; padding: 20px; }
             #hud { padding: 10px; flex-direction: column; gap: 10px; }
-            #help-btn { top: 10px; right: 10px; z-index: 50; }
         }
     </style>
 </head>
@@ -199,25 +201,25 @@
             
             <div class="rule-section">
                 <div class="rule-title">Phase 1: Placement</div>
-                <p>Players take turns placing troops on the board.</p>
+                <p>Players take turns placing troops.</p>
                 <p>• You can place multiple troops on a single tile.</p>
-                <p>• <strong>Strategy:</strong> Stack troops together to create strongholds.</p>
+                <p>• <strong>Tip:</strong> Stack troops to create strongholds.</p>
             </div>
 
             <div class="rule-section">
                 <div class="rule-title">Phase 2: Attack</div>
-                <p>The player who placed the <strong>very first troop</strong> gets to attack first.</p>
-                <p>• Click an enemy tile to attack it.</p>
-                <p>• <strong>The Math:</strong> Add up ALL your troops that surround the target.</p>
-                <p>• If <strong>Your Surrounding Sum > Enemy Stack</strong>, the enemy is removed.</p>
+                <p><strong>Rule:</strong> The player who placed the very first troop attacks first.</p>
+                <p>• Click an enemy tile to attack.</p>
+                <p>• <strong>Math:</strong> Sum of YOUR surrounding troops vs. Enemy Stack.</p>
+                <p>• If Your Sum > Enemy Stack, target is removed.</p>
             </div>
 
             <div class="rule-section">
-                <div class="rule-title">AI Personalities</div>
+                <div class="rule-title">AI Types</div>
                 <ul class="ai-list" style="list-style: none; padding: 0;">
-                    <li><span class="ai-name">Weak AI:</span> Moves completely randomly. Useful for learning the mechanics.</li>
-                    <li><span class="ai-name">Strategic AI:</span> Tries to group troops together (clustering) and targets your largest stacks.</li>
-                    <li><span class="ai-name">Smart AI:</span> Calculates "Threat Levels." It defends areas where it is vulnerable and attacks your most dangerous units.</li>
+                    <li><span class="ai-name">Weak:</span> Random moves. Good for practice.</li>
+                    <li><span class="ai-name">Strategic:</span> Clusters troops and attacks big stacks.</li>
+                    <li><span class="ai-name">Smart:</span> Calculates threats and defends vulnerable spots.</li>
                 </ul>
             </div>
             
@@ -226,10 +228,14 @@
     </div>
 
     <div id="game-over-modal" class="modal-overlay">
-        <div class="modal-content" style="text-align: center;">
+        <div class="modal-content">
+            <div style="font-size: 1rem; color: var(--accent); margin-bottom: 10px; font-weight: bold;">MATCH COMPLETE</div>
             <div id="winner-display">PLAYER 1 WINS</div>
             <div id="final-score">P1: 15 - P2: 12</div>
-            <button class="restart-btn" onclick="restartGame()">Play Again</button>
+            
+            <button class="restart-btn" onclick="restartGame()">PLAY AGAIN</button>
+            <button class="menu-btn" onclick="returnToMenu()">MAIN MENU</button>
+            <button class="menu-btn" onclick="downloadLog()">SAVE GAME LOG</button>
         </div>
     </div>
 
@@ -238,7 +244,7 @@
         <p style="color: var(--text-muted); margin-bottom: 30px;">Strategic Territory Control</p>
 
         <div class="setup-group">
-            <label>Grid Dimensions (Rows x Cols)</label>
+            <label>Grid Dimensions</label>
             <div class="row-col-inputs">
                 <input type="number" id="rows" value="6" min="3" max="10" placeholder="Rows">
                 <input type="number" id="cols" value="6" min="3" max="10" placeholder="Cols">
@@ -248,16 +254,16 @@
         <div class="setup-group">
             <label>Total Troops per Player</label>
             <input type="number" id="troops" value="36" min="1">
-            <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Recommended: Rows × Cols</div>
+            <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Rec: Rows × Cols</div>
         </div>
 
         <div class="setup-group">
             <label>Opponent Type</label>
             <select id="opponent">
                 <option value="human">Human vs Human</option>
-                <option value="weak">AI: Weak (Random)</option>
-                <option value="strategic">AI: Strategic (Aggressive)</option>
-                <option value="smart" selected>AI: Smart (Tactical)</option>
+                <option value="weak">AI: Weak</option>
+                <option value="strategic">AI: Strategic</option>
+                <option value="smart" selected>AI: Smart</option>
             </select>
         </div>
 
@@ -300,25 +306,23 @@
             </div>
         </div>
 
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 5px;">
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Match Log</span>
+            <button class="save-log-btn" onclick="downloadLog()">Save Log</button>
+        </div>
         <div id="log-area"></div>
     </div>
 
     <script>
-        // --- GAME CONFIGURATION & STATE ---
         const Game = {
-            rows: 0, cols: 0,
-            grid: [],
+            rows: 0, cols: 0, grid: [],
             p1Reserves: 0, p2Reserves: 0,
-            turn: 1, // 1 or 2
-            phase: 'placement', // 'placement', 'attack', 'gameover'
-            aiType: null, 
-            firstPlayerToPlace: 0, 
-            hasFirstMoveHappened: false,
-            passCount: 0,
-            isAiProcessing: false
+            turn: 1, phase: 'placement', aiType: null, 
+            firstPlayerToPlace: 0, hasFirstMoveHappened: false,
+            passCount: 0, isAiProcessing: false,
+            logHistory: [] // Store logs for downloading
         };
 
-        // --- UI FUNCTIONS ---
         function toggleRules() {
             const modal = document.getElementById('rules-modal');
             modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
@@ -327,11 +331,54 @@
         function log(msg, type='neutral') {
             const area = document.getElementById('log-area');
             const line = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString();
+            
             line.className = 'log-line';
-            line.innerHTML = `> ${msg}`;
+            line.innerHTML = `<span style="opacity:0.5; font-size:0.8em">[${timestamp}]</span> ${msg}`;
             if(type === 'highlight') line.classList.add('log-highlight');
             if(type === 'error') line.classList.add('log-error');
+            
             area.prepend(line);
+            
+            // Store for download
+            Game.logHistory.push(`[${timestamp}] ${msg}`);
+        }
+
+        function downloadLog() {
+            if(Game.logHistory.length === 0) { alert("Log is empty."); return; }
+            
+            let htmlContent = `
+            <html>
+            <head>
+                <title>Aggression Game Log</title>
+                <style>
+                    body { font-family: sans-serif; background: #f3f4f6; padding: 20px; }
+                    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                    h1 { color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+                    .log-entry { padding: 8px 0; border-bottom: 1px solid #eee; }
+                    .timestamp { color: #6b7280; font-size: 0.85em; margin-right: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Match Log: ${new Date().toLocaleString()}</h1>
+                    ${Game.logHistory.map(entry => {
+                        // Basic parsing to make it look nicer
+                        let clean = entry.replace('[', '<span class="timestamp">[').replace(']', ']</span>');
+                        return `<div class="log-entry">${clean}</div>`;
+                    }).join('')}
+                </div>
+            </body>
+            </html>`;
+
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `aggression-log-${Date.now()}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         function updateHUD() {
@@ -349,14 +396,12 @@
             document.getElementById('p2-score').innerText = p2;
         }
 
-        // --- INITIALIZATION ---
         function startGame() {
             Game.rows = parseInt(document.getElementById('rows').value);
             Game.cols = parseInt(document.getElementById('cols').value);
             const troops = parseInt(document.getElementById('troops').value);
             const aiVal = document.getElementById('opponent').value;
 
-            // Safety Caps
             if(Game.rows < 2 || Game.rows > 10) Game.rows = 6;
             if(Game.cols < 2 || Game.cols > 10) Game.cols = 6;
             
@@ -369,8 +414,8 @@
             Game.hasFirstMoveHappened = false;
             Game.passCount = 0;
             Game.isAiProcessing = false;
+            Game.logHistory = []; // Reset log
 
-            // Initialize Grid
             Game.grid = [];
             for(let r=0; r<Game.rows; r++) {
                 let row = [];
@@ -378,7 +423,6 @@
                 Game.grid.push(row);
             }
 
-            // UI Transitions
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'flex';
             document.getElementById('game-over-modal').style.display = 'none';
@@ -386,7 +430,7 @@
             document.getElementById('phase-indicator').style.color = "#10b981";
             document.getElementById('placement-ctrls').style.display = 'block';
             document.getElementById('attack-ctrls').style.display = 'none';
-            document.getElementById('log-area').innerHTML = ''; // Clear log
+            document.getElementById('log-area').innerHTML = ''; 
 
             if(Game.aiType) document.getElementById('p2-name-display').innerText = `AI (${Game.aiType.toUpperCase()})`;
             else document.getElementById('p2-name-display').innerText = "PLAYER 2";
@@ -400,8 +444,12 @@
         }
 
         function restartGame() {
-            document.getElementById('game-screen').style.display = 'none';
+            startGame(); // Just restarts with same settings
+        }
+
+        function returnToMenu() {
             document.getElementById('game-over-modal').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
             document.getElementById('setup-screen').style.display = 'block';
         }
 
@@ -419,8 +467,6 @@
                 }
             }
         }
-
-        // --- GAMEPLAY LOGIC ---
 
         function handleCellClick(r, c) {
             if(Game.phase === 'gameover' || Game.isAiProcessing) return;
@@ -530,7 +576,6 @@
             checkAI();
         }
 
-        // --- AI LOGIC ---
         function checkAI() {
             if(!Game.aiType || Game.turn === 1 || Game.phase === 'gameover') return;
             
@@ -580,14 +625,11 @@
                     if(score > bestScore) { bestScore = score; bestR = r; bestC = c; }
                 }
             }
-
-            if(bestR === -1) { bestR=0; bestC=0; } // Fallback
+            if(bestR === -1) { bestR=0; bestC=0; }
             let amt = (Game.aiType === 'weak') ? Math.floor(Math.random() * 5) + 1 : Math.floor(Math.random() * 4) + 2;
             if(amt > Game.p2Reserves) amt = Game.p2Reserves;
-
             const cell = Game.grid[bestR][bestC];
             cell.owner = 2; cell.count += amt; Game.p2Reserves -= amt;
-
             if(!Game.hasFirstMoveHappened) {
                 Game.firstPlayerToPlace = 2; Game.hasFirstMoveHappened = true;
                 log("AI placed first. AI will start Attack Phase.");
@@ -629,7 +671,6 @@
                     }
                 }
             }
-
             if(targets.length === 0) {
                 log("AI passed.");
                 Game.passCount++;
@@ -637,7 +678,6 @@
             } else {
                 if(Game.aiType !== 'weak') targets.sort((a, b) => b.score - a.score);
                 else targets.sort(() => Math.random() - 0.5);
-
                 const t = targets[0];
                 log(`AI attacked (${t.r}, ${t.c})! Success.`);
                 Game.grid[t.r][t.c].owner = 0; Game.grid[t.r][t.c].count = 0;
@@ -645,7 +685,6 @@
             }
         }
 
-        // --- RENDER & GAME OVER ---
         function renderBoard() {
             for(let r=0; r<Game.rows; r++) {
                 for(let c=0; c<Game.cols; c++) {
@@ -653,10 +692,8 @@
                     const data = Game.grid[r][c];
                     el.className = 'cell'; 
                     el.innerText = '';
-                    
                     if(data.owner === 1) { el.classList.add('p1'); el.innerText = data.count; }
                     else if (data.owner === 2) { el.classList.add('p2'); el.innerText = data.count; }
-
                     if(Game.phase === 'attack' && Game.turn === 1 && data.owner === 2) {
                         let power = 0;
                         for(let dr=-1; dr<=1; dr++) {
@@ -678,13 +715,13 @@
             Game.phase = 'gameover';
             let p1 = parseInt(document.getElementById('p1-score').innerText);
             let p2 = parseInt(document.getElementById('p2-score').innerText);
-            
             const title = document.getElementById('winner-display');
-            if(p1 > p2) { title.innerText = "PLAYER 1 WINS!"; title.style.color = "#3b82f6"; }
-            else if(p2 > p1) { title.innerText = "PLAYER 2 WINS!"; title.style.color = "#ef4444"; }
-            else { title.innerText = "IT'S A TIE!"; title.style.color = "#10b981"; }
             
-            document.getElementById('final-score').innerText = `Player 1: ${p1}  -  Player 2: ${p2}`;
+            if(p1 > p2) { title.innerText = "PLAYER 1 WINS"; title.style.color = "#3b82f6"; }
+            else if(p2 > p1) { title.innerText = "PLAYER 2 WINS"; title.style.color = "#ef4444"; }
+            else { title.innerText = "DRAW"; title.style.color = "#10b981"; }
+            
+            document.getElementById('final-score').innerText = `SCORE: ${p1} - ${p2}`;
             document.getElementById('game-over-modal').style.display = 'flex';
         }
     </script>
