@@ -4,16 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AGGRESSION: OMEGA PROTOCOL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
+        /* --- CSS RESET & VARIABLES --- */
         :root {
             --bg-deep: #020408;
-            --panel-bg: rgba(10, 16, 26, 0.95);
+            --panel-bg: rgba(5, 10, 15, 0.95);
             --p1-hex: #00f3ff;
+            --p1-glow: rgba(0, 243, 255, 0.4);
             --p2-hex: #ff003c;
+            --p2-glow: rgba(255, 0, 60, 0.4);
             --accent-hex: #00ff9d;
-            --text-main: #e2e8f0;
-            --border-color: rgba(0, 255, 157, 0.2);
+            --border-color: rgba(0, 255, 157, 0.3);
+            --text-color: #dbeafe;
+            --grid-line: rgba(255, 255, 255, 0.05);
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -21,15 +25,26 @@
         body {
             font-family: 'Share Tech Mono', monospace;
             background-color: var(--bg-deep);
-            color: var(--text-main);
+            color: var(--text-color);
             margin: 0;
             height: 100vh;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            /* Cyberpunk Grid Background */
             background-image: 
-                radial-gradient(circle at 50% 50%, #0a1525 0%, #000 100%);
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* --- CRT EFFECT OVERLAY --- */
+        #crt-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none; z-index: 999;
         }
 
         /* --- PARTICLES CANVAS --- */
@@ -38,120 +53,150 @@
             pointer-events: none; z-index: 50;
         }
 
-        /* --- UI FRAMEWORK --- */
+        /* --- UI COMPONENTS --- */
         .glass-panel {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            box-shadow: 0 0 20px rgba(0, 255, 157, 0.05), inset 0 0 50px rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.05), inset 0 0 30px rgba(0,0,0,0.8);
+            border-radius: 2px;
             position: relative;
         }
+        /* Corners decoration */
+        .glass-panel::before { content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px; border-top: 2px solid var(--accent-hex); border-left: 2px solid var(--accent-hex); }
+        .glass-panel::after { content: ''; position: absolute; bottom: -1px; right: -1px; width: 10px; height: 10px; border-bottom: 2px solid var(--accent-hex); border-right: 2px solid var(--accent-hex); }
 
+        /* BUTTONS */
         .btn {
-            background: rgba(0, 255, 157, 0.1);
+            background: rgba(0, 255, 157, 0.05);
             color: var(--accent-hex);
             border: 1px solid var(--accent-hex);
-            padding: 12px 24px;
+            padding: 12px 20px;
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
             cursor: pointer;
             transition: all 0.2s;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            position: relative;
+            overflow: hidden;
         }
-        .btn:hover { background: var(--accent-hex); color: #000; box-shadow: 0 0 15px var(--accent-hex); }
+        .btn:hover { background: var(--accent-hex); color: #000; box-shadow: 0 0 20px var(--accent-hex); }
         .btn:active { transform: scale(0.98); }
-        .btn-danger { color: var(--p2-hex); border-color: var(--p2-hex); background: rgba(255, 0, 60, 0.1); }
-        .btn-danger:hover { background: var(--p2-hex); box-shadow: 0 0 15px var(--p2-hex); }
+        
+        .btn-danger { color: var(--p2-hex); border-color: var(--p2-hex); background: rgba(255, 0, 60, 0.05); }
+        .btn-danger:hover { background: var(--p2-hex); box-shadow: 0 0 20px var(--p2-hex); color: #000; }
 
-        /* --- SETUP SCREEN --- */
+        /* INPUTS */
+        input, select {
+            background: #000; border: 1px solid #444; color: var(--accent-hex);
+            padding: 10px; font-family: 'Share Tech Mono'; font-size: 1.1rem;
+            text-align: center; width: 100%; outline: none; transition: 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent-hex); box-shadow: 0 0 10px rgba(0, 255, 157, 0.2); }
+        label { color: #888; font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 5px; text-align: left; }
+
+        /* --- SCREENS --- */
+        /* SETUP */
         #setup-screen {
             position: absolute; z-index: 100;
             display: flex; flex-direction: column; align-items: center; gap: 20px;
-            padding: 40px; width: 90%; max-width: 600px;
+            padding: 40px; width: 90%; max-width: 550px;
         }
-        
-        h1 {
-            font-family: 'Orbitron'; font-size: 4rem; margin: 0;
-            background: linear-gradient(180deg, #fff, #444);
+        .title-glitch {
+            font-family: 'Orbitron'; font-size: 4rem; margin: 0; line-height: 1;
+            background: linear-gradient(180deg, #fff, #888);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(0,255,157,0.3));
-            letter-spacing: 5px; text-align: center;
+            text-shadow: 0 0 20px rgba(0,255,157,0.5); letter-spacing: 5px; text-align: center;
         }
 
-        .config-row { display: flex; gap: 10px; width: 100%; justify-content: center; }
-        input, select {
-            background: #000; border: 1px solid #333; color: var(--accent-hex);
-            padding: 10px; font-family: 'Share Tech Mono'; font-size: 1.2rem;
-            text-align: center; width: 100%; outline: none;
-        }
-        input:focus { border-color: var(--accent-hex); }
-        label { color: #666; font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 5px; text-align: left; }
-
-        /* --- GAME LAYOUT --- */
-        #game-ui {
-            display: none; /* Hidden on load */
-            grid-template-columns: 250px 1fr 250px;
-            width: 100%; height: 100%; padding: 20px; gap: 20px;
-            position: relative; z-index: 10;
+        /* GAME GRID LAYOUT */
+        #game-layout {
+            display: none; /* Hidden initially */
+            grid-template-columns: 300px 1fr 300px; /* Left Sidebar | Board | Right Sidebar */
+            grid-template-rows: 60px 1fr 150px; /* Header | Board | Log */
+            width: 98vw; height: 95vh;
+            gap: 15px; z-index: 10;
         }
 
-        .sidebar { display: flex; flex-direction: column; justify-content: center; padding: 20px; gap: 20px; transition: 0.3s; }
-        .sidebar.active { border-color: currentColor; box-shadow: 0 0 30px currentColor; }
-        .p1-color { color: var(--p1-hex); }
-        .p2-color { color: var(--p2-hex); }
+        /* HEADER */
+        #top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+        .phase-indicator { 
+            font-family: 'Orbitron'; font-size: 1.5rem; letter-spacing: 3px; 
+            color: var(--accent-hex); text-shadow: 0 0 10px var(--accent-hex);
+            border: 1px solid var(--accent-hex); padding: 5px 20px;
+        }
+
+        /* SIDEBARS */
+        .sidebar { grid-row: 2 / 3; display: flex; flex-direction: column; gap: 15px; padding: 20px; transition: 0.3s; }
+        .sidebar.active-turn { border-color: currentColor; box-shadow: 0 0 20px currentColor; }
+        .p1-theme { color: var(--p1-hex); border-color: rgba(0, 243, 255, 0.3); }
+        .p2-theme { color: var(--p2-hex); border-color: rgba(255, 0, 60, 0.3); }
+
+        .stat-card { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 4px; text-align: center; border-left: 3px solid currentColor; }
+        .stat-val { font-family: 'Orbitron'; font-size: 3.5rem; font-weight: 900; line-height: 1; }
+        .stat-label { font-size: 0.8rem; letter-spacing: 2px; opacity: 0.7; }
         
-        .stat-display { text-align: center; }
-        .stat-val { font-family: 'Orbitron'; font-size: 3rem; font-weight: 900; line-height: 1; text-shadow: 0 0 10px currentColor; }
-        .stat-label { font-size: 0.8rem; opacity: 0.7; letter-spacing: 2px; margin-top: 5px; }
+        .ai-status { font-size: 0.8rem; margin-top: 10px; height: 20px; color: #fff; }
 
-        #center-view { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        /* CENTER BOARD */
+        #center-stage { grid-column: 2 / 3; grid-row: 2 / 3; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
         
-        #phase-bar {
-            background: rgba(0,0,0,0.5); padding: 8px 30px; border: 1px solid #333;
-            font-family: 'Orbitron'; letter-spacing: 4px; color: #fff; margin-bottom: 20px;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-        }
-
         #board-wrapper {
-            position: relative; padding: 15px; border: 1px solid #333;
+            position: relative; padding: 10px; border: 1px solid #333;
             background: rgba(0,0,0,0.8);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
         #grid { display: grid; gap: 4px; }
         
         .cell {
-            width: 55px; height: 55px; background: #0f1219;
+            width: 60px; height: 60px; background: #0f1219;
             display: flex; justify-content: center; align-items: center;
-            font-family: 'Orbitron'; font-weight: bold; font-size: 1.4rem;
-            cursor: pointer; position: relative; overflow: hidden;
-            transition: transform 0.1s, background 0.2s;
+            font-family: 'Orbitron'; font-weight: bold; font-size: 1.6rem;
+            cursor: pointer; position: relative;
+            transition: transform 0.1s, background 0.2s, box-shadow 0.2s;
         }
-        .cell:before {
-            content: ''; position: absolute; width: 2px; height: 2px;
-            background: #333; top: 2px; right: 2px;
-        }
-        .cell:hover { background: #1a2233; z-index: 2; transform: scale(1.1); box-shadow: 0 0 15px #000; border: 1px solid #555; }
+        .cell:hover { background: #1a2233; z-index: 10; transform: scale(1.15); border: 1px solid #fff; }
         
-        .cell.p1 { border: 2px solid var(--p1-hex); color: var(--p1-hex); background: rgba(0, 243, 255, 0.1); box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.2); }
-        .cell.p2 { border: 2px solid var(--p2-hex); color: var(--p2-hex); background: rgba(255, 0, 60, 0.1); box-shadow: inset 0 0 15px rgba(255, 0, 60, 0.2); }
+        .cell.p1 { border: 2px solid var(--p1-hex); color: var(--p1-hex); background: rgba(0, 243, 255, 0.1); box-shadow: inset 0 0 15px var(--p1-glow); }
+        .cell.p2 { border: 2px solid var(--p2-hex); color: var(--p2-hex); background: rgba(255, 0, 60, 0.1); box-shadow: inset 0 0 15px var(--p2-glow); }
         
-        /* Attack Animation */
-        .cell.valid-target { animation: glitchBorder 1s infinite; cursor: crosshair; }
-        @keyframes glitchBorder { 
-            0% { box-shadow: 0 0 0 var(--p2-hex); } 
-            50% { box-shadow: 0 0 20px var(--p2-hex), inset 0 0 10px var(--p2-hex); } 
-            100% { box-shadow: 0 0 0 var(--p2-hex); } 
+        /* HOVER PREDICTION */
+        .combat-preview {
+            position: absolute; pointer-events: none; z-index: 100;
+            background: rgba(0,0,0,0.9); border: 1px solid #fff; padding: 5px 10px;
+            font-size: 0.8rem; white-space: nowrap; color: #fff;
+            transform: translateY(-40px); display: none;
         }
 
-        #controls { margin-top: 20px; display: flex; gap: 15px; align-items: center; }
+        /* CONTROLS */
+        #action-bar { grid-column: 2 / 3; grid-row: 3 / 4; display: flex; justify-content: center; gap: 20px; align-items: start; }
+        .control-group { display: flex; gap: 10px; align-items: center; background: var(--panel-bg); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color); }
 
-        /* --- DATA TERMINAL (MODAL) --- */
+        /* LOG */
+        #log-container { 
+            grid-column: 1 / 2; grid-row: 3 / 4; 
+            background: #000; border: 1px solid #333; 
+            font-size: 0.75rem; overflow-y: auto; 
+            display: flex; flex-direction: column-reverse; padding: 10px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 2px; }
+        .log-time { color: #666; margin-right: 5px; }
+
+        /* PROBABILITY BAR */
+        #win-prob { 
+            grid-column: 3 / 4; grid-row: 3 / 4; 
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        .prob-bar-container { width: 100%; height: 20px; background: #333; margin-top: 10px; position: relative; border: 1px solid #555; }
+        .prob-fill { height: 100%; width: 50%; background: linear-gradient(90deg, var(--p1-hex), var(--p2-hex)); transition: width 0.5s; }
+        .prob-marker { position: absolute; top: -5px; bottom: -5px; width: 2px; background: #fff; left: 50%; z-index: 2; }
+
+        /* --- MODALS (ARCHIVES / GAME OVER) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 200; display: none;
+            background: rgba(0,0,0,0.95); z-index: 200; display: none;
             justify-content: center; align-items: center; backdrop-filter: blur(10px);
         }
         .terminal {
@@ -160,48 +205,45 @@
             display: flex; flex-direction: column; font-family: 'Share Tech Mono';
             box-shadow: 0 0 50px rgba(0, 255, 157, 0.1);
         }
-        .terminal-header {
-            background: var(--accent-hex); color: #000; padding: 10px;
-            font-weight: bold; display: flex; justify-content: space-between;
-        }
+        .terminal-header { background: var(--accent-hex); color: #000; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; }
         .terminal-body { flex: 1; padding: 20px; overflow-y: auto; color: #aaa; }
         
-        .log-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .log-table th { text-align: left; border-bottom: 1px solid #333; color: var(--accent-hex); padding: 5px; }
-        .log-table td { border-bottom: 1px solid #222; padding: 8px 5px; font-size: 0.9rem; }
+        .log-table { width: 100%; border-collapse: collapse; }
+        .log-table th { text-align: left; border-bottom: 1px solid var(--accent-hex); color: var(--accent-hex); padding: 5px; }
+        .log-table td { border-bottom: 1px solid #333; padding: 8px 5px; }
         .log-table tr:hover { background: #111; color: #fff; }
-        .win-p1 { color: var(--p1-hex); }
-        .win-p2 { color: var(--p2-hex); }
-
-        .terminal-controls { padding: 10px; border-top: 1px solid #333; display: flex; gap: 10px; }
-        
-        #export-area { width: 100%; height: 100px; background: #111; border: 1px solid #333; color: var(--accent-hex); font-size: 0.8rem; margin-top: 10px; display: none; }
 
         @media (max-width: 900px) {
-            #game-ui { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; padding: 10px; }
-            .sidebar { flex-direction: row; padding: 10px; gap: 10px; justify-content: space-around; }
+            #game-layout { 
+                grid-template-columns: 1fr; 
+                grid-template-rows: auto auto auto 1fr auto; 
+                display: flex; flex-direction: column; overflow-y: auto;
+            }
+            .sidebar { flex-direction: row; justify-content: space-around; padding: 10px; }
             .stat-val { font-size: 2rem; }
-            h1 { font-size: 2.5rem; }
+            #log-container, #win-prob { display: none; } /* Hide extra data on mobile */
         }
     </style>
 </head>
 <body>
 
+    <div id="crt-overlay"></div>
     <canvas id="vfx-canvas"></canvas>
 
     <div id="setup-screen" class="glass-panel">
-        <h1>AGGRESSION</h1>
-        <div style="letter-spacing: 3px; color: var(--accent-hex); margin-bottom: 20px;">OMEGA PROTOCOL</div>
+        <h1 class="title-glitch">AGGRESSION</h1>
+        <div style="letter-spacing: 5px; color: var(--accent-hex); margin-bottom: 20px; font-size: 0.8rem;">OMEGA PROTOCOL // V2.0</div>
 
-        <div class="config-row">
-            <div style="width: 50%;">
-                <label>GRID CONFIG</label>
-                <div style="display: flex; gap: 5px;">
-                    <input type="number" id="rows" value="6" min="3" max="10" placeholder="R">
-                    <input type="number" id="cols" value="6" min="3" max="10" placeholder="C">
-                </div>
+        <div class="config-row" style="width: 100%; display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>GRID ROWS</label>
+                <input type="number" id="rows" value="6" min="3" max="10">
             </div>
-            <div style="width: 50%;">
+            <div style="flex: 1;">
+                <label>GRID COLS</label>
+                <input type="number" id="cols" value="6" min="3" max="10">
+            </div>
+            <div style="flex: 1;">
                 <label>UNIT CAP</label>
                 <input type="number" id="troops" value="36">
             </div>
@@ -212,52 +254,78 @@
             <select id="opponent">
                 <option value="human">HUMAN VS HUMAN</option>
                 <option value="weak">AI: TRAINEE (Random)</option>
-                <option value="strategic">AI: TACTICIAN (Clustering)</option>
-                <option value="minimax">AI: OMEGA (Minimax - Advanced)</option>
+                <option value="strategic">AI: TACTICIAN (Aggressive)</option>
+                <option value="minimax" selected>AI: OMEGA (Minimax)</option>
             </select>
         </div>
 
-        <button class="btn" style="width: 100%; margin-top: 10px;" onclick="Game.init()">INITIALIZE SIMULATION</button>
-        <button class="btn btn-danger" style="width: 100%;" onclick="DataMgr.openTerminal()">MISSION ARCHIVES / SYNC</button>
+        <button class="btn" style="width: 100%; margin-top: 10px;" onclick="Game.init()">INITIALIZE SYSTEM</button>
+        <button class="btn btn-danger" style="width: 100%;" onclick="DataMgr.open()">GAME LOGS / DATA SYNC</button>
     </div>
 
-    <div id="game-ui">
-        <div class="sidebar glass-panel p1-color" id="p1-panel">
-            <div style="font-family: Orbitron; font-weight: bold; font-size: 1.5rem; text-align: center;">PLAYER 1</div>
-            <div class="stat-display">
+    <div id="game-layout">
+        
+        <div id="top-bar" class="glass-panel">
+            <div style="font-weight: bold; color: #fff;">AGGRESSION</div>
+            <div id="phase-bar" class="phase-indicator">PLACEMENT PHASE</div>
+            <div onclick="location.reload()" style="cursor: pointer; color: #888;">[ABORT]</div>
+        </div>
+
+        <div class="sidebar glass-panel p1-theme" id="p1-panel">
+            <div style="font-family: Orbitron; font-size: 1.5rem; text-align: center;">PLAYER 1</div>
+            <div class="stat-card">
                 <div class="stat-val" id="p1-reserves">0</div>
                 <div class="stat-label">RESERVES</div>
             </div>
-            <div class="stat-display">
+            <div class="stat-card">
                 <div class="stat-val" id="p1-score">0</div>
                 <div class="stat-label">SECTORS</div>
             </div>
         </div>
 
-        <div id="center-view">
-            <div id="phase-bar">PLACEMENT PHASE</div>
+        <div id="center-stage">
             <div id="board-wrapper">
                 <div id="grid"></div>
-            </div>
-            
-            <div id="controls">
-                <div id="place-ui" style="display:flex; gap:10px; align-items:center;">
-                    <input type="number" id="deploy-amt" value="1" min="1" style="width: 70px;">
-                    <span style="color: #666; font-size: 0.8rem;">UNITS</span>
-                </div>
-                <button id="pass-btn" class="btn btn-danger" style="display:none;" onclick="Game.passTurn()">SKIP TURN</button>
+                <div id="combat-preview" class="combat-preview"></div>
             </div>
         </div>
 
-        <div class="sidebar glass-panel p2-color" id="p2-panel">
-            <div style="font-family: Orbitron; font-weight: bold; font-size: 1.5rem; text-align: center;" id="p2-title">PLAYER 2</div>
-            <div class="stat-display">
+        <div class="sidebar glass-panel p2-theme" id="p2-panel">
+            <div style="font-family: Orbitron; font-size: 1.5rem; text-align: center;" id="p2-name">PLAYER 2</div>
+            <div class="stat-card">
                 <div class="stat-val" id="p2-reserves">0</div>
                 <div class="stat-label">RESERVES</div>
             </div>
-            <div class="stat-display">
+            <div class="stat-card">
                 <div class="stat-val" id="p2-score">0</div>
                 <div class="stat-label">SECTORS</div>
+            </div>
+            <div id="ai-status" class="ai-status"></div>
+        </div>
+
+        <div id="log-container"></div>
+
+        <div id="action-bar">
+            <div id="place-ui" class="control-group">
+                <span style="color: #aaa; font-size: 0.8rem;">DEPLOYMENT:</span>
+                <input type="number" id="deploy-amt" value="1" min="1" style="width: 70px; background: #222; border:none; color: white;">
+                <span style="color: #666; font-size: 0.8rem;">UNITS</span>
+            </div>
+            
+            <div id="attack-ui" class="control-group" style="display:none;">
+                <button class="btn btn-danger" onclick="Game.passTurn()">PASS TURN</button>
+            </div>
+        </div>
+
+        <div id="win-prob" class="glass-panel" style="padding: 10px;">
+            <div style="font-size: 0.7rem; color: #888;">WIN PROBABILITY ESTIMATE</div>
+            <div class="prob-bar-container">
+                <div class="prob-marker"></div>
+                <div id="prob-fill" class="prob-fill"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; width:100%; font-size: 0.7rem; margin-top: 5px;">
+                <span class="p1-color">P1</span>
+                <span class="p2-color">P2</span>
             </div>
         </div>
     </div>
@@ -265,284 +333,209 @@
     <div id="terminal-modal" class="modal-overlay">
         <div class="terminal">
             <div class="terminal-header">
-                <span>:: MISSION DATA ARCHIVE ::</span>
-                <span style="cursor:pointer;" onclick="DataMgr.closeTerminal()">[X]</span>
+                <span>:: GAME LOG DATABASE ::</span>
+                <span style="cursor:pointer;" onclick="DataMgr.close()">[X]</span>
             </div>
             <div class="terminal-body">
-                <p>LOCAL STORAGE RECORD:</p>
                 <table class="log-table">
-                    <thead><tr><th>ID</th><th>DATE</th><th>WINNER</th><th>SCORE</th><th>ACTION</th></tr></thead>
-                    <tbody id="archive-table-body"></tbody>
+                    <thead><tr><th>ID</th><th>DATE</th><th>WINNER</th><th>SCORE</th><th>OPT</th></tr></thead>
+                    <tbody id="archive-body"></tbody>
                 </table>
-                <textarea id="export-area" readonly placeholder="Sync Data will appear here..."></textarea>
+                <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 10px;">
+                    <label>DATA SYNC (CROSS-DEVICE)</label>
+                    <textarea id="sync-area" style="width:100%; height:80px; background:#111; border:1px solid #333; color:#0f0; font-size:0.7rem;" placeholder="Export string will appear here..."></textarea>
+                </div>
             </div>
-            <div class="terminal-controls">
-                <button class="btn" style="font-size: 0.8rem;" onclick="DataMgr.exportData()">EXPORT SYNC CODE</button>
-                <button class="btn" style="font-size: 0.8rem;" onclick="DataMgr.importData()">IMPORT SYNC CODE</button>
+            <div class="terminal-controls" style="padding: 10px; display: flex; gap: 10px; border-top: 1px solid #333;">
+                <button class="btn" onclick="DataMgr.export()">GENERATE SYNC CODE</button>
+                <button class="btn" onclick="DataMgr.import()">IMPORT CODE</button>
                 <div style="flex:1"></div>
-                <button class="btn btn-danger" style="font-size: 0.8rem;" onclick="DataMgr.wipeData()">PURGE DB</button>
+                <button class="btn btn-danger" onclick="DataMgr.wipe()">WIPE DATABASE</button>
             </div>
         </div>
     </div>
 
     <script>
-        /* --- AUDIO SYSTEM --- */
-        const Sfx = {
-            ctx: new (window.AudioContext || window.webkitAudioContext)(),
-            playTone: function(freq, type, duration) {
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + duration);
-            },
-            click: () => Sfx.playTone(800, 'square', 0.1),
-            error: () => Sfx.playTone(150, 'sawtooth', 0.3),
-            place: () => Sfx.playTone(400, 'sine', 0.2),
-            attack: () => { Sfx.playTone(100, 'sawtooth', 0.1); setTimeout(()=>Sfx.playTone(60, 'square', 0.4), 100); },
-            win: () => { 
-                [300, 400, 500, 600, 800].forEach((f, i) => setTimeout(() => Sfx.playTone(f, 'square', 0.2), i*100)); 
-            }
-        };
-
-        /* --- VISUAL FX SYSTEM --- */
+        /* --- VFX SYSTEM --- */
         const Vfx = {
             canvas: document.getElementById('vfx-canvas'),
             ctx: document.getElementById('vfx-canvas').getContext('2d'),
             particles: [],
-            resize: function() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
-            spawn: function(x, y, color, count) {
-                for(let i=0; i<count; i++) {
+            resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
+            spawn(x, y, color) {
+                for(let i=0; i<15; i++) {
                     this.particles.push({
-                        x: x, y: y,
-                        vx: (Math.random() - 0.5) * 10,
-                        vy: (Math.random() - 0.5) * 10,
-                        life: 1.0,
-                        color: color
+                        x, y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12,
+                        life: 1.0, color
                     });
                 }
             },
-            loop: function() {
+            loop() {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 for(let i=this.particles.length-1; i>=0; i--) {
                     let p = this.particles[i];
-                    p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                    p.x += p.vx; p.y += p.vy; p.life -= 0.03;
                     this.ctx.globalAlpha = p.life;
                     this.ctx.fillStyle = p.color;
                     this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+                    this.ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
                     this.ctx.fill();
-                    if(p.life <= 0) this.particles.splice(i, 1);
+                    if(p.life <= 0) this.particles.splice(i,1);
                 }
-                requestAnimationFrame(() => this.loop());
+                requestAnimationFrame(()=>this.loop());
             }
         };
-        window.addEventListener('resize', () => Vfx.resize());
-        Vfx.resize(); Vfx.loop();
+        window.addEventListener('resize', ()=>Vfx.resize()); Vfx.resize(); Vfx.loop();
 
-        /* --- DATA MANAGER (PERSISTENCE) --- */
-        const DataMgr = {
-            key: 'aggression_omega_db',
-            getHistory: function() {
-                const raw = localStorage.getItem(this.key);
-                return raw ? JSON.parse(raw) : [];
+        /* --- SOUND SYSTEM --- */
+        const Sfx = {
+            ctx: new (window.AudioContext || window.webkitAudioContext)(),
+            tone(freq, type, dur) {
+                if(this.ctx.state === 'suspended') this.ctx.resume();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime+dur);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime+dur);
             },
-            saveGame: function(winner, score, detailedLog) {
-                const db = this.getHistory();
-                db.unshift({
-                    id: Date.now().toString(36),
-                    timestamp: new Date().toLocaleString(),
-                    winner: winner,
-                    score: score,
-                    log: detailedLog
-                });
+            ui: () => Sfx.tone(1200, 'sine', 0.05),
+            error: () => Sfx.tone(150, 'sawtooth', 0.2),
+            place: () => Sfx.tone(400, 'triangle', 0.1),
+            attack: () => { Sfx.tone(100, 'square', 0.1); setTimeout(()=>Sfx.tone(50, 'sawtooth', 0.3), 50); },
+            win: () => [300,500,800].forEach((f,i)=>setTimeout(()=>Sfx.tone(f,'square',0.3), i*150))
+        };
+
+        /* --- DATA PERSISTENCE --- */
+        const DataMgr = {
+            key: 'omega_aggression_db',
+            get() { return JSON.parse(localStorage.getItem(this.key) || "[]"); },
+            save(winner, score, logs) {
+                const db = this.get();
+                db.unshift({ id: Date.now().toString(36), date: new Date().toLocaleString(), winner, score, logs });
                 localStorage.setItem(this.key, JSON.stringify(db));
             },
-            openTerminal: function() {
+            open() {
                 document.getElementById('terminal-modal').style.display = 'flex';
-                this.renderTable();
+                this.render();
             },
-            closeTerminal: function() { document.getElementById('terminal-modal').style.display = 'none'; },
-            renderTable: function() {
-                const db = this.getHistory();
-                const tbody = document.getElementById('archive-table-body');
+            close() { document.getElementById('terminal-modal').style.display = 'none'; },
+            render() {
+                const db = this.get();
+                const tbody = document.getElementById('archive-body');
                 tbody.innerHTML = '';
-                if(db.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">NO RECORDS FOUND</td></tr>'; return; }
-                
-                db.forEach(entry => {
-                    const tr = document.createElement('tr');
-                    const wClass = entry.winner.includes('1') ? 'win-p1' : (entry.winner.includes('2') ? 'win-p2' : '');
-                    tr.innerHTML = `
-                        <td>${entry.id}</td>
-                        <td>${entry.timestamp}</td>
-                        <td class="${wClass}">${entry.winner}</td>
-                        <td>${entry.score}</td>
-                        <td><button style="font-size:0.7rem; cursor:pointer;" onclick="DataMgr.downloadLog('${entry.id}')">DOWNLOAD</button></td>
+                if(!db.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">NO DATA</td></tr>'; return; }
+                db.forEach(g => {
+                    const row = document.createElement('tr');
+                    const color = g.winner.includes('1') ? 'var(--p1-hex)' : (g.winner.includes('2') ? 'var(--p2-hex)' : '#fff');
+                    row.innerHTML = `
+                        <td>${g.id}</td><td>${g.date}</td>
+                        <td style="color:${color}">${g.winner}</td>
+                        <td>${g.score}</td>
+                        <td><button class="btn" style="padding:2px 5px; font-size:0.7rem" onclick="DataMgr.dl('${g.id}')">DL</button></td>
                     `;
-                    tbody.appendChild(tr);
+                    tbody.appendChild(row);
                 });
             },
-            downloadLog: function(id) {
-                const db = this.getHistory();
-                const entry = db.find(e => e.id === id);
-                if(!entry) return;
-                const blob = new Blob([JSON.stringify(entry, null, 2)], {type: 'application/json'});
+            dl(id) {
+                const g = this.get().find(x => x.id === id);
+                const blob = new Blob([JSON.stringify(g,null,2)], {type:'application/json'});
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = `mission_${entry.id}.json`;
+                a.download = `log_${id}.json`;
                 a.click();
             },
-            exportData: function() {
-                const raw = localStorage.getItem(this.key) || "[]";
-                // Simple Base64 encode for easy copy/paste
-                const encoded = btoa(unescape(encodeURIComponent(raw))); 
-                const area = document.getElementById('export-area');
-                area.style.display = 'block';
-                area.value = encoded;
-                area.select();
-                alert("DATA ENCODED. COPY THE TEXT BELOW TO TRANSFER.");
+            export() {
+                const str = localStorage.getItem(this.key) || "[]";
+                const code = btoa(unescape(encodeURIComponent(str)));
+                document.getElementById('sync-area').value = code;
+                alert("CODE GENERATED. Copy to transfer.");
             },
-            importData: function() {
-                const input = prompt("PASTE SYNC CODE HERE:");
-                if(!input) return;
+            import() {
+                const code = document.getElementById('sync-area').value;
+                if(!code) return alert("PASTE CODE FIRST");
                 try {
-                    const decoded = decodeURIComponent(escape(atob(input)));
-                    JSON.parse(decoded); // Validate JSON
-                    if(confirm("WARNING: This will overwrite local data. Proceed?")) {
-                        localStorage.setItem(this.key, decoded);
-                        this.renderTable();
-                        alert("IMPORT SUCCESSFUL.");
-                    }
-                } catch(e) { alert("INVALID DATA CORRUPTION DETECTED."); }
+                    const str = decodeURIComponent(escape(atob(code)));
+                    JSON.parse(str); // validate
+                    localStorage.setItem(this.key, str);
+                    this.render();
+                    alert("SYNC COMPLETE.");
+                } catch(e) { alert("INVALID CODE"); }
             },
-            wipeData: function() {
-                if(confirm("CONFIRM PURGE? This cannot be undone.")) {
-                    localStorage.removeItem(this.key);
-                    this.renderTable();
-                }
+            wipe() {
+                if(confirm("PURGE ALL DATA?")) { localStorage.removeItem(this.key); this.render(); }
             }
         };
 
         /* --- OMEGA AI (MINIMAX) --- */
         const AI = {
-            evaluate: function(grid, p1Res, p2Res, phase) {
-                let score = 0;
-                let myArea = 0, enArea = 0;
-                let myTroops = 0, enTroops = 0;
-                let clusters = 0;
-
-                for(let r=0; r<grid.length; r++) {
-                    for(let c=0; c<grid[0].length; c++) {
-                        const cell = grid[r][c];
+            evaluate(grid, rows, cols) {
+                let s = 0;
+                for(let r=0; r<rows; r++) {
+                    for(let c=0; c<cols; c++) {
+                        let cell = grid[r][c];
                         if(cell.owner === 2) {
-                            myArea++;
-                            myTroops += cell.count;
-                            // Cluster bonus
-                            for(let dr=-1; dr<=1; dr++) {
-                                for(let dc=-1; dc<=1; dc++) {
-                                    if(dr===0 && dc===0) continue;
-                                    let nr=r+dr, nc=c+dc;
-                                    if(nr>=0 && nr<grid.length && nc>=0 && nc<grid[0].length) {
-                                        if(grid[nr][nc].owner === 2) clusters++;
-                                    }
-                                }
-                            }
+                            s += cell.count * 10;
+                            s += 50; // Territory value
                         } else if(cell.owner === 1) {
-                            enArea++;
-                            enTroops += cell.count;
+                            s -= cell.count * 10;
+                            s -= 50;
                         }
                     }
                 }
-
-                if(phase === 'placement') {
-                    // Prioritize efficient stacking and safe expansion
-                    score += (myTroops * 10) + (clusters * 5) - (enArea * 20);
-                } else {
-                    // Attack phase: Material difference is king
-                    score += (myArea * 100) - (enArea * 100);
-                    score += (myTroops * 5); // Tie breaker
-                }
-                return score;
+                return s;
             },
-            // Simulate Attack move
-            getBestAttack: function(state) {
-                // Find all possible attacks
-                let bestMove = null;
-                let bestVal = -Infinity;
-                let possibleMoves = [];
-
-                for(let r=0; r<state.rows; r++) {
-                    for(let c=0; c<state.cols; c++) {
-                        if(state.grid[r][c].owner === 1) { // Enemy
-                            let power = 0;
-                            // Check power
-                             for(let dr=-1; dr<=1; dr++) {
-                                for(let dc=-1; dc<=1; dc++) {
-                                    if(dr===0 && dc===0) continue;
-                                    let nr=r+dr, nc=c+dc;
-                                    if(nr>=0 && nr<state.rows && nc>=0 && nc<state.cols) {
-                                        if(state.grid[nr][nc].owner === 2) power += state.grid[nr][nc].count;
-                                    }
-                                }
+            getBestAttack(game) {
+                // Heuristic search for attack (Minimax is too costly for full depth in JS UI thread without Workers)
+                let moves = [];
+                for(let r=0; r<game.rows; r++) {
+                    for(let c=0; c<game.cols; c++) {
+                        if(game.grid[r][c].owner === 1) { // Enemy
+                            let p = 0;
+                            // Check neighbors
+                            for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                                if(dr===0&&dc===0)continue;
+                                let nr=r+dr, nc=c+dc;
+                                if(nr>=0&&nr<game.rows&&nc>=0&&nc<game.cols && game.grid[nr][nc].owner===2) p+=game.grid[nr][nc].count;
                             }
-                            if(power > state.grid[r][c].count) {
-                                // This is a legal move
-                                let score = state.grid[r][c].count * 10; // Value of kill
-                                // Add strategic value of the cell (center control)
-                                let centerDist = Math.abs(r - state.rows/2) + Math.abs(c - state.cols/2);
-                                score -= centerDist;
-                                possibleMoves.push({r, c, score});
+                            if(p > game.grid[r][c].count) {
+                                // Value = Size of enemy stack + threat removal
+                                moves.push({r, c, val: game.grid[r][c].count * 10 + Math.random()});
                             }
                         }
                     }
                 }
-                
-                if(possibleMoves.length > 0) {
-                    possibleMoves.sort((a,b) => b.score - a.score);
-                    return possibleMoves[0]; // Greedy best kill
-                }
-                return null; // Pass
+                moves.sort((a,b)=>b.val-a.val);
+                return moves.length ? moves[0] : null;
             },
-            // Improved Placement Logic
-            getPlacement: function(state) {
-                // Minimax is too slow for placement due to branching factor
-                // Use Advanced Heuristic
-                let best = {r:0, c:0, score:-Infinity};
-                
-                for(let r=0; r<state.rows; r++) {
-                    for(let c=0; c<state.cols; c++) {
-                        if(state.grid[r][c].owner === 1) continue;
-                        
-                        let score = 0;
-                        // Neighbors
-                        let nFriends=0, nEnemies=0;
-                         for(let dr=-1; dr<=1; dr++) {
-                                for(let dc=-1; dc<=1; dc++) {
-                                    if(dr===0 && dc===0) continue;
-                                    let nr=r+dr, nc=c+dc;
-                                    if(nr>=0 && nr<state.rows && nc>=0 && nc<state.cols) {
-                                        if(state.grid[nr][nc].owner === 2) nFriends++;
-                                        if(state.grid[nr][nc].owner === 1) nEnemies++;
-                                    }
-                                }
+            getPlacement(game) {
+                // Heuristic placement
+                let best = {r:0, c:0, val:-99999};
+                for(let r=0; r<game.rows; r++) {
+                    for(let c=0; c<game.cols; c++) {
+                        if(game.grid[r][c].owner === 1) continue;
+                        let val = 0;
+                        let friends=0, enemies=0;
+                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                            if(dr===0&&dc===0)continue;
+                            let nr=r+dr, nc=c+dc;
+                            if(nr>=0&&nr<game.rows&&nc>=0&&nc<game.cols) {
+                                if(game.grid[nr][nc].owner===2) friends++;
+                                if(game.grid[nr][nc].owner===1) enemies++;
+                            }
                         }
-                        
-                        score += (nFriends * 5); // Cluster heavily
-                        score -= (nEnemies * 2); // Avoid immediate danger unless reinforcing
-                        if(state.grid[r][c].owner === 2) score += 10; // Reinforce existing
-                        if(state.grid[r][c].owner === 0 && nEnemies === 0) score += 2; // Safe expansion
-                        
-                        // Center bias
-                        let dist = Math.abs(r - state.rows/2) + Math.abs(c - state.cols/2);
-                        score -= dist;
+                        if(game.aiType === 'strategic') { val += friends*10; }
+                        else if(game.aiType === 'minimax') {
+                            val += friends*15;
+                            val -= enemies*5;
+                            if(enemies===0) val+=5; // Safe spot
+                            // Center bias
+                            let dist = Math.abs(r - game.rows/2) + Math.abs(c - game.cols/2);
+                            val -= dist;
+                        } else { val = Math.random(); } // Weak
 
-                        if(score > best.score) best = {r, c, score};
+                        if(val > best.val) best = {r, c, val};
                     }
                 }
                 return best;
@@ -551,258 +544,267 @@
 
         /* --- GAME ENGINE --- */
         const Game = {
-            rows: 0, cols: 0, grid: [],
-            p1Res: 0, p2Res: 0,
-            turn: 1, phase: 'setup', ai: null,
-            firstMover: 0, hasMoved: false, passCount: 0,
+            rows:0, cols:0, grid:[],
+            p1Res:0, p2Res:0, turn:1, phase:'setup', ai:null,
             log: [],
 
-            init: function() {
-                this.rows = parseInt(document.getElementById('rows').value);
-                this.cols = parseInt(document.getElementById('cols').value);
-                const t = parseInt(document.getElementById('troops').value);
-                const ai = document.getElementById('opponent').value;
+            init() {
+                this.rows = +document.getElementById('rows').value;
+                this.cols = +document.getElementById('cols').value;
+                if(this.rows<3) this.rows=3; if(this.cols<3) this.cols=3;
                 
-                if(this.rows < 3) this.rows=3; if(this.rows>10) this.rows=10;
-                if(this.cols < 3) this.cols=3; if(this.cols>10) this.cols=10;
-
+                const t = +document.getElementById('troops').value;
                 this.p1Res = t; this.p2Res = t;
-                this.ai = ai === 'human' ? null : ai;
+                
+                const aiVal = document.getElementById('opponent').value;
+                this.aiType = aiVal === 'human' ? null : aiVal;
+                
                 this.phase = 'placement';
-                this.turn = Math.random() < 0.5 ? 1 : 2;
+                this.turn = Math.random()<0.5 ? 1 : 2;
                 this.firstMover = 0; this.hasMoved = false; this.passCount = 0;
                 this.log = [];
 
                 this.grid = [];
                 for(let r=0; r<this.rows; r++) {
                     let row = [];
-                    for(let c=0; c<this.cols; c++) row.push({owner: 0, count: 0});
+                    for(let c=0; c<this.cols; c++) row.push({owner:0, count:0});
                     this.grid.push(row);
                 }
 
-                document.getElementById('setup-screen').style.display = 'none';
-                document.getElementById('game-ui').style.display = 'grid';
-                document.getElementById('p2-title').innerText = this.ai ? "AI: " + this.ai.toUpperCase() : "PLAYER 2";
+                document.getElementById('setup-screen').style.display='none';
+                document.getElementById('game-layout').style.display='grid';
+                document.getElementById('p2-name').innerText = this.aiType ? `AI: ${this.aiType.toUpperCase()}` : "PLAYER 2";
 
-                this.buildBoard();
+                this.buildGrid();
                 this.updateHUD();
-                Sfx.click();
-                this.logEvent("SYSTEM INITIALIZED");
+                this.logMsg("SYSTEM INITIALIZED");
                 this.checkAI();
             },
 
-            buildBoard: function() {
-                const el = document.getElementById('grid');
-                el.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
-                el.innerHTML = '';
-                for(let r=0; r<this.rows; r++) {
-                    for(let c=0; c<this.cols; c++) {
-                        const cell = document.createElement('div');
-                        cell.className = 'cell';
-                        cell.id = `c-${r}-${c}`;
-                        cell.onclick = () => this.handleInput(r, c);
-                        el.appendChild(cell);
-                    }
+            buildGrid() {
+                const g = document.getElementById('grid');
+                g.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
+                g.innerHTML = '';
+                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
+                    let d = document.createElement('div');
+                    d.className = 'cell';
+                    d.id = `c-${r}-${c}`;
+                    d.onmouseenter = () => this.hover(r, c);
+                    d.onmouseleave = () => document.getElementById('combat-preview').style.display='none';
+                    d.onclick = () => this.click(r, c);
+                    g.appendChild(d);
                 }
             },
 
-            handleInput: function(r, c) {
-                if(this.phase === 'over' || (this.ai && this.turn === 2)) return;
-                
-                if(this.phase === 'placement') {
-                    const amt = parseInt(document.getElementById('deploy-amt').value) || 1;
-                    this.actionPlace(r, c, amt);
-                } else {
-                    this.actionAttack(r, c);
-                }
-            },
-
-            actionPlace: function(r, c, amt) {
+            hover(r, c) {
+                if(this.phase !== 'attack' || this.turn !== 1) return;
                 const cell = this.grid[r][c];
-                const res = this.turn === 1 ? this.p1Res : this.p2Res;
-                if(cell.owner !== 0 && cell.owner !== this.turn) { Sfx.error(); return; }
+                if(cell.owner !== 2) return; // Only preview enemies
                 
-                const actual = Math.min(amt, res);
-                if(actual <= 0) return;
-
-                cell.owner = this.turn;
-                cell.count += actual;
-                if(this.turn === 1) this.p1Res -= actual; else this.p2Res -= actual;
-                
-                if(!this.hasMoved) {
-                    this.hasMoved = true;
-                    this.firstMover = this.turn;
-                    this.logEvent(`P${this.turn} TOOK INITIATIVE`);
+                // Calc power
+                let p = 0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0&&dc===0)continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0&&nr<this.rows&&nc>=0&&nc<this.cols && this.grid[nr][nc].owner===1) p+=this.grid[nr][nc].count;
                 }
-
-                // Vfx
+                
+                const tip = document.getElementById('combat-preview');
                 const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                Vfx.spawn(rect.left + rect.width/2, rect.top + rect.height/2, this.turn === 1 ? '#00f3ff' : '#ff003c', 5);
-                Sfx.place();
-
-                this.render();
-                this.updateHUD();
-                this.checkPhase();
+                const boardRect = document.getElementById('board-wrapper').getBoundingClientRect();
+                
+                tip.style.display = 'block';
+                tip.style.left = (rect.left - boardRect.left) + 'px';
+                tip.style.top = (rect.top - boardRect.top - 30) + 'px';
+                tip.innerText = `ATK:${p} VS DEF:${cell.count} > ${p>cell.count?'KILL':'FAIL'}`;
+                tip.style.borderColor = p > cell.count ? '#0f0' : '#f00';
             },
 
-            checkPhase: function() {
-                if(this.p1Res === 0 && this.p2Res === 0) {
+            click(r, c) {
+                if(this.phase==='over' || (this.aiType && this.turn===2)) return;
+                if(this.phase==='placement') this.place(r, c);
+                else this.attack(r, c);
+            },
+
+            place(r, c) {
+                let amt = +document.getElementById('deploy-amt').value;
+                let cell = this.grid[r][c];
+                let res = this.turn===1 ? this.p1Res : this.p2Res;
+                
+                if(cell.owner!==0 && cell.owner!==this.turn) { Sfx.error(); return; }
+                if(amt > res) amt = res;
+                if(amt <= 0) return;
+
+                cell.owner = this.turn; cell.count += amt;
+                if(this.turn===1) this.p1Res-=amt; else this.p2Res-=amt;
+
+                if(!this.hasMoved) { this.firstMover=this.turn; this.hasMoved=true; this.logMsg(`P${this.turn} INITIATIVE`); }
+
+                Sfx.place();
+                this.render(); this.updateHUD();
+                
+                // Check phase switch
+                if(this.p1Res===0 && this.p2Res===0) {
                     this.phase = 'attack';
                     this.turn = this.firstMover;
-                    document.getElementById('phase-bar').innerText = "COMBAT PHASE // ATTACK";
-                    document.getElementById('phase-bar').style.color = "#ff003c";
-                    document.getElementById('place-ui').style.display = 'none';
-                    document.getElementById('pass-btn').style.display = 'block';
-                    this.logEvent("COMBAT PHASE INITIATED");
+                    document.getElementById('phase-bar').innerText = "PHASE: ATTACK";
+                    document.getElementById('phase-bar').style.color = "var(--p2-hex)";
+                    document.getElementById('place-ui').style.display='none';
+                    document.getElementById('attack-ui').style.display='flex';
+                    this.logMsg("PHASE SHIFT -> ATTACK");
                 } else {
-                    const next = this.turn === 1 ? 2 : 1;
-                    const nextRes = next === 1 ? this.p1Res : this.p2Res;
-                    if(nextRes > 0) this.turn = next;
+                    let next = this.turn===1?2:1;
+                    if((next===1?this.p1Res:this.p2Res)>0) this.turn=next;
                 }
-                this.updateHUD();
-                this.checkAI();
+                this.updateHUD(); this.checkAI();
             },
 
-            actionAttack: function(r, c) {
-                const cell = this.grid[r][c];
-                if(cell.owner === 0 || cell.owner === this.turn) { Sfx.error(); return; }
-
-                let power = 0;
-                 for(let dr=-1; dr<=1; dr++) {
-                    for(let dc=-1; dc<=1; dc++) {
-                        if(dr===0 && dc===0) continue;
-                        let nr=r+dr, nc=c+dc;
-                        if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols) {
-                            if(this.grid[nr][nc].owner === this.turn) power += this.grid[nr][nc].count;
-                        }
-                    }
+            attack(r, c) {
+                let cell = this.grid[r][c];
+                if(cell.owner===0 || cell.owner===this.turn) { Sfx.error(); return; }
+                
+                let p = 0;
+                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                    if(dr===0&&dc===0)continue;
+                    let nr=r+dr, nc=c+dc;
+                    if(nr>=0&&nr<this.rows&&nc>=0&&nc<this.cols && this.grid[nr][nc].owner===this.turn) p+=this.grid[nr][nc].count;
                 }
 
-                if(power > cell.count) {
-                    // Success
+                if(p > cell.count) {
                     const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                    Vfx.spawn(rect.left + rect.width/2, rect.top + rect.height/2, '#ffaa00', 20);
+                    Vfx.spawn(rect.left+30, rect.top+30, '#ffaa00');
                     Sfx.attack();
-                    cell.owner = 0; cell.count = 0;
-                    this.passCount = 0;
-                    this.logEvent(`P${this.turn} NEUTRALIZED [${r},${c}]`);
+                    this.logMsg(`P${this.turn} ELIMINATED [${r},${c}]`);
+                    cell.owner=0; cell.count=0;
+                    this.passCount=0;
                 } else {
                     Sfx.error();
-                    this.logEvent(`P${this.turn} ATTACK FAILED`);
+                    this.logMsg(`P${this.turn} FAILED ATTACK ON [${r},${c}]`);
                 }
-
-                this.render();
-                this.switchTurn();
+                
+                this.render(); this.nextTurn();
             },
 
-            passTurn: function() {
+            passTurn() {
                 this.passCount++;
-                this.logEvent(`P${this.turn} PASS`);
-                if(this.passCount >= 2) this.endGame();
-                else this.switchTurn();
+                this.logMsg(`P${this.turn} PASS`);
+                if(this.passCount>=2) this.end(); else this.nextTurn();
             },
 
-            switchTurn: function() {
-                this.turn = this.turn === 1 ? 2 : 1;
-                this.updateHUD();
-                this.checkAI();
+            nextTurn() {
+                this.turn = this.turn===1?2:1;
+                this.updateHUD(); this.checkAI();
             },
 
-            /* --- AI CONTROLLER --- */
-            checkAI: function() {
-                if(!this.ai || this.turn === 1 || this.phase === 'over') return;
+            checkAI() {
+                if(!this.aiType || this.turn===1 || this.phase==='over') return;
+                document.getElementById('ai-status').innerText = "COMPUTING...";
                 
                 setTimeout(() => {
-                    if(this.phase === 'placement') {
-                        let move = {r:0, c:0};
-                        if(this.ai === 'weak') {
-                             move.r = Math.floor(Math.random()*this.rows);
-                             move.c = Math.floor(Math.random()*this.cols);
-                             // Ensure valid
-                             while(this.grid[move.r][move.c].owner === 1) {
-                                move.r = Math.floor(Math.random()*this.rows);
-                                move.c = Math.floor(Math.random()*this.cols);
-                             }
+                    document.getElementById('ai-status').innerText = "";
+                    if(this.phase==='placement') {
+                        let move = AI.getPlacement(this);
+                        // Randomized amount based on difficulty
+                        let amt = 1;
+                        if(this.aiType==='minimax') amt = Math.floor(Math.random()*4)+2;
+                        else amt = Math.floor(Math.random()*5)+1;
+                        
+                        let res = this.p2Res;
+                        if(amt > res) amt = res;
+                        
+                        // Execute manual place to bypass input checks
+                        let cell = this.grid[move.r][move.c];
+                        cell.owner=2; cell.count+=amt; this.p2Res-=amt;
+                        if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; this.logMsg("AI INITIATIVE"); }
+                        Sfx.place();
+                        
+                        // Check Phase Logic dup
+                        if(this.p1Res===0 && this.p2Res===0) {
+                            this.phase = 'attack'; this.turn = this.firstMover;
+                            document.getElementById('phase-bar').innerText = "PHASE: ATTACK";
+                            document.getElementById('phase-bar').style.color = "var(--p2-hex)";
+                            document.getElementById('place-ui').style.display='none';
+                            document.getElementById('attack-ui').style.display='flex';
                         } else {
-                            move = AI.getPlacement(this);
+                            if(this.p1Res>0) this.turn=1;
                         }
-                        
-                        let amt = 0;
-                        if(this.ai === 'weak') amt = Math.floor(Math.random()*5)+1;
-                        else amt = Math.floor(Math.random()*3)+2;
-                        
-                        this.actionPlace(move.r, move.c, amt);
                     } else {
-                        // Attack Phase
-                        let target = AI.getBestAttack(this);
-                        if(target) {
-                            this.actionAttack(target.r, target.c);
+                        // Attack
+                        let atk = AI.getBestAttack(this);
+                        if(atk) {
+                            let cell = this.grid[atk.r][atk.c];
+                            const rect = document.getElementById(`c-${atk.r}-${atk.c}`).getBoundingClientRect();
+                            Vfx.spawn(rect.left+30, rect.top+30, '#ff003c');
+                            Sfx.attack();
+                            cell.owner=0; cell.count=0; this.passCount=0;
+                            this.logMsg(`AI DESTROYED [${atk.r},${atk.c}]`);
                         } else {
-                            this.passTurn();
+                            this.passCount++;
+                            this.logMsg("AI PASS");
+                            if(this.passCount>=2) return this.end();
                         }
+                        this.turn=1;
                     }
+                    this.render(); this.updateHUD();
                 }, 800);
             },
 
-            render: function() {
-                for(let r=0; r<this.rows; r++) {
-                    for(let c=0; c<this.cols; c++) {
-                        const el = document.getElementById(`c-${r}-${c}`);
-                        const d = this.grid[r][c];
-                        el.className = 'cell'; el.innerText = '';
-                        if(d.owner === 1) { el.classList.add('p1'); el.innerText = d.count; }
-                        if(d.owner === 2) { el.classList.add('p2'); el.innerText = d.count; }
-                        
-                        // Attack Highlight
-                        if(this.phase === 'attack' && this.turn === 1 && d.owner === 2) {
-                            let power = 0;
-                            for(let dr=-1; dr<=1; dr++) {
-                                for(let dc=-1; dc<=1; dc++) {
-                                    if(dr===0 && dc===0) continue;
-                                    let nr=r+dr, nc=c+dc;
-                                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols) {
-                                        if(this.grid[nr][nc].owner === 1) power += this.grid[nr][nc].count;
-                                    }
-                                }
-                            }
-                            if(power > d.count) el.classList.add('valid-target');
+            render() {
+                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
+                    let d = this.grid[r][c];
+                    let el = document.getElementById(`c-${r}-${c}`);
+                    el.className = 'cell'; el.innerText = '';
+                    if(d.owner===1) { el.classList.add('p1'); el.innerText=d.count; }
+                    if(d.owner===2) { el.classList.add('p2'); el.innerText=d.count; }
+                    
+                    if(this.phase==='attack' && this.turn===1 && d.owner===2) {
+                        let p = 0;
+                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
+                            if(dr===0&&dc===0)continue;
+                            let nr=r+dr, nc=c+dc;
+                            if(nr>=0&&nr<this.rows&&nc>=0&&nc<this.cols && this.grid[nr][nc].owner===1) p+=this.grid[nr][nc].count;
                         }
+                        if(p>d.count) el.classList.add('valid-target');
                     }
                 }
             },
 
-            updateHUD: function() {
+            updateHUD() {
                 document.getElementById('p1-reserves').innerText = this.p1Res;
                 document.getElementById('p2-reserves').innerText = this.p2Res;
-                document.getElementById('p1-panel').classList.toggle('active', this.turn === 1);
-                document.getElementById('p2-panel').classList.toggle('active', this.turn === 2);
+                document.getElementById('p1-panel').classList.toggle('active-turn', this.turn===1);
+                document.getElementById('p2-panel').classList.toggle('active-turn', this.turn===2);
                 
-                let p1s = 0, p2s = 0;
-                this.grid.forEach(r => r.forEach(c => {
-                    if(c.owner === 1) p1s++;
-                    if(c.owner === 2) p2s++;
-                }));
-                document.getElementById('p1-score').innerText = p1s;
-                document.getElementById('p2-score').innerText = p2s;
+                let s1=0, s2=0;
+                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
+                    if(this.grid[r][c].owner===1) s1++;
+                    if(this.grid[r][c].owner===2) s2++;
+                }
+                document.getElementById('p1-score').innerText=s1;
+                document.getElementById('p2-score').innerText=s2;
+                
+                // Win Prob
+                let total = s1+s2;
+                let pct = total===0 ? 50 : (s1/total)*100;
+                document.getElementById('prob-fill').style.width = pct + "%";
             },
 
-            logEvent: function(msg) {
-                this.log.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
+            logMsg(msg) {
+                this.log.push(msg);
+                const d = document.createElement('div');
+                d.className='log-entry';
+                d.innerHTML = `<span class="log-time">[${new Date().toLocaleTimeString().split(' ')[0]}]</span> ${msg}`;
+                document.getElementById('log-container').prepend(d);
             },
 
-            endGame: function() {
+            end() {
                 this.phase = 'over';
-                let p1 = parseInt(document.getElementById('p1-score').innerText);
-                let p2 = parseInt(document.getElementById('p2-score').innerText);
-                let winner = p1 > p2 ? "PLAYER 1" : (p2 > p1 ? "PLAYER 2" : "DRAW");
-                
+                let s1 = +document.getElementById('p1-score').innerText;
+                let s2 = +document.getElementById('p2-score').innerText;
+                let w = s1>s2?"PLAYER 1":(s2>s1?"PLAYER 2":"DRAW");
                 Sfx.win();
-                DataMgr.saveGame(winner, `${p1} - ${p2}`, this.log);
-                
-                setTimeout(() => {
-                    alert(`MISSION COMPLETE\nVICTOR: ${winner}\nFINAL SCORE: ${p1} - ${p2}\n\nData archived to local terminal.`);
-                    location.reload();
-                }, 1000);
+                DataMgr.save(w, `${s1}-${s2}`, this.log);
+                setTimeout(()=>alert(`GAME OVER\nWINNER: ${w}\n\nDATA SAVED.`), 500);
             }
         };
     </script>
