@@ -3,30 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OBSIDIAN // TACTICAL ENGINE</title>
+    <title>AGGRESSION: OBSIDIAN</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- 1. OBSIDIAN THEME VARIABLES --- */
+        /* --- 1. THE OBSIDIAN PALETTE --- */
         :root {
             --bg-void: #050505;
-            --glass-dark: rgba(5, 8, 10, 0.96);
+            --glass: rgba(10, 12, 16, 0.95);
             
-            /* FACTION COLORS */
+            /* FACTIONS */
             --cyan: #00f3ff;
-            --cyan-dim: rgba(0, 243, 255, 0.1);
+            --cyan-dim: rgba(0, 243, 255, 0.15);
             
             --red: #ff003c;
-            --red-dim: rgba(255, 0, 60, 0.1);
+            --red-dim: rgba(255, 0, 60, 0.15);
             
-            --gold: #ffc400;
-            --gold-dim: rgba(255, 196, 0, 0.1);
+            /* BRANDING */
+            --gold: #ffc400; /* Obsidian Gold */
+            --gold-glow: 0 0 15px rgba(255, 196, 0, 0.3);
             
             --text-main: #e2e8f0;
             --text-muted: #64748b;
-            
-            /* BORDERS */
-            --border-subtle: rgba(255, 255, 255, 0.1);
-            --border-active: rgba(255, 255, 255, 0.3);
             
             /* FONTS */
             --f-head: 'Orbitron', sans-serif;
@@ -44,14 +41,14 @@
             display: flex; justify-content: center; align-items: center;
         }
 
-        /* --- 2. BACKGROUND & FX --- */
+        /* --- 2. ATMOSPHERE --- */
         #starfield {
             position: fixed; inset: 0; z-index: 0;
             background: 
-                radial-gradient(circle at 50% 50%, rgba(20, 25, 30, 0.4) 0%, #000 100%),
+                radial-gradient(circle at 50% 50%, rgba(20, 25, 35, 0.4) 0%, #000 100%),
                 linear-gradient(0deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 60px 60px, 60px 60px;
+            background-size: 100% 100%, 50px 50px, 50px 50px;
             pointer-events: none;
         }
         
@@ -65,23 +62,14 @@
 
         /* --- 3. UI COMPONENTS --- */
         .panel {
-            background: var(--glass-dark);
-            border: 1px solid var(--border-subtle);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
         }
-
-        /* Tech Borders (The yellow corners in your screenshot) */
-        .tech-border { position: relative; }
-        .tech-border::before, .tech-border::after {
-            content: ''; position: absolute; width: 8px; height: 8px;
-            border: 2px solid var(--gold); transition: 0.3s;
-        }
-        .tech-border::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
-        .tech-border::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 
         .btn {
-            background: rgba(255,255,255,0.05); color: var(--cyan);
+            background: rgba(0, 243, 255, 0.05); color: var(--cyan);
             border: 1px solid var(--cyan); padding: 14px; width: 100%;
             font-family: var(--f-head); font-weight: 700; letter-spacing: 2px;
             text-transform: uppercase; cursor: pointer; transition: 0.2s;
@@ -89,31 +77,37 @@
         }
         .btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 20px var(--cyan); }
         
-        .btn-red { color: var(--red); border-color: var(--red); }
+        .btn-red { color: var(--red); border-color: var(--red); background: rgba(255, 0, 60, 0.05); }
         .btn-red:hover { background: var(--red); color: #000; box-shadow: 0 0 20px var(--red); }
 
         input, select {
-            background: #0a0d12; border: 1px solid #333; color: #fff;
+            background: #080a0c; border: 1px solid #333; color: #fff;
             padding: 12px; font-family: var(--f-code); text-align: center;
             width: 100%; outline: none; transition: 0.3s; font-size: 1rem;
         }
-        input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
+        input:focus, select:focus { border-color: var(--gold); box-shadow: var(--gold-glow); }
         label { 
             display: block; color: var(--text-muted); font-size: 0.7rem; 
             letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase; font-weight: 700;
         }
 
-        /* --- 4. SETUP SCREEN (MATCHING SCREENSHOT 1) --- */
+        /* --- 4. SETUP SCREEN (RESTORING "OBSIDIAN" LOOK) --- */
         #setup-layer {
             position: fixed; inset: 0; z-index: 100;
             display: flex; justify-content: center; align-items: center;
             background: rgba(0, 0, 0, 0.9);
         }
-        #setup-box { width: 550px; padding: 50px 40px; display: flex; flex-direction: column; gap: 25px; }
+        #setup-box { 
+            width: 550px; padding: 50px 40px; display: flex; flex-direction: column; gap: 20px; 
+            border: 1px solid rgba(255,255,255,0.1); position: relative;
+        }
+        /* The Corner Accents from Image 1 */
+        #setup-box::before { content:''; position:absolute; top:-1px; left:-1px; width:20px; height:20px; border-top:2px solid var(--gold); border-left:2px solid var(--gold); }
+        #setup-box::after { content:''; position:absolute; bottom:-1px; right:-1px; width:20px; height:20px; border-bottom:2px solid var(--gold); border-right:2px solid var(--gold); }
 
-        .title-obsidian {
+        .title-gradient {
             font-family: var(--f-head); font-size: 3.5rem; margin: 0; line-height: 1;
-            background: linear-gradient(180deg, #fff, #555); /* Metallic Gradient */
+            background: linear-gradient(180deg, #fff 0%, #666 100%); /* Metallic Gradient */
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-align: center; letter-spacing: -1px;
         }
@@ -123,43 +117,38 @@
             border-bottom: 1px solid rgba(255, 196, 0, 0.3); padding-bottom: 15px;
         }
 
-        /* --- 5. GAME INTERFACE (MATCHING SCREENSHOT 3 FIXES) --- */
+        /* --- 5. GAME UI (COMPACT & BALANCED) --- */
         #game-ui {
-            display: none; width: 98vw; height: 95vh;
-            /* Balanced Grid: Sidebars are compact, center is maximized */
+            display: none; width: 98vw; height: 96vh;
+            /* Wider Center Column, Compact Sides */
             grid-template-columns: 260px 1fr 260px;
             grid-template-rows: 60px 1fr 140px;
-            gap: 20px; padding: 20px; z-index: 10;
+            gap: 15px; z-index: 10;
         }
 
-        /* Top Bar */
-        .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
+        /* TOP BAR */
+        .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .phase-pill {
             font-family: var(--f-head); font-size: 1.1rem; color: #fff;
-            background: rgba(255,255,255,0.05); padding: 6px 30px;
+            background: rgba(255,255,255,0.05); padding: 5px 30px;
             border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* Sidebars (FIX: Compact 2x1 Grid for Stats) */
+        /* SIDEBARS (COMPACT GRID FIX) */
         .sidebar {
             grid-row: 2 / 3; display: flex; flex-direction: column; gap: 15px;
             padding: 20px; transition: 0.4s; opacity: 0.4; border: 1px solid transparent;
         }
-        .sidebar.active { opacity: 1; background: rgba(15, 20, 25, 0.9); transform: scale(1.02); }
-        
-        .p1-side.active { border-color: var(--cyan); box-shadow: 0 0 30px rgba(0, 243, 255, 0.15); }
-        .p2-side.active { border-color: var(--red); box-shadow: 0 0 30px rgba(255, 0, 60, 0.15); }
+        .sidebar.active { opacity: 1; background: rgba(15, 20, 25, 0.8); transform: scale(1.01); }
+        .p1-side.active { border: 1px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 243, 255, 0.1); }
+        .p2-side.active { border: 1px solid var(--red); box-shadow: 0 0 30px rgba(255, 0, 60, 0.1); }
 
-        .player-title { 
-            text-align: center; font-family: var(--f-head); font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;
-        }
+        .player-header { font-family: var(--f-head); font-size: 1.4rem; text-align: center; margin-bottom: 10px; font-weight: 700; }
         
-        .stats-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; /* SIDE BY SIDE */
-        }
-        
+        /* The 2x1 Grid for Stats */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .stat-card {
-            background: rgba(0,0,0,0.4); padding: 15px 10px; text-align: center;
+            background: rgba(0,0,0,0.4); padding: 15px 5px; text-align: center;
             border-top: 2px solid #333;
         }
         .p1-side .stat-card { border-color: var(--cyan); }
@@ -168,47 +157,51 @@
         .stat-val { font-family: var(--f-head); font-size: 2rem; color: #fff; line-height: 1; }
         .stat-lbl { font-size: 0.6rem; color: #888; letter-spacing: 1px; margin-top: 5px; font-weight: 700; }
 
-        /* VIEWPORT & GRID (FIXED LOGIC) */
+        /* CENTER BOARD */
         #viewport {
             grid-column: 2 / 3; grid-row: 2 / 3;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; overflow: hidden;
         }
         
+        /* Tactical Map Background for the Grid */
         #grid-mount {
-            /* Container scales to fit smallest dimension */
-            width: min(65vh, 65vw); height: min(65vh, 65vw);
-            padding: 10px; background: rgba(0,0,0,0.5);
+            /* Auto-scaling: Max 70% of screen size */
+            width: min(70vh, 70vw); height: min(70vh, 70vw);
+            padding: 10px; 
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
             border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 0 60px rgba(0,0,0,0.8);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
             display: flex; justify-content: center; align-items: center;
         }
         
-        #grid { 
-            display: grid; gap: 4px; width: 100%; height: 100%;
-        }
+        #grid { display: grid; gap: 4px; width: 100%; height: 100%; }
 
         .cell {
             background: #080a0e; border: 1px solid #1f2937;
             display: flex; justify-content: center; align-items: center;
             font-family: var(--f-head); font-weight: bold; font-size: 1.2rem;
-            cursor: pointer; position: relative; transition: none; /* No Lag */
+            cursor: pointer; position: relative; transition: none;
         }
-        .cell:hover { border-color: #fff; z-index: 10; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .cell:hover { border-color: #fff; z-index: 10; box-shadow: 0 0 20px rgba(255,255,255,0.2); background: #1a1f26; }
         
-        /* Tactical Crosshairs */
-        .cell::before { content:''; position:absolute; top:2px; left:2px; width:4px; height:4px; border-top:1px solid #444; border-left:1px solid #444; }
-        .cell::after { content:''; position:absolute; bottom:2px; right:2px; width:4px; height:4px; border-bottom:1px solid #444; border-right:1px solid #444; }
+        /* Tactical Markers */
+        .cell::before { content:''; position:absolute; top:2px; left:2px; width:3px; height:3px; border-top:1px solid #555; border-left:1px solid #555; }
+        .cell::after { content:''; position:absolute; bottom:2px; right:2px; width:3px; height:3px; border-bottom:1px solid #555; border-right:1px solid #555; }
 
-        .cell.p1 { color: var(--cyan); border-color: var(--cyan); background: rgba(0, 243, 255, 0.1); box-shadow: inset 0 0 15px var(--cyan-dim); }
-        .cell.p2 { color: var(--red); border-color: var(--red); background: rgba(255, 0, 60, 0.1); box-shadow: inset 0 0 15px var(--red-dim); }
+        .cell.p1 { color: var(--cyan); border: 1px solid var(--cyan); background: rgba(0, 243, 255, 0.15); box-shadow: inset 0 0 15px var(--cyan-dim); }
+        .cell.p2 { color: var(--red); border: 1px solid var(--red); background: rgba(255, 0, 60, 0.15); box-shadow: inset 0 0 15px var(--red-dim); }
+        .cell.locked { cursor: not-allowed; opacity: 0.6; }
         .cell.target { animation: pulse 1s infinite; cursor: crosshair; }
         @keyframes pulse { 0% {box-shadow:inset 0 0 0 var(--red);} 50% {box-shadow:inset 0 0 20px var(--red);} }
 
-        /* BOTTOM DECK (SPLIT VIEW) */
+        /* BOTTOM DECK */
         #bottom-deck {
             grid-column: 1 / -1; grid-row: 3 / 4;
-            display: grid; grid-template-columns: 1fr 300px; gap: 20px;
+            display: grid; grid-template-columns: 1fr 350px; gap: 20px;
         }
 
         #console-wrap {
@@ -221,12 +214,11 @@
 
         #controls {
             display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 15px;
-            border-left: 2px solid var(--gold);
+            border-left: 1px solid #333;
         }
         
         #deploy-input-wrap {
-            border: 1px solid #333; padding: 10px; background: #000;
-            display: flex; flex-direction: column; align-items: center;
+            border: 1px solid #333; padding: 5px; background: #000; display: flex; align-items: center; justify-content: center;
         }
         .p1-turn #deploy-input-wrap { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-dim); }
         .p2-turn #deploy-input-wrap { border-color: var(--red); box-shadow: 0 0 15px var(--red-dim); }
@@ -239,7 +231,7 @@
         .modal-box {
             background: #080c10; border: 1px solid var(--gold); padding: 40px;
             width: 700px; max-width: 90%; max-height: 90vh; overflow-y: auto;
-            box-shadow: 0 0 60px rgba(255, 196, 0, 0.1);
+            box-shadow: 0 0 60px rgba(255, 196, 0, 0.15);
         }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-family: var(--f-code); font-size: 0.8rem; text-align: left; }
         th { color: var(--gold); border-bottom: 2px solid #333; padding: 8px; }
@@ -250,7 +242,7 @@
             position: absolute; pointer-events: none; z-index: 500;
             background: rgba(0,0,0,0.95); border: 1px solid #fff;
             padding: 5px 10px; font-size: 0.7rem; color: #fff; font-family: var(--f-code);
-            white-space: nowrap; transform: translate(-50%, -140%);
+            white-space: nowrap; transform: translate(-50%, -130%);
             display: none; box-shadow: 0 10px 30px #000;
         }
 
@@ -268,27 +260,30 @@
     <canvas id="vfx-canvas"></canvas>
 
     <div id="setup-layer">
-        <div id="setup-box" class="panel tech-border">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px;">
+        <div id="setup-box" class="panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px;">
                 <div style="font-family:var(--f-code); color:var(--gold); font-size:0.7rem;">OBSIDIAN PROTOCOL</div>
                 <div style="font-family:var(--f-code); color:#666; font-size:0.7rem;">[STANDBY]</div>
             </div>
 
-            <h1 class="title-obsidian">OBSIDIAN</h1>
-            <div class="subtitle-gold">TACTICAL WARFARE ENGINE</div>
+            <h1 class="title-gradient">AGGRESSION</h1>
+            <div class="subtitle-gold">PROJECT: SINGULARITY // V.FINAL</div>
             
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                <div><label>GRID ROWS</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
-                <div><label>GRID COLS</label><input type="number" id="set-c" value="6" min="3" max="10"></div>
+                <div><label>MATRIX ROWS</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
+                <div><label>MATRIX COLS</label><input type="number" id="set-c" value="6" min="3" max="10"></div>
             </div>
             
             <div>
                 <label>UNIT ALLOCATION (PER COMMANDER)</label>
                 <input type="number" id="set-t" value="36" min="1">
+                <div style="font-size:0.6rem; color:var(--red); margin-top:5px; font-family:var(--f-code);">
+                    WARNING: UNIT STACKING PROHIBITED ON OCCUPIED NODES
+                </div>
             </div>
 
             <div>
-                <label>OPPOSING FORCE</label>
+                <label>OPPOSING INTELLIGENCE</label>
                 <select id="set-ai">
                     <option value="human">HUMAN VS HUMAN</option>
                     <option value="weak">CLASS I: DRONE (WEAK)</option>
@@ -297,21 +292,21 @@
                 </select>
             </div>
 
-            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">INITIALIZE SYSTEM</button>
-            <button class="btn btn-red" onclick="Archive.open()">MISSION LOGS</button>
+            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">INITIALIZE SIMULATION</button>
+            <button class="btn btn-red" onclick="Archive.open()">ACCESS ARCHIVES</button>
         </div>
     </div>
 
     <div id="game-ui">
-        <div class="top-bar panel tech-border">
-            <div style="font-weight:bold; color:#fff; font-size:1.1rem;">OBSIDIAN // ACTIVE</div>
+        <div class="top-bar panel">
+            <div style="font-weight:bold; color:#fff; font-size:1.1rem;">AGGRESSION // ACTIVE</div>
             <div id="phase-ui" class="phase-pill">PLACEMENT PHASE</div>
             <div onclick="location.reload()" style="cursor:pointer; color:#666;">[ABORT MISSION]</div>
         </div>
 
         <div class="sidebar panel p1-side" id="p1-deck">
-            <div class="player-title" style="color:var(--cyan)">PLAYER 1</div>
-            <div class="stats-grid">
+            <div class="player-header" style="color:var(--cyan)">PLAYER 1</div>
+            <div class="stat-grid">
                 <div class="stat-card">
                     <div class="stat-val" id="p1-res">0</div><div class="stat-lbl">RESERVES</div>
                 </div>
@@ -330,8 +325,8 @@
         </div>
 
         <div class="sidebar panel p2-side" id="p2-deck">
-            <div class="player-title" style="color:var(--red)" id="p2-name">PLAYER 2</div>
-            <div class="stats-grid">
+            <div class="player-header" style="color:var(--red)" id="p2-name">PLAYER 2</div>
+            <div class="stat-grid">
                 <div class="stat-card">
                     <div class="stat-val" id="p2-res">0</div><div class="stat-lbl">RESERVES</div>
                 </div>
@@ -361,7 +356,7 @@
     </div>
 
     <div id="log-modal" class="modal-veil" style="display:none;">
-        <div class="modal-box tech-border">
+        <div class="modal-box">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                 <h2 style="margin:0; color:var(--gold);">MISSION ARCHIVES</h2>
                 <span style="cursor:pointer; font-size:1.5rem;" onclick="Archive.close()">×</span>
@@ -425,7 +420,7 @@
 
         /* --- DATA --- */
         const Archive = {
-            key: 'obsidian_logs_v1',
+            key: 'obsidian_logs_v2',
             get() { return JSON.parse(localStorage.getItem(this.key)||"[]"); },
             save(w,s,l) {
                 const db=this.get(); db.unshift({id:Date.now().toString().slice(-6),date:new Date().toLocaleString(),winner:w,score:s});
@@ -479,6 +474,7 @@
 
             buildGrid() {
                 const el = document.getElementById('grid');
+                // FORCE SQUARE GRID
                 el.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
                 el.style.gridTemplateRows = `repeat(${this.rows}, 1fr)`;
                 el.innerHTML = '';
@@ -653,7 +649,6 @@
                 const p2 = document.getElementById('p2-deck');
                 const ctrls = document.getElementById('controls');
                 
-                // Clear old
                 p1.className = `sidebar panel p1-side`;
                 p2.className = `sidebar panel p2-side`;
                 ctrls.className = `panel`;
