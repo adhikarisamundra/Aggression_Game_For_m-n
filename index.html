@@ -8,7 +8,7 @@
     <style>
         :root {
             --bg-deep: #050b14;
-            --panel-bg: rgba(16, 24, 39, 0.85); /* Glass effect */
+            --panel-bg: rgba(16, 24, 39, 0.9);
             --text-main: #e2e8f0;
             --text-muted: #64748b;
             
@@ -18,7 +18,7 @@
             --p2-color: #ff0055; /* Neon Red */
             --p2-glow: rgba(255, 0, 85, 0.6);
             --accent: #00ff9d; /* Matrix Green */
-            --border: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.15);
         }
 
         * { box-sizing: border-box; }
@@ -45,7 +45,7 @@
         /* --- LAYOUT GRID --- */
         #main-layout {
             display: grid;
-            grid-template-columns: 280px 1fr 280px; /* Left Sidebar | Board | Right Sidebar */
+            grid-template-columns: 280px 1fr 280px;
             width: 100%;
             height: 100%;
             padding: 20px;
@@ -54,7 +54,7 @@
             z-index: 10;
         }
 
-        /* --- SIDEBARS (PLAYER STATS) --- */
+        /* --- SIDEBARS --- */
         .sidebar {
             background: var(--panel-bg);
             border: 1px solid var(--border);
@@ -67,184 +67,106 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
             transition: all 0.3s;
         }
-
-        .sidebar.active-turn {
-            border-color: currentColor;
-            box-shadow: 0 0 30px currentColor;
-            transform: scale(1.02);
-        }
-
+        .sidebar.active-turn { border-color: currentColor; box-shadow: 0 0 30px currentColor; transform: scale(1.02); }
         .p1-side { color: var(--p1-color); }
         .p2-side { color: var(--p2-color); }
-
         .player-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px currentColor;
+            font-family: 'Orbitron', sans-serif; font-size: 1.8rem; font-weight: 900;
+            text-transform: uppercase; text-align: center; margin-bottom: 30px;
+            letter-spacing: 2px; text-shadow: 0 0 10px currentColor;
         }
-
         .stat-box {
-            background: rgba(0,0,0,0.3);
-            margin-bottom: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border-left: 4px solid currentColor;
+            background: rgba(0,0,0,0.3); margin-bottom: 20px; padding: 15px;
+            border-radius: 8px; text-align: center; border-left: 4px solid currentColor;
         }
-
         .stat-label { font-size: 0.9rem; opacity: 0.8; letter-spacing: 1px; text-transform: uppercase; }
         .stat-value { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; font-weight: bold; margin-top: 5px; }
 
-        /* --- CENTER AREA (BOARD) --- */
-        #center-stage {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
+        /* --- CENTER AREA --- */
+        #center-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #phase-display {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px var(--accent);
-            background: rgba(0, 255, 157, 0.1);
-            padding: 10px 30px;
-            border-radius: 4px;
-            border: 1px solid var(--accent);
+            font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 4px; margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--accent); background: rgba(0, 255, 157, 0.1);
+            padding: 10px 30px; border-radius: 4px; border: 1px solid var(--accent);
         }
-
         #board-frame {
-            padding: 10px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            padding: 10px; background: rgba(0,0,0,0.5); border-radius: 12px;
+            border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
-
         #grid { display: grid; gap: 6px; }
-
         .cell {
-            width: 60px; height: 60px;
-            background: #111;
-            border-radius: 4px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.4rem;
-            font-weight: bold;
-            cursor: pointer;
-            border: 1px solid #333;
-            color: white;
-            position: relative;
-            transition: all 0.2s;
+            width: 60px; height: 60px; background: #111; border-radius: 4px;
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: bold;
+            cursor: pointer; border: 1px solid #333; color: white;
+            transition: all 0.2s; position: relative;
         }
         .cell:hover { border-color: white; box-shadow: 0 0 15px rgba(255,255,255,0.2); z-index: 2; transform: scale(1.1); }
-        
-        .cell.p1 { 
-            background: rgba(0, 242, 255, 0.15); 
-            border: 2px solid var(--p1-color); 
-            color: var(--p1-color);
-            box-shadow: inset 0 0 20px var(--p1-glow);
-        }
-        .cell.p2 { 
-            background: rgba(255, 0, 85, 0.15); 
-            border: 2px solid var(--p2-color); 
-            color: var(--p2-color);
-            box-shadow: inset 0 0 20px var(--p2-glow);
-        }
-
-        .cell.valid-target {
-            animation: targetPulse 1s infinite;
-            cursor: crosshair;
-        }
+        .cell.p1 { background: rgba(0, 242, 255, 0.15); border: 2px solid var(--p1-color); color: var(--p1-color); box-shadow: inset 0 0 20px var(--p1-glow); }
+        .cell.p2 { background: rgba(255, 0, 85, 0.15); border: 2px solid var(--p2-color); color: var(--p2-color); box-shadow: inset 0 0 20px var(--p2-glow); }
+        .cell.valid-target { animation: targetPulse 1s infinite; cursor: crosshair; }
         @keyframes targetPulse { 0% { box-shadow: 0 0 0 var(--p2-color); } 50% { box-shadow: 0 0 20px var(--p2-color); border-color: white; } 100% { box-shadow: 0 0 0 var(--p2-color); } }
 
         /* --- CONTROLS --- */
         #control-panel {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            background: var(--panel-bg);
-            padding: 15px 30px;
-            border-radius: 50px;
-            border: 1px solid var(--border);
+            margin-top: 20px; display: flex; gap: 15px; align-items: center;
+            background: var(--panel-bg); padding: 15px 30px; border-radius: 50px; border: 1px solid var(--border);
         }
-
         input[type="number"] {
             background: transparent; border: 1px solid var(--text-muted); color: var(--accent);
             padding: 8px; border-radius: 4px; width: 70px; text-align: center; font-size: 1.2rem; font-family: 'Orbitron';
         }
-
         .btn {
             background: var(--accent); color: black; border: none; padding: 10px 25px;
             font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 1.1rem; text-transform: uppercase;
             border-radius: 4px; cursor: pointer; transition: all 0.2s; clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 0 15px var(--accent); background: white; }
-        
         .btn-outline { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); }
         .btn-outline:hover { border-color: white; color: white; box-shadow: none; }
-
+        
         /* --- LOG & HELP --- */
-        #log-container {
-            position: absolute; bottom: 20px; right: 20px; width: 300px; height: 150px;
-            z-index: 50; pointer-events: none; /* Let clicks pass through */
-        }
-        #log-area {
-            width: 100%; height: 100%;
-            overflow-y: hidden;
-            display: flex; flex-direction: column-reverse; /* Newest at bottom visually */
-        }
-        .log-entry {
-            background: rgba(0,0,0,0.7); padding: 5px 10px; margin-top: 4px;
-            font-size: 0.85rem; border-left: 3px solid var(--text-muted);
-            animation: slideIn 0.3s ease-out; pointer-events: auto;
-            color: #ccc;
-        }
+        #log-container { position: absolute; bottom: 20px; right: 20px; width: 300px; height: 150px; z-index: 50; pointer-events: none; }
+        #log-area { width: 100%; height: 100%; overflow-y: hidden; display: flex; flex-direction: column-reverse; }
+        .log-entry { background: rgba(0,0,0,0.7); padding: 5px 10px; margin-top: 4px; font-size: 0.85rem; border-left: 3px solid var(--text-muted); color: #ccc; pointer-events: auto; }
         .log-entry.highlight { border-color: var(--accent); color: var(--accent); }
         .log-entry.error { border-color: var(--p2-color); color: var(--p2-color); }
-        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
         #help-btn {
-            position: absolute; top: 20px; right: 20px;
-            width: 40px; height: 40px; border-radius: 50%;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-            color: white; font-weight: bold; cursor: pointer; font-size: 1.2rem;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 100;
+            position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;
+            font-weight: bold; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; z-index: 100;
         }
-        #help-btn:hover { background: var(--accent); color: black; border-color: var(--accent); }
 
         /* --- MODALS --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 5, 10, 0.95);
-            display: none; justify-content: center; align-items: center; z-index: 9999;
+            background: rgba(0, 5, 10, 0.95); display: none; justify-content: center; align-items: center; z-index: 9999;
         }
         .modal-content {
             background: #0f172a; padding: 40px; max-width: 600px; width: 90%;
-            border: 1px solid var(--accent); border-radius: 8px;
-            box-shadow: 0 0 50px rgba(0, 255, 157, 0.2);
-            position: relative;
+            border: 1px solid var(--accent); border-radius: 8px; box-shadow: 0 0 50px rgba(0, 255, 157, 0.2);
+            position: relative; max-height: 90vh; overflow-y: auto;
         }
         .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
         
         h2 { color: var(--accent); font-family: 'Orbitron'; text-transform: uppercase; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         p, li { line-height: 1.6; color: #cbd5e1; }
-        strong { color: white; }
 
-        /* Setup Screen Styling */
+        /* ARCHIVE LIST STYLE */
+        .archive-item {
+            background: #1e293b; padding: 15px; margin-bottom: 10px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 4px solid var(--text-muted);
+        }
+        .archive-item.p1-won { border-color: var(--p1-color); }
+        .archive-item.p2-won { border-color: var(--p2-color); }
+        .archive-info { font-family: 'Rajdhani'; }
+        .archive-date { font-size: 0.8rem; color: #64748b; }
+        .archive-result { font-size: 1.2rem; font-weight: bold; color: white; }
+        .archive-actions button { margin-left: 5px; font-size: 0.8rem; padding: 5px 10px; }
+
+        /* SETUP STYLES */
         #setup-screen { text-align: center; }
         #setup-screen input, #setup-screen select {
             background: #1e293b; border: 1px solid #475569; color: white;
@@ -259,7 +181,7 @@
             .player-title { font-size: 1.2rem; margin: 0; display: flex; align-items: center; }
             .stat-box { margin: 0; padding: 5px 15px; }
             .stat-value { font-size: 1.5rem; }
-            #log-container { display: none; } /* Hide log on mobile to save space */
+            #log-container { display: none; }
         }
     </style>
 </head>
@@ -267,38 +189,35 @@
 
     <div id="rules-modal" class="modal-overlay">
         <div class="modal-content">
-            <button class="close-btn" onclick="toggleRules()">×</button>
+            <button class="close-btn" onclick="toggleModal('rules-modal')">×</button>
             <h2>How to Play</h2>
-            
             <div style="margin-bottom: 20px;">
                 <h3 style="color: var(--p1-color)">Phase 1: Placement</h3>
-                <p>Players take turns placing troops on the board.</p>
-                <ul>
-                    <li>You can place multiple troops on a single tile.</li>
-                    <li><strong>Strategy:</strong> Stack troops together to create strongholds.</li>
-                </ul>
+                <p>Players take turns placing troops. Stack troops to create strongholds.</p>
             </div>
-
             <div style="margin-bottom: 20px;">
                 <h3 style="color: var(--p2-color)">Phase 2: Attack</h3>
-                <p>The player who placed the <strong>very first troop</strong> gets to attack first.</p>
-                <ul>
-                    <li>Click an enemy tile to attack it.</li>
-                    <li><strong>The Math:</strong> Add up ALL your troops that surround the target.</li>
-                    <li>If <strong>Your Surrounding Sum > Enemy Stack</strong>, the enemy is removed.</li>
-                </ul>
+                <p>Rule: Player who placed the <strong>very first troop</strong> attacks first.</p>
+                <p>If Sum of Your Surrounding Troops > Enemy Stack, enemy is removed.</p>
             </div>
-
             <div>
                 <h3 style="color: var(--accent)">AI Personalities</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 8px;"><strong style="color: #999">Weak AI:</strong> Moves completely randomly. Useful for learning the mechanics.</li>
-                    <li style="margin-bottom: 8px;"><strong style="color: #ea580c">Strategic AI:</strong> Tries to group troops together (clustering) and targets your largest stacks.</li>
-                    <li><strong style="color: var(--accent)">Smart AI:</strong> Calculates "Threat Levels." It defends areas where it is vulnerable and attacks your most dangerous units.</li>
-                </ul>
+                <p><strong>Weak:</strong> Random. <strong>Strategic:</strong> Clusters. <strong>Smart:</strong> Calculates Threat.</p>
             </div>
             <br>
-            <button class="btn" style="width:100%" onclick="toggleRules()">INITIATE</button>
+            <button class="btn" style="width:100%" onclick="toggleModal('rules-modal')">ACKNOWLEDGE</button>
+        </div>
+    </div>
+
+    <div id="archives-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" onclick="toggleModal('archives-modal')">×</button>
+            <h2>MISSION ARCHIVES</h2>
+            <div id="archives-list" style="max-height: 400px; overflow-y: auto;">
+                <p style="text-align:center; color:#64748b;">No mission data found.</p>
+            </div>
+            <br>
+            <button class="btn btn-outline" style="width:100%" onclick="clearArchives()">PURGE ALL DATA</button>
         </div>
     </div>
 
@@ -308,8 +227,8 @@
             <div id="final-score" style="font-size: 1.5rem; margin-bottom: 30px; font-family: 'Orbitron';">P1: 15 - P2: 12</div>
             
             <button class="btn" onclick="restartGame()">RE-DEPLOY</button>
-            <button class="btn btn-outline" style="margin-top: 10px; width: 100%" onclick="returnToMenu()">MAIN MENU</button>
-            <button class="btn btn-outline" style="margin-top: 10px; width: 100%" onclick="downloadLog()">SAVE LOG DATA</button>
+            <button class="btn btn-outline" style="margin-top: 10px; width: 100%" onclick="saveAndExit()">SAVE TO ARCHIVE & EXIT</button>
+            <button class="btn btn-outline" style="margin-top: 10px; width: 100%" onclick="returnToMenu()">EXIT WITHOUT SAVING</button>
         </div>
     </div>
 
@@ -336,14 +255,16 @@
             </select>
 
             <button class="btn" style="width: 100%; font-size: 1.2rem; margin-top: 10px;" onclick="startGame()">INITIALIZE SYSTEM</button>
-            <button class="btn btn-outline" style="width: 100%; margin-top: 10px; border:none;" onclick="toggleRules()">READ PROTOCOLS</button>
+            <button class="btn btn-outline" style="width: 100%; margin-top: 10px; border:none;" onclick="openArchives()">MISSION ARCHIVES</button>
         </div>
     </div>
 
-    <button id="help-btn" onclick="toggleRules()">?</button>
+    <button id="help-btn" onclick="toggleModal('rules-modal')">?</button>
     <div id="log-container"><div id="log-area"></div></div>
 
-    <div id="main-layout" style="display: none;"> <div class="sidebar p1-side" id="p1-sidebar">
+    <div id="main-layout" style="display: none;">
+        
+        <div class="sidebar p1-side" id="p1-sidebar">
             <div class="player-title">PLAYER 1</div>
             <div class="stat-box">
                 <div class="stat-label">RESERVES</div>
@@ -400,39 +321,129 @@
             logHistory: []
         };
 
-        // --- UI UTILS ---
-        function toggleRules() {
-            const modal = document.getElementById('rules-modal');
+        // --- MODAL UTILS ---
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
             modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
         }
 
+        // --- LOCAL STORAGE & ARCHIVES ---
+        function getArchives() {
+            const data = localStorage.getItem('aggression_archives');
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveToArchives() {
+            const archives = getArchives();
+            const p1Score = parseInt(document.getElementById('p1-score').innerText);
+            const p2Score = parseInt(document.getElementById('p2-score').innerText);
+            
+            let winner = "DRAW";
+            if(p1Score > p2Score) winner = "PLAYER 1";
+            if(p2Score > p1Score) winner = "PLAYER 2";
+
+            const missionData = {
+                id: Date.now(),
+                date: new Date().toLocaleString(),
+                winner: winner,
+                score: `P1: ${p1Score} - P2: ${p2Score}`,
+                logs: Game.logHistory
+            };
+
+            archives.unshift(missionData); // Add to beginning
+            // Limit to last 20 games to save space
+            if(archives.length > 20) archives.pop();
+            
+            localStorage.setItem('aggression_archives', JSON.stringify(archives));
+            alert("Mission data archived successfully.");
+        }
+
+        function openArchives() {
+            const list = document.getElementById('archives-list');
+            const archives = getArchives();
+            list.innerHTML = '';
+
+            if(archives.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#64748b;">No mission data found.</p>';
+            } else {
+                archives.forEach(item => {
+                    const div = document.createElement('div');
+                    let winClass = '';
+                    if(item.winner === "PLAYER 1") winClass = 'p1-won';
+                    if(item.winner === "PLAYER 2") winClass = 'p2-won';
+
+                    div.className = `archive-item ${winClass}`;
+                    div.innerHTML = `
+                        <div class="archive-info">
+                            <div class="archive-result">${item.winner}</div>
+                            <div class="archive-date">${item.date} | ${item.score}</div>
+                        </div>
+                        <div class="archive-actions">
+                            <button class="btn-outline" onclick="downloadArchivedLog(${item.id})">⬇ LOG</button>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+            toggleModal('archives-modal');
+        }
+
+        function downloadArchivedLog(id) {
+            const archives = getArchives();
+            const mission = archives.find(m => m.id === id);
+            if(!mission) return;
+            
+            let content = `AGGRESSION MISSION LOG\nID: ${mission.id}\nDate: ${mission.date}\nResult: ${mission.winner} (${mission.score})\n------------------------\n`;
+            content += mission.logs.join('\n');
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `mission_${id}.txt`;
+            a.click();
+        }
+
+        function clearArchives() {
+            if(confirm("Are you sure? This will delete all saved game history.")) {
+                localStorage.removeItem('aggression_archives');
+                openArchives(); // Refresh view
+            }
+        }
+
+        function saveAndExit() {
+            saveToArchives();
+            returnToMenu();
+        }
+
+        // --- LOGGING ---
         function log(msg, type='neutral') {
             const area = document.getElementById('log-area');
             const entry = document.createElement('div');
             entry.className = `log-entry ${type}`;
             const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
             entry.innerText = `[${time}] ${msg}`;
-            area.appendChild(entry); // Add to bottom
-            area.scrollTop = area.scrollHeight; // Auto scroll
+            area.appendChild(entry); 
+            area.scrollTop = area.scrollHeight;
             Game.logHistory.push(`[${time}] ${msg}`);
         }
 
         function downloadLog() {
+            // Download current session log
             if(Game.logHistory.length === 0) return;
-            let content = `AGGRESSION GAME LOG\nGenerated: ${new Date().toLocaleString()}\n------------------------\n`;
+            let content = `AGGRESSION CURRENT LOG\nGenerated: ${new Date().toLocaleString()}\n------------------------\n`;
             content += Game.logHistory.join('\n');
             const blob = new Blob([content], { type: 'text/plain' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `aggression_log_${Date.now()}.txt`;
+            a.download = `current_session.txt`;
             a.click();
         }
 
+        // --- HUD UPDATE ---
         function updateHUD() {
             document.getElementById('p1-reserves').innerText = Game.p1Reserves;
             document.getElementById('p2-reserves').innerText = Game.p2Reserves;
             
-            // Sidebar glow effects
             const s1 = document.getElementById('p1-sidebar');
             const s2 = document.getElementById('p2-sidebar');
             s1.classList.toggle('active-turn', Game.turn === 1);
@@ -476,9 +487,8 @@
                 Game.grid.push(row);
             }
 
-            // UI Reveal
             document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('main-layout').style.display = 'grid'; // Enable Grid Layout
+            document.getElementById('main-layout').style.display = 'grid'; 
             document.getElementById('game-over-modal').style.display = 'none';
             document.getElementById('log-area').innerHTML = '';
             
@@ -538,7 +548,7 @@
             }
         }
 
-        // --- GAME LOGIC ---
+        // --- INPUT & PHASES ---
         function handleInput(r, c) {
             if(Game.phase === 'gameover' || Game.isAiProcessing) return;
             if(Game.aiType && Game.turn === 2) return;
@@ -553,9 +563,8 @@
             const reserves = Game.turn === 1 ? Game.p1Reserves : Game.p2Reserves;
 
             if(cell.owner !== 0 && cell.owner !== Game.turn) { log("Target hostile occupied. Invalid.", "error"); return; }
-            if(amt > reserves) return; // Silent fail if logic error, visual handled by UI
+            if(amt > reserves) return; 
 
-            // Execute
             const actualAmt = Math.min(amt, reserves);
             cell.owner = Game.turn;
             cell.count += actualAmt;
@@ -592,7 +601,6 @@
             const target = Game.grid[r][c];
             if(target.owner === 0 || target.owner === Game.turn) { log("Invalid Target.", "error"); return; }
 
-            // Calc Power
             let power = 0;
             for(let dr=-1; dr<=1; dr++) {
                 for(let dc=-1; dc<=1; dc++) {
@@ -628,7 +636,7 @@
             checkAI();
         }
 
-        // --- ADVANCED AI ---
+        // --- AI LOGIC ---
         function checkAI() {
             if(!Game.aiType || Game.turn === 1 || Game.phase === 'gameover') return;
             Game.isAiProcessing = true;
@@ -662,21 +670,15 @@
             let moves = [];
             for(let r=0; r<Game.rows; r++) {
                 for(let c=0; c<Game.cols; c++) {
-                    if(Game.grid[r][c].owner === 1) continue; // Skip P1
+                    if(Game.grid[r][c].owner === 1) continue;
                     let score = Math.random(); 
-                    
                     if(Game.aiType !== 'weak') {
                         let n = getNeighbors(r, c);
-                        // Strategic: Like friends
                         if(Game.aiType === 'strategic') score += (n.friends * 2);
-                        
-                        // Smart: Complex Heuristic
                         if(Game.aiType === 'smart') {
-                            score += (n.friends * 3); // Strong clustering
-                            score -= (n.enemies * 1); // Avoid direct contact early if surrounded
-                            if(n.enemies === 0) score += 1; // Safe spots
-                            
-                            // Prefer Center
+                            score += (n.friends * 3); 
+                            score -= (n.enemies * 1); 
+                            if(n.enemies === 0) score += 1;
                             let centerDist = Math.abs(r - Game.rows/2) + Math.abs(c - Game.cols/2);
                             score -= (centerDist * 0.5);
                         }
@@ -684,15 +686,11 @@
                     moves.push({r, c, score});
                 }
             }
-            
             moves.sort((a,b) => b.score - a.score);
             let best = moves[0] || {r:0, c:0};
-            
-            // Amount
             let amt = (Game.aiType === 'weak') ? Math.floor(Math.random()*5)+1 : Math.floor(Math.random()*3)+2;
             amt = Math.min(amt, Game.p2Reserves);
             
-            // Execute
             let cell = Game.grid[best.r][best.c];
             cell.owner = 2; cell.count += amt; Game.p2Reserves -= amt;
             
@@ -707,7 +705,7 @@
             let attacks = [];
             for(let r=0; r<Game.rows; r++) {
                 for(let c=0; c<Game.cols; c++) {
-                    if(Game.grid[r][c].owner === 1) { // Enemy
+                    if(Game.grid[r][c].owner === 1) { 
                         let power = 0;
                         for(let dr=-1; dr<=1; dr++) {
                             for(let dc=-1; dc<=1; dc++) {
@@ -718,17 +716,13 @@
                                 }
                             }
                         }
-                        
                         if(power > Game.grid[r][c].count) {
-                            let val = Game.grid[r][c].count; // Value of kill
-                            let threat = 0; // How dangerous is this enemy to me?
-                            
+                            let val = Game.grid[r][c].count;
+                            let threat = 0;
                             if(Game.aiType === 'smart') {
-                                // Calculate how many of MY units this enemy neighbors
                                 let n = getNeighbors(r, c);
                                 threat = n.friends; 
                             }
-                            
                             attacks.push({r, c, score: val + (threat * 2)});
                         }
                     }
@@ -757,11 +751,8 @@
                     el.className = 'cell'; el.innerText = '';
                     if(d.owner === 1) { el.classList.add('p1'); el.innerText = d.count; }
                     if(d.owner === 2) { el.classList.add('p2'); el.innerText = d.count; }
-                    
-                    // Visual Aid: Highlight Valid Targets for Human
                     if(Game.phase === 'attack' && Game.turn === 1 && d.owner === 2) {
                          let power = 0;
-                         // ... recalculate power for visualization ...
                          for(let dr=-1; dr<=1; dr++) {
                             for(let dc=-1; dc<=1; dc++) {
                                 if(dr===0 && dc===0) continue;
@@ -782,11 +773,9 @@
             let p1 = parseInt(document.getElementById('p1-score').innerText);
             let p2 = parseInt(document.getElementById('p2-score').innerText);
             const wDisplay = document.getElementById('winner-display');
-            
             if(p1 > p2) { wDisplay.innerText = "PLAYER 1 WINS"; wDisplay.style.color = "var(--p1-color)"; }
             else if(p2 > p1) { wDisplay.innerText = "PLAYER 2 WINS"; wDisplay.style.color = "var(--p2-color)"; }
             else { wDisplay.innerText = "DRAW MATCH"; wDisplay.style.color = "var(--accent)"; }
-            
             document.getElementById('final-score').innerText = `P1: ${p1}  //  P2: ${p2}`;
             document.getElementById('game-over-modal').style.display = 'flex';
         }
