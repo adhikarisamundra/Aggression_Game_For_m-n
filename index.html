@@ -246,3 +246,139 @@
     </style>
 </head>
 <body>
+    <div id="starfield"></div>
+    <div class="scanlines"></div>
+    <canvas id="vfx-canvas"></canvas>
+
+    <div id="setup-layer">
+        <div id="setup-box" class="panel glow-sys">
+            <h1>AGGRESSION</h1>
+            <div class="subtitle">STRATEGIC WARFARE SIMULATOR</div>
+            
+            <div style="display:flex; gap:15px;">
+                <div style="flex:1"><label>Grid Rows</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
+                <div style="flex:1"><label>Grid Cols</label><input type="number" id="set-c" value="6" min="3" max="10"></div>
+            </div>
+            
+            <div>
+                <label>Total Troops</label>
+                <input type="number" id="set-t" value="36" min="1">
+                <div style="font-size:0.7rem; color:var(--red-core); margin-top:8px; font-family:var(--font-data);">
+                    WARNING: UNIT STACKING PROHIBITED ON OCCUPIED SECTORS
+                </div>
+            </div>
+
+            <div>
+                <label>Opponent Intelligence</label>
+                <select id="set-ai">
+                    <option value="human">Human vs Human</option>
+                    <option value="weak">Weak AI (Random)</option>
+                    <option value="strategic">Strategic AI (Aggressive)</option>
+                    <option value="smart" selected>Smart AI (Simulation)</option>
+                </select>
+            </div>
+
+            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">Initialize System</button>
+            <button class="btn btn-red" onclick="Archive.open()">Mission Logs</button>
+            <button class="btn" style="border-color:var(--gold-core); color:var(--gold-core);" onclick="Rules.open()">Access Rules</button>
+        </div>
+    </div>
+
+    <div id="game-ui">
+        <div class="top-bar panel glow-sys">
+            <div style="font-weight:bold; color:#fff; font-size:1.2rem; font-family:var(--font-head);">AGGRESSION // ACTIVE</div>
+            <div id="phase-ui" class="phase-pill">PLACEMENT PHASE</div>
+            <div onclick="location.reload()" style="cursor:pointer; color:var(--text-muted); font-size:0.9rem;">[ABORT]</div>
+        </div>
+
+        <div class="sidebar panel p1-side" id="p1-deck">
+            <div style="color:var(--cyan-core); font-weight:bold; text-align:center; font-size:1.4rem; font-family:var(--font-head);">PLAYER 1</div>
+            <div class="stat-card">
+                <div class="stat-val" id="p1-res">0</div><div class="stat-lbl">RESERVES</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="p1-score">0</div><div class="stat-lbl">TERRITORY</div>
+            </div>
+        </div>
+
+        <div id="viewport">
+            <div id="ai-think">>> OPPONENT COMPUTING OPTIMAL VECTOR...</div>
+            <div id="grid-mount">
+                <div id="grid"></div>
+                <div id="predict-hud"></div>
+            </div>
+        </div>
+
+        <div class="sidebar panel p2-side" id="p2-deck">
+            <div style="color:var(--red-core); font-weight:bold; text-align:center; font-size:1.4rem; font-family:var(--font-head);" id="p2-name">PLAYER 2</div>
+            <div class="stat-card">
+                <div class="stat-val" id="p2-res">0</div><div class="stat-lbl">RESERVES</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="p2-score">0</div><div class="stat-lbl">TERRITORY</div>
+            </div>
+        </div>
+
+        <div id="console-wrap" class="panel"></div>
+
+        <div id="controls" class="panel glow-sys">
+            <div id="ui-place">
+                <label>Deployment Size</label>
+                <input type="number" id="deploy-val" value="1" min="1" style="background:#000; font-size:1.4rem; margin:10px 0;">
+                <div style="font-size:0.65rem; color:#666;">CLICK EMPTY TILE TO CONFIRM</div>
+            </div>
+            <div id="ui-attack" style="display:none;">
+                <div style="text-align:center; color:var(--red-core); font-weight:bold; margin-bottom:10px; font-size:1.2rem;">COMBAT ACTIVE</div>
+                <button class="btn btn-red" onclick="Engine.pass()">PASS TURN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="log-modal" class="modal-veil">
+        <div class="modal-box">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <h2 style="margin:0; color:var(--gold-core);">MISSION LOGS</h2>
+                <span style="cursor:pointer; font-size:1.5rem;" onclick="Archive.close()">×</span>
+            </div>
+            <table>
+                <thead><tr><th>ID</th><th>DATE</th><th>WINNER</th><th>SCORE</th></tr></thead>
+                <tbody id="log-body"></tbody>
+            </table>
+            
+            <div style="margin-top:25px; border-top:1px solid #333; padding-top:15px;">
+                <label>DATA SYNC (EXPORT/IMPORT)</label>
+                <textarea id="sync-code" style="width:100%; height:60px; background:#000; color:var(--sys-success); border:1px solid #333; font-family:monospace; font-size:0.7rem; resize:none; padding:10px;" readonly placeholder="Export string will appear here..."></textarea>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Archive.export()">COPY CODE</button>
+                    <button class="btn" style="flex:1; font-size:0.8rem;" onclick="Archive.import()">IMPORT CODE</button>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
+                <button class="btn btn-red" onclick="Archive.wipe()">SECURE DELETE (PASSWORD REQ)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal-veil">
+        <div class="modal-box">
+            <h2 style="color:var(--cyan-core); margin-bottom:20px;">GAME PROTOCOLS</h2>
+            <div class="rules-text">
+                <h3>Phase 1: Placement</h3>
+                <p>Players take turns placing troops. You can place multiple troops on a single tile to create strongholds. <strong>Constraint:</strong> You cannot place troops on a tile that is already occupied.</p>
+                
+                <h3 style="color:var(--red-core)">Phase 2: Attack</h3>
+                <p>The player who placed the <strong>very first troop</strong> attacks first. Click an enemy tile to attack. <br><strong>The Math:</strong> Add up ALL your troops surrounding the target. If Sum > Enemy Stack, target is removed.</p>
+                
+                <h3 style="color:var(--gold-core)">AI Personalities</h3>
+                <ul class="ai-list" style="list-style:none; padding:0;">
+                    <li><strong>Weak AI:</strong> Moves completely randomly.</li>
+                    <li><strong>Strategic AI:</strong> Groups troops (clustering) and targets large stacks.</li>
+                    <li><strong>Smart AI:</strong> Calculates threat levels, simulates future moves, and builds defensive walls.</li>
+                </ul>
+            </div>
+            <button class="btn" style="margin-top:20px; width:100%;" onclick="Rules.close()">ACKNOWLEDGE</button>
+        </div>
+    </div>
+
+    
