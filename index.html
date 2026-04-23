@@ -1,738 +1,1460 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGGRESSION: OBSIDIAN</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <style>
-        /* --- 1. THE OBSIDIAN PALETTE --- */
-        :root {
-            --bg-void: #050505;
-            --glass: rgba(10, 12, 16, 0.95);
-            
-            /* FACTIONS */
-            --cyan: #00f3ff;
-            --cyan-dim: rgba(0, 243, 255, 0.15);
-            
-            --red: #ff003c;
-            --red-dim: rgba(255, 0, 60, 0.15);
-            
-            /* BRANDING */
-            --gold: #ffc400; /* Obsidian Gold */
-            --gold-glow: 0 0 15px rgba(255, 196, 0, 0.3);
-            
-            --text-main: #e2e8f0;
-            --text-muted: #64748b;
-            
-            /* FONTS */
-            --f-head: 'Orbitron', sans-serif;
-            --f-ui: 'Rajdhani', sans-serif;
-            --f-code: 'Share Tech Mono', monospace;
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>AGGRESSION: OBSIDIAN // NEXUS ENGINE</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --void:#02040a;
+  --glass:rgba(4,8,16,0.92);
+  --cyan:#00e5ff;
+  --cyan-d:rgba(0,229,255,0.12);
+  --red:#ff1744;
+  --red-d:rgba(255,23,68,0.12);
+  --gold:#ffab00;
+  --gold-d:rgba(255,171,0,0.15);
+  --emerald:#00e676;
+  --silver:#b0bec5;
+  --border:rgba(255,255,255,0.08);
+  --fh:'Orbitron',sans-serif;
+  --fm:'Rajdhani',sans-serif;
+  --fc:'Share Tech Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--void);}
+body{display:flex;flex-direction:column;font-family:var(--fm);color:var(--silver);}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-        
-        body {
-            background-color: var(--bg-void);
-            color: var(--text-main);
-            font-family: var(--f-ui);
-            height: 100vh; overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
-        }
+/* ── SCANLINES OVERLAY ─────────────────────────────────────────────── */
+#scanlines{
+  position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 1px,rgba(0,0,0,0.15) 1px,rgba(0,0,0,0.15) 2px);
+  mix-blend-mode:overlay;
+}
 
-        /* --- 2. ATMOSPHERE --- */
-        #starfield {
-            position: fixed; inset: 0; z-index: 0;
-            background: 
-                radial-gradient(circle at 50% 50%, rgba(20, 25, 35, 0.4) 0%, #000 100%),
-                linear-gradient(0deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 50px 50px, 50px 50px;
-            pointer-events: none;
-        }
-        
-        .scanlines {
-            position: fixed; inset: 0; z-index: 900; pointer-events: none;
-            background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-            background-size: 100% 4px; opacity: 0.6;
-        }
+/* ── SETUP SCREEN ──────────────────────────────────────────────────── */
+#setup{
+  position:fixed;inset:0;z-index:5000;background:var(--void);
+  display:flex;justify-content:center;align-items:center;
+}
+.setup-inner{
+  width:520px;padding:48px 40px;position:relative;
+  background:rgba(4,8,16,0.95);
+  border:1px solid rgba(255,171,0,0.25);
+  box-shadow:0 0 80px rgba(255,171,0,0.07),inset 0 0 40px rgba(0,0,0,0.5);
+}
+.setup-inner::before,.setup-inner::after{
+  content:'';position:absolute;width:18px;height:18px;
+}
+.setup-inner::before{top:-1px;left:-1px;border-top:2px solid var(--gold);border-left:2px solid var(--gold);}
+.setup-inner::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold);}
+.setup-logo{font-family:var(--fh);font-size:3.2rem;text-align:center;letter-spacing:-1px;
+  background:linear-gradient(170deg,#fff 0%,#888 60%,#444 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.setup-sub{text-align:center;color:var(--gold);font-family:var(--fc);font-size:.65rem;
+  letter-spacing:5px;padding-bottom:18px;margin-bottom:24px;border-bottom:1px solid rgba(255,171,0,0.2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.f-group{display:flex;flex-direction:column;gap:6px;}
+.f-group label{font-size:.62rem;color:rgba(176,190,197,0.5);letter-spacing:1.5px;font-weight:700;text-transform:uppercase;}
+.f-group input,.f-group select{
+  background:#050810;border:1px solid rgba(255,255,255,0.1);
+  color:#fff;padding:11px;font-family:var(--fc);font-size:.9rem;
+  outline:none;transition:.25s;width:100%;
+  -webkit-appearance:none;
+}
+.f-group input:focus,.f-group select:focus{border-color:var(--gold);box-shadow:0 0 15px rgba(255,171,0,0.2);}
+.setup-note{font-size:.6rem;color:var(--red);font-family:var(--fc);margin-top:4px;}
+.btn{
+  width:100%;padding:14px;cursor:pointer;font-family:var(--fh);
+  font-size:.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  border:1px solid var(--cyan);color:var(--cyan);
+  background:rgba(0,229,255,0.04);
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+  transition:.2s;margin-top:10px;
+}
+.btn:hover{background:var(--cyan);color:#000;box-shadow:0 0 30px rgba(0,229,255,0.4);}
+.btn-red{border-color:var(--red);color:var(--red);background:rgba(255,23,68,0.04);}
+.btn-red:hover{background:var(--red);color:#fff;box-shadow:0 0 30px rgba(255,23,68,0.4);}
+.btn-gold{border-color:var(--gold);color:var(--gold);background:rgba(255,171,0,0.04);}
+.btn-gold:hover{background:var(--gold);color:#000;box-shadow:0 0 30px rgba(255,171,0,0.4);}
+.btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
 
-        #vfx-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 800; }
+/* ── HEADER BAR ────────────────────────────────────────────────────── */
+#hdr{
+  height:54px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  background:rgba(2,4,10,0.95);
+  border-bottom:1px solid var(--border);
+  z-index:100;
+}
+.hdr-brand{font-family:var(--fh);font-size:.95rem;color:#fff;letter-spacing:2px;}
+.hdr-brand span{color:var(--gold);}
+#phase-pill{
+  font-family:var(--fh);font-size:.75rem;letter-spacing:2px;
+  padding:4px 20px;border:1px solid rgba(255,255,255,0.15);color:#fff;
+  transition:.4s;
+}
+.hdr-actions{display:flex;gap:10px;}
+.hdr-btn{
+  padding:6px 14px;font-family:var(--fc);font-size:.65rem;letter-spacing:1px;
+  cursor:pointer;border:1px solid var(--border);color:rgba(176,190,197,0.6);
+  background:transparent;transition:.2s;
+}
+.hdr-btn:hover{border-color:var(--gold);color:var(--gold);}
 
-        /* --- 3. UI COMPONENTS --- */
-        .panel {
-            background: var(--glass);
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(15px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-        }
+/* ── MAIN LAYOUT ───────────────────────────────────────────────────── */
+#app{flex:1;display:grid;grid-template-columns:240px 1fr 240px;overflow:hidden;}
 
-        .btn {
-            background: rgba(0, 243, 255, 0.05); color: var(--cyan);
-            border: 1px solid var(--cyan); padding: 14px; width: 100%;
-            font-family: var(--f-head); font-weight: 700; letter-spacing: 2px;
-            text-transform: uppercase; cursor: pointer; transition: 0.2s;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-        }
-        .btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 20px var(--cyan); }
-        
-        .btn-red { color: var(--red); border-color: var(--red); background: rgba(255, 0, 60, 0.05); }
-        .btn-red:hover { background: var(--red); color: #000; box-shadow: 0 0 20px var(--red); }
+/* ── SIDEBARS ──────────────────────────────────────────────────────── */
+.sidebar{
+  padding:20px 16px;display:flex;flex-direction:column;gap:14px;
+  border-right:1px solid var(--border);
+  background:rgba(2,4,10,0.6);
+  transition:.4s;overflow-y:auto;
+}
+#sb-right{border-right:none;border-left:1px solid var(--border);}
+.sidebar.active-p1{border-right:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.03);}
+.sidebar.active-p2{border-left:1px solid rgba(255,23,68,0.3);background:rgba(255,23,68,0.03);}
 
-        input, select {
-            background: #080a0c; border: 1px solid #333; color: #fff;
-            padding: 12px; font-family: var(--f-code); text-align: center;
-            width: 100%; outline: none; transition: 0.3s; font-size: 1rem;
-        }
-        input:focus, select:focus { border-color: var(--gold); box-shadow: var(--gold-glow); }
-        label { 
-            display: block; color: var(--text-muted); font-size: 0.7rem; 
-            letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase; font-weight: 700;
-        }
+.player-header{
+  font-family:var(--fh);font-size:1rem;text-align:center;letter-spacing:2px;
+  padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+.p1-color{color:var(--cyan);text-shadow:0 0 20px rgba(0,229,255,0.4);}
+.p2-color{color:var(--red);text-shadow:0 0 20px rgba(255,23,68,0.4);}
 
-        /* --- 4. SETUP SCREEN (RESTORING "OBSIDIAN" LOOK) --- */
-        #setup-layer {
-            position: fixed; inset: 0; z-index: 100;
-            display: flex; justify-content: center; align-items: center;
-            background: rgba(0, 0, 0, 0.9);
-        }
-        #setup-box { 
-            width: 550px; padding: 50px 40px; display: flex; flex-direction: column; gap: 20px; 
-            border: 1px solid rgba(255,255,255,0.1); position: relative;
-        }
-        /* The Corner Accents from Image 1 */
-        #setup-box::before { content:''; position:absolute; top:-1px; left:-1px; width:20px; height:20px; border-top:2px solid var(--gold); border-left:2px solid var(--gold); }
-        #setup-box::after { content:''; position:absolute; bottom:-1px; right:-1px; width:20px; height:20px; border-bottom:2px solid var(--gold); border-right:2px solid var(--gold); }
+.stat-block{
+  background:rgba(0,0,0,0.4);padding:14px;text-align:center;
+  border:1px solid var(--border);position:relative;overflow:hidden;
+}
+.stat-block::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.p1-stat::after{background:var(--cyan);}
+.p2-stat::after{background:var(--red);}
+.stat-val{font-family:var(--fh);font-size:1.9rem;color:#fff;line-height:1;}
+.stat-lbl{font-size:.55rem;color:rgba(176,190,197,0.4);letter-spacing:2px;margin-top:4px;font-weight:700;}
 
-        .title-gradient {
-            font-family: var(--f-head); font-size: 3.5rem; margin: 0; line-height: 1;
-            background: linear-gradient(180deg, #fff 0%, #666 100%); /* Metallic Gradient */
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-align: center; letter-spacing: -1px;
-        }
-        .subtitle-gold {
-            text-align: center; color: var(--gold); font-family: var(--f-code);
-            font-size: 0.75rem; letter-spacing: 4px; margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 196, 0, 0.3); padding-bottom: 15px;
-        }
+.section-label{
+  font-size:.55rem;color:rgba(176,190,197,0.35);letter-spacing:2px;
+  text-transform:uppercase;font-weight:700;margin-bottom:6px;
+}
 
-        /* --- 5. GAME UI (COMPACT & BALANCED) --- */
-        #game-ui {
-            display: none; width: 98vw; height: 96vh;
-            /* Wider Center Column, Compact Sides */
-            grid-template-columns: 260px 1fr 260px;
-            grid-template-rows: 60px 1fr 140px;
-            gap: 15px; z-index: 10;
-        }
+/* Deploy control */
+.deploy-control{
+  background:#000;border:1px solid rgba(255,255,255,0.1);
+  padding:8px;display:flex;align-items:center;gap:6px;
+}
+.deploy-control input{
+  flex:1;background:transparent;border:none;color:#fff;
+  font-family:var(--fh);font-size:1.4rem;text-align:center;
+  outline:none;
+}
+.dep-btn{
+  background:transparent;border:1px solid #333;color:#666;
+  width:28px;height:28px;cursor:pointer;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;flex-shrink:0;
+}
+.dep-btn:hover{border-color:#fff;color:#fff;}
 
-        /* TOP BAR */
-        .top-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .phase-pill {
-            font-family: var(--f-head); font-size: 1.1rem; color: #fff;
-            background: rgba(255,255,255,0.05); padding: 5px 30px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+/* Action Log */
+#log-wrap{
+  flex:1;min-height:0;background:#000;border:1px solid var(--border);
+  overflow-y:auto;padding:8px;
+  font-family:var(--fc);font-size:.65rem;line-height:1.6;
+}
+.le{border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0;}
+.le-sys{color:var(--gold);}
+.le-p1{color:var(--cyan);}
+.le-p2{color:var(--red);}
+.le-evt{color:var(--emerald);}
 
-        /* SIDEBARS (COMPACT GRID FIX) */
-        .sidebar {
-            grid-row: 2 / 3; display: flex; flex-direction: column; gap: 15px;
-            padding: 20px; transition: 0.4s; opacity: 0.4; border: 1px solid transparent;
-        }
-        .sidebar.active { opacity: 1; background: rgba(15, 20, 25, 0.8); transform: scale(1.01); }
-        .p1-side.active { border: 1px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 243, 255, 0.1); }
-        .p2-side.active { border: 1px solid var(--red); box-shadow: 0 0 30px rgba(255, 0, 60, 0.1); }
+/* Attack Mode UI */
+#attack-ui{display:none;}
+.threat-badge{
+  text-align:center;padding:10px;
+  background:rgba(255,23,68,0.08);
+  border:1px solid rgba(255,23,68,0.3);
+  font-family:var(--fc);font-size:.7rem;color:var(--red);
+}
 
-        .player-header { font-family: var(--f-head); font-size: 1.4rem; text-align: center; margin-bottom: 10px; font-weight: 700; }
-        
-        /* The 2x1 Grid for Stats */
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-card {
-            background: rgba(0,0,0,0.4); padding: 15px 5px; text-align: center;
-            border-top: 2px solid #333;
-        }
-        .p1-side .stat-card { border-color: var(--cyan); }
-        .p2-side .stat-card { border-color: var(--red); }
-        
-        .stat-val { font-family: var(--f-head); font-size: 2rem; color: #fff; line-height: 1; }
-        .stat-lbl { font-size: 0.6rem; color: #888; letter-spacing: 1px; margin-top: 5px; font-weight: 700; }
+/* ── 3D VIEWPORT ───────────────────────────────────────────────────── */
+#viewport{position:relative;overflow:hidden;}
+#three-canvas{display:block;width:100%;height:100%;}
 
-        /* CENTER BOARD */
-        #viewport {
-            grid-column: 2 / 3; grid-row: 2 / 3;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; overflow: hidden;
-        }
-        
-        /* Tactical Map Background for the Grid */
-        #grid-mount {
-            /* Auto-scaling: Max 70% of screen size */
-            width: min(70vh, 70vw); height: min(70vh, 70vw);
-            padding: 10px; 
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            display: flex; justify-content: center; align-items: center;
-        }
-        
-        #grid { display: grid; gap: 4px; width: 100%; height: 100%; }
+/* Tooltip HUD */
+#cell-hud{
+  position:absolute;pointer-events:none;z-index:200;
+  background:rgba(0,0,0,0.95);border:1px solid var(--gold);
+  padding:8px 12px;font-family:var(--fc);font-size:.68rem;
+  display:none;white-space:nowrap;
+  box-shadow:0 8px 30px rgba(0,0,0,0.8);
+}
+#cell-hud .hud-row{color:#888;margin-bottom:2px;}
+#cell-hud .hud-row span{color:#fff;}
+#cell-hud .hud-atk{color:var(--cyan);}
+#cell-hud .hud-def{color:var(--red);}
+#cell-hud .hud-result{margin-top:5px;font-size:.6rem;padding-top:4px;border-top:1px solid #333;}
 
-        .cell {
-            background: #080a0e; border: 1px solid #1f2937;
-            display: flex; justify-content: center; align-items: center;
-            font-family: var(--f-head); font-weight: bold; font-size: 1.2rem;
-            cursor: pointer; position: relative; transition: none;
-        }
-        .cell:hover { border-color: #fff; z-index: 10; box-shadow: 0 0 20px rgba(255,255,255,0.2); background: #1a1f26; }
-        
-        /* Tactical Markers */
-        .cell::before { content:''; position:absolute; top:2px; left:2px; width:3px; height:3px; border-top:1px solid #555; border-left:1px solid #555; }
-        .cell::after { content:''; position:absolute; bottom:2px; right:2px; width:3px; height:3px; border-bottom:1px solid #555; border-right:1px solid #555; }
+/* AI thinking indicator */
+#ai-indicator{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.9);border:1px solid var(--red);
+  padding:6px 16px;font-family:var(--fc);font-size:.7rem;color:var(--red);
+  display:none;z-index:300;
+  animation:blink .8s infinite;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.4;}}
 
-        .cell.p1 { color: var(--cyan); border: 1px solid var(--cyan); background: rgba(0, 243, 255, 0.15); box-shadow: inset 0 0 15px var(--cyan-dim); }
-        .cell.p2 { color: var(--red); border: 1px solid var(--red); background: rgba(255, 0, 60, 0.15); box-shadow: inset 0 0 15px var(--red-dim); }
-        .cell.locked { cursor: not-allowed; opacity: 0.6; }
-        .cell.target { animation: pulse 1s infinite; cursor: crosshair; }
-        @keyframes pulse { 0% {box-shadow:inset 0 0 0 var(--red);} 50% {box-shadow:inset 0 0 20px var(--red);} }
+/* Heatmap toggle */
+#heatmap-legend{
+  position:absolute;bottom:20px;right:20px;z-index:200;
+  background:rgba(0,0,0,0.85);border:1px solid var(--border);
+  padding:10px 12px;font-family:var(--fc);font-size:.6rem;
+  display:none;
+}
+.legend-bar{
+  width:120px;height:8px;margin:6px 0;
+  background:linear-gradient(90deg,#00e5ff,#00e676,#ffab00,#ff1744);
+  border:1px solid #333;
+}
 
-        /* BOTTOM DECK */
-        #bottom-deck {
-            grid-column: 1 / -1; grid-row: 3 / 4;
-            display: grid; grid-template-columns: 1fr 350px; gap: 20px;
-        }
+/* ── SIM DASHBOARD ─────────────────────────────────────────────────── */
+#sim-modal{
+  position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,0.97);
+  display:none;justify-content:center;align-items:flex-start;
+  overflow-y:auto;padding:40px 20px;
+}
+.sim-box{
+  width:900px;max-width:100%;
+  background:rgba(4,8,16,0.98);border:1px solid rgba(255,171,0,0.3);
+  padding:40px;box-shadow:0 0 80px rgba(255,171,0,0.08);
+}
+.sim-title{font-family:var(--fh);font-size:1.5rem;color:var(--gold);letter-spacing:3px;margin-bottom:30px;}
+.sim-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.sim-param label{font-size:.6rem;color:rgba(176,190,197,0.4);letter-spacing:1px;display:block;margin-bottom:5px;}
+.sim-param input,.sim-param select{
+  width:100%;background:#000;border:1px solid #333;color:#fff;
+  padding:9px;font-family:var(--fc);font-size:.8rem;outline:none;
+}
+.sim-param input:focus,.sim-param select:focus{border-color:var(--gold);}
 
-        #console-wrap {
-            background: #020406; border: 1px solid #333; padding: 10px 15px;
-            font-family: var(--f-code); font-size: 0.75rem; color: #888;
-            overflow-y: auto; display: flex; flex-direction: column-reverse;
-        }
-        .log-entry { margin-bottom: 2px; border-bottom: 1px solid #111; padding-bottom: 2px; }
-        .ln-p1 { color: var(--cyan); } .ln-p2 { color: var(--red); } .ln-sys { color: var(--gold); }
+/* Progress */
+#sim-progress-wrap{margin:20px 0;display:none;}
+.prog-bar-outer{height:4px;background:#111;border:1px solid #333;overflow:hidden;}
+.prog-bar-inner{height:100%;background:var(--gold);width:0%;transition:width .1s;}
+.prog-txt{font-family:var(--fc);font-size:.65rem;color:#666;margin-top:6px;}
 
-        #controls {
-            display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 15px;
-            border-left: 1px solid #333;
-        }
-        
-        #deploy-input-wrap {
-            border: 1px solid #333; padding: 5px; background: #000; display: flex; align-items: center; justify-content: center;
-        }
-        .p1-turn #deploy-input-wrap { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-dim); }
-        .p2-turn #deploy-input-wrap { border-color: var(--red); box-shadow: 0 0 15px var(--red-dim); }
+/* Results grid */
+#sim-results{display:none;margin-top:24px;}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.res-card{
+  background:rgba(0,0,0,0.5);border:1px solid var(--border);
+  padding:16px;text-align:center;
+}
+.res-card .rv{font-family:var(--fh);font-size:2rem;color:#fff;}
+.res-card .rl{font-size:.6rem;color:rgba(176,190,197,0.4);letter-spacing:1px;margin-top:4px;}
+.res-card .rv.c-cyan{color:var(--cyan);}
+.res-card .rv.c-red{color:var(--red);}
+.res-card .rv.c-gold{color:var(--gold);}
+.res-card .rv.c-em{color:var(--emerald);}
 
-        /* --- 6. MODALS --- */
-        .modal-veil {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.96);
-            z-index: 2000; display: none; justify-content: center; align-items: center;
-        }
-        .modal-box {
-            background: #080c10; border: 1px solid var(--gold); padding: 40px;
-            width: 700px; max-width: 90%; max-height: 90vh; overflow-y: auto;
-            box-shadow: 0 0 60px rgba(255, 196, 0, 0.15);
-        }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-family: var(--f-code); font-size: 0.8rem; text-align: left; }
-        th { color: var(--gold); border-bottom: 2px solid #333; padding: 8px; }
-        td { padding: 8px; border-bottom: 1px solid #222; color: #aaa; }
-        
-        #ai-think { position: absolute; top: -30px; color: var(--red); font-family: var(--f-code); font-size: 0.8rem; display: none; text-shadow: 0 0 10px var(--red); }
-        #predict-hud {
-            position: absolute; pointer-events: none; z-index: 500;
-            background: rgba(0,0,0,0.95); border: 1px solid #fff;
-            padding: 5px 10px; font-size: 0.7rem; color: #fff; font-family: var(--f-code);
-            white-space: nowrap; transform: translate(-50%, -130%);
-            display: none; box-shadow: 0 10px 30px #000;
-        }
+/* Heatmap canvas */
+#hm-canvas-wrap{margin-top:20px;}
+#hm-canvas-wrap h3{font-family:var(--fh);font-size:.7rem;color:var(--gold);letter-spacing:2px;margin-bottom:12px;}
+#hm-canvas{border:1px solid var(--border);}
 
-        @media (max-width: 1000px) {
-            #game-ui { display: flex; flex-direction: column; height: auto; overflow-y: auto; }
-            #bottom-deck { display: flex; flex-direction: column-reverse; }
-            #grid-mount { width: 90vw; height: 90vw; }
-        }
-    </style>
+/* ── ARCHIVE MODAL ─────────────────────────────────────────────────── */
+#archive-modal{
+  position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,0.96);
+  display:none;justify-content:center;align-items:center;
+}
+.archive-box{
+  width:700px;max-width:90%;max-height:85vh;
+  background:rgba(4,8,16,0.98);border:1px solid rgba(255,171,0,0.3);
+  padding:36px;overflow-y:auto;
+}
+table{width:100%;border-collapse:collapse;font-family:var(--fc);font-size:.72rem;}
+th{color:var(--gold);padding:10px 8px;border-bottom:1px solid #333;text-align:left;letter-spacing:1px;}
+td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,0.04);color:#888;}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────────── */
+@media(max-width:900px){
+  #app{grid-template-columns:180px 1fr 180px;}
+  .stat-val{font-size:1.4rem;}
+}
+@media(max-width:700px){
+  #app{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+}
+</style>
 </head>
 <body>
+<div id="scanlines"></div>
 
-    <div id="starfield"></div>
-    <div class="scanlines"></div>
-    <canvas id="vfx-canvas"></canvas>
+<!-- ── SETUP ─────────────────────────────────────────────────────── -->
+<div id="setup">
+  <div class="setup-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <span style="font-family:var(--fc);color:var(--gold);font-size:.6rem;letter-spacing:3px;">NEXUS ENGINE // v3.0</span>
+      <span style="font-family:var(--fc);color:#333;font-size:.6rem;">[STANDBY]</span>
+    </div>
+    <div class="setup-logo">AGGRESSION</div>
+    <div class="setup-sub">PROJECT OBSIDIAN // NEXUS ENGINE // OPERATIONAL</div>
 
-    <div id="setup-layer">
-        <div id="setup-box" class="panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px;">
-                <div style="font-family:var(--f-code); color:var(--gold); font-size:0.7rem;">OBSIDIAN PROTOCOL</div>
-                <div style="font-family:var(--f-code); color:#666; font-size:0.7rem;">[STANDBY]</div>
-            </div>
+    <div class="form-row">
+      <div class="f-group"><label>Grid Rows (n)</label><input type="number" id="s-rows" value="6" min="3" max="12"/></div>
+      <div class="f-group"><label>Grid Cols (n)</label><input type="number" id="s-cols" value="6" min="3" max="12"/></div>
+    </div>
+    <div class="form-row">
+      <div class="f-group">
+        <label>Units Per Side (auto = n²)</label>
+        <input type="number" id="s-troops" value="36" min="1"/>
+      </div>
+      <div class="f-group">
+        <label>View Mode</label>
+        <select id="s-view">
+          <option value="iso">ISOMETRIC 3D</option>
+          <option value="top">TOP-DOWN</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-group" style="margin-bottom:14px;">
+      <label>Opposing Intelligence</label>
+      <select id="s-ai">
+        <option value="human">HUMAN VS HUMAN</option>
+        <option value="greedy">CLASS I: DRONE (GREEDY)</option>
+        <option value="mcts" selected>CLASS II: NEXUS (MCTS)</option>
+      </select>
+    </div>
+    <div class="setup-note" id="troop-note" style="margin-bottom:14px;"></div>
+    <button class="btn" onclick="Engine.boot()">▶ INITIALIZE SIMULATION</button>
+    <button class="btn btn-gold" onclick="SimDashboard.open()" style="margin-top:6px;">⚡ HYPER-SIMULATION LAB</button>
+    <button class="btn btn-red" onclick="Archive.open()" style="margin-top:6px;">📂 MISSION ARCHIVES</button>
+  </div>
+</div>
 
-            <h1 class="title-gradient">AGGRESSION</h1>
-            <div class="subtitle-gold">PROJECT: SINGULARITY // V.FINAL</div>
-            
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                <div><label>MATRIX ROWS</label><input type="number" id="set-r" value="6" min="3" max="10"></div>
-                <div><label>MATRIX COLS</label><input type="number" id="set-c" value="6" min="3" max="10"></div>
-            </div>
-            
-            <div>
-                <label>UNIT ALLOCATION (PER COMMANDER)</label>
-                <input type="number" id="set-t" value="36" min="1">
-                <div style="font-size:0.6rem; color:var(--red); margin-top:5px; font-family:var(--f-code);">
-                    WARNING: UNIT STACKING PROHIBITED ON OCCUPIED NODES
-                </div>
-            </div>
+<!-- ── HEADER ─────────────────────────────────────────────────────── -->
+<div id="hdr" style="display:none;">
+  <div class="hdr-brand">AGGRESSION <span>//</span> NEXUS ENGINE</div>
+  <div id="phase-pill">PLACEMENT PHASE</div>
+  <div class="hdr-actions">
+    <button class="hdr-btn" onclick="toggleHeatmap()">⬡ HEATMAP</button>
+    <button class="hdr-btn" onclick="SimDashboard.open()">⚡ SIM LAB</button>
+    <button class="hdr-btn" onclick="Archive.open()">📂 ARCHIVES</button>
+    <button class="hdr-btn btn-red" onclick="location.reload()">✕ ABORT</button>
+  </div>
+</div>
 
-            <div>
-                <label>OPPOSING INTELLIGENCE</label>
-                <select id="set-ai">
-                    <option value="human">HUMAN VS HUMAN</option>
-                    <option value="weak">CLASS I: DRONE (WEAK)</option>
-                    <option value="strategic">CLASS II: COMMANDER (STRATEGIC)</option>
-                    <option value="smart" selected>CLASS III: NEXUS (SMART)</option>
-                </select>
-            </div>
+<!-- ── MAIN APP ───────────────────────────────────────────────────── -->
+<div id="app" style="display:none;">
 
-            <button class="btn" style="margin-top:10px;" onclick="Engine.boot()">INITIALIZE SIMULATION</button>
-            <button class="btn btn-red" onclick="Archive.open()">ACCESS ARCHIVES</button>
+  <!-- LEFT SIDEBAR: Player 1 -->
+  <div class="sidebar" id="sb-left">
+    <div class="player-header p1-color">PLAYER 1</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="stat-block p1-stat"><div class="stat-val" id="p1-res">0</div><div class="stat-lbl">RESERVES</div></div>
+      <div class="stat-block p1-stat"><div class="stat-val" id="p1-score">0</div><div class="stat-lbl">TERRITORY</div></div>
+    </div>
+    <div>
+      <div class="section-label">Deployment</div>
+      <div id="p1-deploy">
+        <div class="deploy-control">
+          <button class="dep-btn" onclick="changeDeployVal(-1)">−</button>
+          <input type="number" id="deploy-val" value="1" min="1" oninput="clampDeploy()"/>
+          <button class="dep-btn" onclick="changeDeployVal(1)">+</button>
         </div>
+        <div style="font-size:.6rem;color:#444;text-align:center;margin-top:5px;font-family:var(--fc);">SELECT EMPTY SECTOR</div>
+      </div>
+      <div id="attack-ui">
+        <div class="threat-badge">⚠ COMBAT MODE ACTIVE<br/>SELECT ENEMY SECTOR</div>
+        <button class="btn btn-red" style="margin-top:8px;font-size:.6rem;" onclick="Engine.pass()">PASS TURN</button>
+      </div>
+    </div>
+    <div class="section-label">Action Log</div>
+    <div id="log-wrap"></div>
+  </div>
+
+  <!-- CENTER: 3D Viewport -->
+  <div id="viewport">
+    <canvas id="three-canvas"></canvas>
+    <div id="cell-hud">
+      <div class="hud-row">SECTOR <span id="hud-pos">—</span></div>
+      <div class="hud-row">ELEVATION <span id="hud-elev">—</span></div>
+      <div class="hud-row">OWNER <span id="hud-owner">—</span></div>
+      <div class="hud-row">UNITS <span id="hud-units">—</span></div>
+      <div id="hud-combat-row" style="display:none;">
+        <div class="hud-row">ATK PWR <span class="hud-atk" id="hud-atk">—</span></div>
+        <div class="hud-row">DEF <span class="hud-def" id="hud-def">—</span></div>
+        <div id="hud-result" class="hud-result"></div>
+      </div>
+    </div>
+    <div id="ai-indicator">▶ NEXUS COMPUTING OPTIMAL STRATEGY...</div>
+    <div id="heatmap-legend">
+      <div style="font-size:.6rem;color:var(--gold);letter-spacing:1px;margin-bottom:6px;">THREAT HEATMAP</div>
+      <div class="legend-bar"></div>
+      <div style="display:flex;justify-content:space-between;font-size:.55rem;color:#555;">
+        <span>LOW</span><span>HIGH</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR: Player 2 -->
+  <div class="sidebar" id="sb-right">
+    <div class="player-header p2-color" id="p2-name">PLAYER 2</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="stat-block p2-stat"><div class="stat-val" id="p2-res">0</div><div class="stat-lbl">RESERVES</div></div>
+      <div class="stat-block p2-stat"><div class="stat-val" id="p2-score">0</div><div class="stat-lbl">TERRITORY</div></div>
+    </div>
+    <div style="font-size:.6rem;color:#333;font-family:var(--fc);padding:8px;background:#000;border:1px solid #111;">
+      <div style="color:#444;margin-bottom:4px;">// TOPOGRAPHIC ANALYSIS</div>
+      <div id="topo-stats" style="color:#666;line-height:1.8;"></div>
+    </div>
+    <div id="ai-analysis" style="display:none;">
+      <div class="section-label">AI Analysis</div>
+      <div id="ai-eval-wrap" style="font-family:var(--fc);font-size:.62rem;color:#555;background:#000;padding:8px;border:1px solid #111;line-height:1.7;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── SIM DASHBOARD ─────────────────────────────────────────────── -->
+<div id="sim-modal">
+  <div class="sim-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+      <div class="sim-title">⚡ HYPER-SIMULATION LAB</div>
+      <button class="hdr-btn" onclick="SimDashboard.close()">✕ CLOSE</button>
+    </div>
+    <div class="sim-controls">
+      <div class="sim-param"><label>Grid Size (n)</label><input type="number" id="sim-n" value="6" min="3" max="10"/></div>
+      <div class="sim-param"><label>Games to Simulate</label><input type="number" id="sim-games" value="500" min="10" max="5000"/></div>
+      <div class="sim-param"><label>P1 Strategy</label>
+        <select id="sim-p1"><option value="greedy">Greedy</option><option value="random">Random</option></select>
+      </div>
+      <div class="sim-param"><label>P2 Strategy</label>
+        <select id="sim-p2"><option value="greedy" selected>Greedy</option><option value="random">Random</option></select>
+      </div>
+    </div>
+    <button class="btn btn-gold" id="sim-run-btn" onclick="SimDashboard.run()">▶ LAUNCH HYPER-SIMULATION</button>
+    <div id="sim-worker-count" style="font-family:var(--fc);font-size:.6rem;color:#444;margin-top:8px;"></div>
+
+    <div id="sim-progress-wrap">
+      <div class="prog-bar-outer"><div class="prog-bar-inner" id="sim-prog-bar"></div></div>
+      <div class="prog-txt" id="sim-prog-txt">Initializing workers...</div>
     </div>
 
-    <div id="game-ui">
-        <div class="top-bar panel">
-            <div style="font-weight:bold; color:#fff; font-size:1.1rem;">AGGRESSION // ACTIVE</div>
-            <div id="phase-ui" class="phase-pill">PLACEMENT PHASE</div>
-            <div onclick="location.reload()" style="cursor:pointer; color:#666;">[ABORT MISSION]</div>
-        </div>
-
-        <div class="sidebar panel p1-side" id="p1-deck">
-            <div class="player-header" style="color:var(--cyan)">PLAYER 1</div>
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-val" id="p1-res">0</div><div class="stat-lbl">RESERVES</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-val" id="p1-score">0</div><div class="stat-lbl">TERRITORY</div>
-                </div>
-            </div>
-        </div>
-
-        <div id="viewport">
-            <div id="ai-think">>> NEXUS COMPUTING...</div>
-            <div id="grid-mount">
-                <div id="grid"></div>
-            </div>
-            <div id="predict-hud"></div>
-        </div>
-
-        <div class="sidebar panel p2-side" id="p2-deck">
-            <div class="player-header" style="color:var(--red)" id="p2-name">PLAYER 2</div>
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-val" id="p2-res">0</div><div class="stat-lbl">RESERVES</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-val" id="p2-score">0</div><div class="stat-lbl">TERRITORY</div>
-                </div>
-            </div>
-        </div>
-
-        <div id="bottom-deck">
-            <div id="console-wrap" class="panel"></div>
-            
-            <div id="controls" class="panel">
-                <div id="ui-place">
-                    <label style="text-align:center;">DEPLOYMENT SIZE</label>
-                    <div id="deploy-input-wrap">
-                        <input type="number" id="deploy-val" value="1" min="1" style="border:none; background:transparent; font-size:1.8rem; font-weight:bold; padding:0;">
-                    </div>
-                    <div style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px;">SELECT EMPTY SECTOR</div>
-                </div>
-                <div id="ui-attack" style="display:none;">
-                    <div style="text-align:center; color:var(--red); font-weight:bold; margin-bottom:10px; font-size:1.1rem;">COMBAT MODE</div>
-                    <button class="btn btn-red" onclick="Engine.pass()">PASS TURN</button>
-                </div>
-            </div>
-        </div>
+    <div id="sim-results">
+      <div class="result-grid">
+        <div class="res-card"><div class="rv c-cyan" id="r-p1wr">—</div><div class="rl">PLAYER 1 WIN RATE</div></div>
+        <div class="res-card"><div class="rv c-red" id="r-p2wr">—</div><div class="rl">PLAYER 2 WIN RATE</div></div>
+        <div class="res-card"><div class="rv c-gold" id="r-draw">—</div><div class="rl">DRAW RATE</div></div>
+        <div class="res-card"><div class="rv c-em" id="r-fma">—</div><div class="rl">FIRST-MOVER ADV.</div></div>
+        <div class="res-card"><div class="rv" id="r-turns">—</div><div class="rl">AVG TURNS</div></div>
+        <div class="res-card"><div class="rv" id="r-total">—</div><div class="rl">GAMES SIMULATED</div></div>
+      </div>
+      <div id="hm-canvas-wrap">
+        <h3>STARTING POSITION WIN-RATE HEATMAP (P1)</h3>
+        <canvas id="hm-canvas"></canvas>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div id="log-modal" class="modal-veil" style="display:none;">
-        <div class="modal-box">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0; color:var(--gold);">MISSION ARCHIVES</h2>
-                <span style="cursor:pointer; font-size:1.5rem;" onclick="Archive.close()">×</span>
-            </div>
-            <table>
-                <thead><tr><th>ID</th><th>DATE</th><th>WINNER</th><th>SCORE</th></tr></thead>
-                <tbody id="log-body"></tbody>
-            </table>
-            <div style="margin-top:20px;">
-                <button class="btn btn-red" onclick="Archive.wipe()">SECURE WIPE (PASSWORD: ADMIN)</button>
-            </div>
-        </div>
+<!-- ── ARCHIVE ────────────────────────────────────────────────────── -->
+<div id="archive-modal">
+  <div class="archive-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:var(--fh);font-size:1.1rem;color:var(--gold);">MISSION ARCHIVES</div>
+      <button class="hdr-btn" onclick="Archive.close()">✕ CLOSE</button>
     </div>
+    <table>
+      <thead><tr><th>ID</th><th>DATE</th><th>WINNER</th><th>SCORE</th><th>TURNS</th></tr></thead>
+      <tbody id="archive-body"></tbody>
+    </table>
+    <button class="btn btn-red" style="margin-top:20px;font-size:.6rem;" onclick="Archive.wipe()">SECURE WIPE</button>
+  </div>
+</div>
 
-    <script>
-        /* --- VISUAL FX --- */
-        const VFX = {
-            canvas: document.getElementById('vfx-canvas'),
-            ctx: document.getElementById('vfx-canvas').getContext('2d'),
-            particles: [],
-            init() { window.addEventListener('resize', ()=>this.resize()); this.resize(); this.loop(); },
-            resize() { this.canvas.width=window.innerWidth; this.canvas.height=window.innerHeight; },
-            burst(x, y, color) {
-                for(let i=0; i<25; i++) {
-                    const a=Math.random()*Math.PI*2, s=Math.random()*5+2;
-                    this.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:0.04,color,size:Math.random()*3+2});
-                }
-            },
-            loop() {
-                this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-                for(let i=this.particles.length-1; i>=0; i--) {
-                    let p=this.particles[i];
-                    p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
-                    this.ctx.globalAlpha=p.life; this.ctx.fillStyle=p.color;
-                    this.ctx.beginPath(); this.ctx.arc(p.x,p.y,p.size,0,Math.PI*2); this.ctx.fill();
-                    if(p.life<=0) this.particles.splice(i,1);
-                }
-                requestAnimationFrame(()=>this.loop());
-            }
-        };
-        VFX.init();
+<!-- THREE.JS CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-        /* --- AUDIO --- */
-        const Sound = {
-            ctx: null,
-            init() { if(!this.ctx) this.ctx = new (window.AudioContext||window.webkitAudioContext)(); },
-            play(f,t,d,v=0.1) {
-                if(this.ctx.state==='suspended') this.ctx.resume();
-                const o=this.ctx.createOscillator(), g=this.ctx.createGain();
-                o.type=t; o.frequency.setValueAtTime(f,this.ctx.currentTime);
-                g.gain.setValueAtTime(v,this.ctx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.01,this.ctx.currentTime+d);
-                o.connect(g); g.connect(this.ctx.destination);
-                o.start(); o.stop(this.ctx.currentTime+d);
-            },
-            boot:()=>Sound.play(200,'sine',0.5), deploy:()=>Sound.play(400,'triangle',0.15),
-            kill:()=>{Sound.play(100,'sawtooth',0.1);setTimeout(()=>Sound.play(60,'square',0.3),80);},
-            win:()=>[300,500,800].forEach((f,i)=>setTimeout(()=>Sound.play(f,'square',0.2),i*100)),
-            error:()=>Sound.play(150,'sawtooth',0.3)
-        };
+<script>
+'use strict';
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 1 — TOPOLOGICAL BOARD GENERATOR
+// ─────────────────────────────────────────────────────────────────────────────
+const Topo = {
+  generate(rows, cols) {
+    const n = rows, m = cols;
+    const map = [];
+    for (let r = 0; r < n; r++) {
+      map.push([]);
+      for (let c = 0; c < m; c++) {
+        const nx = c / m, ny = r / n;
+        let v = 0;
+        v += 0.50 * Math.sin(nx * Math.PI * 2 + 1.3) * Math.cos(ny * Math.PI * 2 + 0.7);
+        v += 0.25 * Math.sin(nx * Math.PI * 4 + 2.1) * Math.cos(ny * Math.PI * 4 + 1.5);
+        v += 0.12 * Math.sin(nx * Math.PI * 8 + 0.5) * Math.cos(ny * Math.PI * 8 + 3.1);
+        v += 0.06 * Math.sin(nx * Math.PI * 16)      * Math.cos(ny * Math.PI * 16);
+        map[r].push((v + 1) / 2); // [0..1]
+      }
+    }
+    return map;
+  },
 
-        /* --- DATA --- */
-        const Archive = {
-            key: 'obsidian_logs_v2',
-            get() { return JSON.parse(localStorage.getItem(this.key)||"[]"); },
-            save(w,s,l) {
-                const db=this.get(); db.unshift({id:Date.now().toString().slice(-6),date:new Date().toLocaleString(),winner:w,score:s});
-                localStorage.setItem(this.key,JSON.stringify(db));
-            },
-            open() {
-                document.getElementById('log-modal').style.display='flex';
-                const el=document.getElementById('log-body'); el.innerHTML='';
-                const db=this.get();
-                if(!db.length) el.innerHTML='<tr><td colspan="4" style="text-align:center;">NO LOGS FOUND</td></tr>';
-                db.forEach(g=>{
-                    const c=g.winner.includes('1')?'var(--cyan)':'var(--red)';
-                    el.innerHTML+=`<tr><td style="color:#666; font-family:monospace;">${g.id}</td><td>${g.date}</td><td style="color:${c}; font-weight:bold;">${g.winner}</td><td>${g.score}</td></tr>`;
-                });
-            },
-            close() { document.getElementById('log-modal').style.display='none'; },
-            wipe() { if(prompt("PASSWORD:")==="ADMIN"){localStorage.removeItem(this.key);this.open();}else alert("DENIED"); }
-        };
+  // Classify terrain based on elevation
+  classify(elev) {
+    if (elev < 0.25) return { label: 'VALLEY',   color: 0x1a3a2a, defBonus: -0.1 };
+    if (elev < 0.50) return { label: 'PLAINS',   color: 0x1f2a1a, defBonus:  0.0 };
+    if (elev < 0.75) return { label: 'HILLS',    color: 0x2a2a1a, defBonus:  0.15 };
+    return                  { label: 'MOUNTAIN', color: 0x2a2020, defBonus:  0.30 };
+  },
 
-        /* --- ENGINE --- */
-        const Engine = {
-            rows:0, cols:0, grid:[], p1Res:0, p2Res:0, turn:1, phase:'setup', ai:null,
-            firstMover:0, hasMoved:false, passCount:0,
+  // Dijkstra path cost based on terrain (used for strategic analysis)
+  shortestPath(topo, sr, sc, er, ec) {
+    const rows = topo.length, cols = topo[0].length;
+    const dist = Array.from({length:rows}, ()=>new Float32Array(cols).fill(Infinity));
+    const pq   = [[0, sr, sc]];
+    dist[sr][sc] = 0;
+    const dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
 
-            boot() {
-                this.rows = Math.min(10, Math.max(3, +document.getElementById('set-r').value));
-                this.cols = Math.min(10, Math.max(3, +document.getElementById('set-c').value));
-                const t = +document.getElementById('set-t').value;
-                this.p1Res = t; this.p2Res = t;
-                const aiVal = document.getElementById('set-ai').value;
-                this.ai = aiVal === 'human' ? null : aiVal;
-                
-                this.phase = 'placement'; this.turn = Math.random() < 0.5 ? 1 : 2;
-                this.firstMover = 0; this.hasMoved = false; this.passCount = 0;
+    while (pq.length) {
+      pq.sort((a,b)=>a[0]-b[0]);
+      const [d, r, c] = pq.shift();
+      if (d > dist[r][c]) continue;
+      for (const [dr, dc] of dirs) {
+        const nr = r+dr, nc = c+dc;
+        if (nr<0||nr>=rows||nc<0||nc>=cols) continue;
+        // Cost = elevation difference + base cost
+        const cost = d + 1 + Math.abs(topo[nr][nc] - topo[r][c]) * 3;
+        if (cost < dist[nr][nc]) {
+          dist[nr][nc] = cost;
+          pq.push([cost, nr, nc]);
+        }
+      }
+    }
+    return dist[er][ec];
+  }
+};
 
-                this.grid = [];
-                for(let r=0; r<this.rows; r++) {
-                    let row = []; for(let c=0; c<this.cols; c++) row.push({owner:0, count:0});
-                    this.grid.push(row);
-                }
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 2 — GAME STATE
+// ─────────────────────────────────────────────────────────────────────────────
+const State = {
+  rows:0, cols:0, grid:[], topo:[], p1Res:0, p2Res:0,
+  turn:1, phase:'setup', firstMover:0, hasMoved:false, passCount:0,
+  ai:null, turnCount:0,
 
-                document.getElementById('setup-layer').style.display = 'none';
-                document.getElementById('game-ui').style.display = 'grid';
-                document.getElementById('p2-name').innerText = this.ai ? `AI (${this.ai.toUpperCase()})` : "PLAYER 2";
+  init(rows, cols, troops, ai) {
+    this.rows = rows; this.cols = cols;
+    this.p1Res = troops; this.p2Res = troops;
+    this.ai = ai; this.phase = 'placement';
+    this.turn = Math.random() < 0.5 ? 1 : 2;
+    this.firstMover = 0; this.hasMoved = false;
+    this.passCount = 0; this.turnCount = 0;
+    this.topo = Topo.generate(rows, cols);
+    this.grid = [];
+    for (let r = 0; r < rows; r++) {
+      this.grid.push([]);
+      for (let c = 0; c < cols; c++) {
+        this.grid[r].push({ owner: 0, count: 0 });
+      }
+    }
+  },
 
-                this.buildGrid(); this.updateHUD(); Sound.boot();
-                this.log("SYSTEM INITIALIZED", "sys");
-                this.log(`PLAYER ${this.turn} HAS INITIATIVE`, this.turn===1?"p1":"p2");
-                this.checkAI();
-            },
+  // Adjacency power with terrain weight
+  getPower(r, c, who) {
+    let p = 0;
+    const defElev = this.topo[r][c];
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (!dr && !dc) continue;
+        const nr = r+dr, nc = c+dc;
+        if (nr<0||nr>=this.rows||nc<0||nc>=this.cols) continue;
+        const cell = this.grid[nr][nc];
+        if (cell.owner !== who) continue;
+        const attElev = this.topo[nr][nc];
+        // Uphill attack penalty, downhill bonus
+        const terrainMod = 1 + (defElev - attElev) * 0.5;
+        p += cell.count / Math.max(0.5, terrainMod);
+      }
+    }
+    return p;
+  },
 
-            buildGrid() {
-                const el = document.getElementById('grid');
-                // FORCE SQUARE GRID
-                el.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
-                el.style.gridTemplateRows = `repeat(${this.rows}, 1fr)`;
-                el.innerHTML = '';
-                for(let r=0; r<this.rows; r++) for(let c=0; c<this.cols; c++) {
-                    const d = document.createElement('div');
-                    d.className = 'cell'; d.id = `c-${r}-${c}`;
-                    d.onclick = () => this.interact(r, c);
-                    d.onmouseenter = () => this.hover(r, c);
-                    d.onmouseleave = () => document.getElementById('predict-hud').style.display='none';
-                    el.appendChild(d);
-                }
-            },
+  getScore(who) {
+    let s = 0;
+    for (let r=0;r<this.rows;r++) for (let c=0;c<this.cols;c++) if(this.grid[r][c].owner===who) s++;
+    return s;
+  },
 
-            hover(r, c) {
-                if(this.phase !== 'attack' || this.turn !== 1) return;
-                const cell = this.grid[r][c];
-                if(cell.owner !== 2) return;
-                let p = this.getPower(r, c, 1);
-                const hud = document.getElementById('predict-hud');
-                const rect = document.getElementById(`c-${r}-${c}`).getBoundingClientRect();
-                const vp = document.getElementById('viewport').getBoundingClientRect();
-                hud.style.display = 'block';
-                hud.style.left = (rect.left - vp.left + 32) + 'px';
-                hud.style.top = (rect.top - vp.top) + 'px';
-                hud.innerHTML = `ATK: <span style="color:var(--cyan)">${p}</span> VS DEF: <span style="color:var(--red)">${cell.count}</span>`;
-                hud.style.borderColor = p > cell.count ? '#fff' : '#f00';
-            },
+  isBoardFull() {
+    for (let r=0;r<this.rows;r++) for (let c=0;c<this.cols;c++) if(this.grid[r][c].owner===0) return false;
+    return true;
+  },
 
-            interact(r, c) {
-                if(this.phase === 'over' || (this.ai && this.turn === 2)) return;
-                if(this.phase === 'placement') this.place(r, c, +document.getElementById('deploy-val').value);
-                else this.attack(r, c);
-            },
+  // Serialize for Web Worker
+  serialize() {
+    const gridArr = new Int16Array(this.rows * this.cols * 2);
+    const topoArr = new Float32Array(this.rows * this.cols);
+    for (let r=0;r<this.rows;r++) for (let c=0;c<this.cols;c++) {
+      const i = (r*this.cols+c);
+      gridArr[i*2]   = this.grid[r][c].owner;
+      gridArr[i*2+1] = this.grid[r][c].count;
+      topoArr[i]     = this.topo[r][c];
+    }
+    return {
+      n: this.rows, grid: gridArr, topo: topoArr,
+      p1Res:this.p1Res, p2Res:this.p2Res, turn:this.turn,
+      firstMover:this.firstMover, phase:this.phase, passCount:this.passCount
+    };
+  }
+};
 
-            place(r, c, amt) {
-                const cell = this.grid[r][c];
-                if(cell.owner !== 0) { this.log("ERROR: SECTOR OCCUPIED", "sys"); return; }
-                const res = this.turn===1 ? this.p1Res : this.p2Res;
-                const actual = Math.min(amt, res);
-                if(actual <= 0) return;
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 3 — THREE.JS RENDERER (2.5D Isometric / Top-Down)
+// ─────────────────────────────────────────────────────────────────────────────
+const Renderer = {
+  scene:null, camera:null, renderer:null, raycaster:null, mouse:null,
+  cells:[], heatOverlays:[], heatmapOn:false, viewMode:'iso',
+  orbitState:{isDragging:false,lastX:0,lastY:0,azimuth:-0.6,polar:0.8,radius:14},
 
-                cell.owner = this.turn; cell.count = actual;
-                if(this.turn===1) this.p1Res -= actual; else this.p2Res -= actual;
-                if(!this.hasMoved) { this.firstMover = this.turn; this.hasMoved = true; }
+  CELL_W: 1, CELL_GAP: 0.08,
+  P1_MAT:null, P2_MAT:null, EMPTY_MAT:null, GHOST_MAT:null,
 
-                const el = document.getElementById(`c-${r}-${c}`);
-                el.className = `cell p${this.turn}`; el.innerText = actual;
-                const rect = el.getBoundingClientRect();
-                VFX.burst(rect.left+32, rect.top+32, this.turn===1?'#00f3ff':'#ff003c');
-                Sound.deploy();
+  init(canvas, rows, cols, viewMode) {
+    this.viewMode = viewMode || 'iso';
+    this.cells = []; this.heatOverlays = [];
 
-                this.updateHUD();
-                
-                const full = this.grid.every(r => r.every(c => c.owner !== 0));
-                if((this.p1Res === 0 && this.p2Res === 0) || full) {
-                    this.startCombat();
-                } else {
-                    let next = this.turn === 1 ? 2 : 1;
-                    let nextRes = next === 1 ? this.p1Res : this.p2Res;
-                    if(nextRes > 0 && !full) this.turn = next;
-                    else this.log(`PLAYER ${next} DEPLETED. SKIPPED.`, "sys");
-                }
-                this.updateHUD(); this.checkAI();
-            },
+    this.scene = new THREE.Scene();
+    this.scene.fog = new THREE.Fog(0x02040a, 18, 35);
+    this.scene.background = new THREE.Color(0x02040a);
 
-            startCombat() {
-                this.phase = 'attack'; this.turn = this.firstMover;
-                document.getElementById('phase-ui').innerText = "COMBAT PHASE";
-                document.getElementById('phase-ui').style.color = "var(--red)";
-                document.getElementById('phase-ui').style.borderColor = "var(--red)";
-                document.getElementById('ui-place').style.display = 'none';
-                document.getElementById('ui-attack').style.display = 'block';
-                this.log("PHASE SHIFT: COMBAT", "sys");
-            },
+    const w = canvas.parentElement.clientWidth;
+    const h = canvas.parentElement.clientHeight;
+    canvas.width = w; canvas.height = h;
 
-            attack(r, c) {
-                const cell = this.grid[r][c];
-                if(cell.owner === 0 || cell.owner === this.turn) { Sound.error(); return; }
-                const p = this.getPower(r, c, this.turn);
-                
-                if(p > cell.count) {
-                    this.log(`P${this.turn} NEUTRALIZED [${r},${c}]`, this.turn===1?'p1':'p2');
-                    Sound.kill();
-                    const el = document.getElementById(`c-${r}-${c}`);
-                    el.className = 'cell'; el.innerText = '';
-                    const rect = el.getBoundingClientRect();
-                    VFX.burst(rect.left+32, rect.top+32, '#ffd700');
-                    cell.owner = 0; cell.count = 0; this.passCount = 0;
-                } else {
-                    this.log("ATTACK FAILED", "sys"); Sound.error();
-                }
-                this.nextTurn();
-            },
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setSize(w, h);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-            pass() {
-                this.passCount++;
-                this.log(`P${this.turn} PASSED`, this.turn===1?'p1':'p2');
-                if(this.passCount >= 2) this.end(); else this.nextTurn();
-            },
+    if (this.viewMode === 'iso') {
+      this.camera = new THREE.PerspectiveCamera(45, w/h, 0.1, 100);
+      const o = this.orbitState;
+      this.camera.position.set(
+        o.radius * Math.sin(o.azimuth) * Math.sin(o.polar),
+        o.radius * Math.cos(o.polar),
+        o.radius * Math.cos(o.azimuth) * Math.sin(o.polar)
+      );
+    } else {
+      this.camera = new THREE.OrthographicCamera(-cols/2, cols/2, rows/2, -rows/2, 0.1, 50);
+      this.camera.position.set(0, 12, 0);
+    }
+    this.camera.lookAt(0, 0, 0);
 
-            nextTurn() { this.turn = this.turn===1?2:1; this.updateHUD(); this.checkAI(); },
+    // Lighting rig
+    const ambient = new THREE.AmbientLight(0x0a1020, 1.2);
+    this.scene.add(ambient);
 
-            getPower(r, c, who) {
-                let p = 0;
-                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0 && dc===0) continue;
-                    let nr=r+dr, nc=c+dc;
-                    if(nr>=0 && nr<this.rows && nc>=0 && nc<this.cols && this.grid[nr][nc].owner===who) p += this.grid[nr][nc].count;
-                }
-                return p;
-            },
+    const sun = new THREE.DirectionalLight(0xffeedd, 1.4);
+    sun.position.set(5, 10, 5);
+    sun.castShadow = true;
+    sun.shadow.mapSize.width  = 2048;
+    sun.shadow.mapSize.height = 2048;
+    this.scene.add(sun);
 
-            checkAI() {
-                if(!this.ai || this.turn === 1 || this.phase === 'over') return;
-                document.getElementById('ai-think').style.display = 'block';
-                
-                setTimeout(() => {
-                    if(this.phase === 'placement') {
-                        const move = AI.getPlacement(this);
-                        if(move) {
-                            let amt = 1;
-                            if(this.ai === 'smart') {
-                                const n = AI.scan(this, move.r, move.c);
-                                amt = (n.e > 0) ? Math.min(this.p2Res, 5) : 1;
-                            } else if (this.ai === 'strategic') amt = 3;
-                            
-                            const val = Math.min(amt, this.p2Res);
-                            const cell = this.grid[move.r][move.c];
-                            
-                            cell.owner = 2; cell.count = val; this.p2Res -= val;
-                            const el = document.getElementById(`c-${move.r}-${move.c}`);
-                            el.className = 'cell p2'; el.innerText = val;
-                            Sound.deploy();
-                            
-                            if(!this.hasMoved) { this.firstMover=2; this.hasMoved=true; }
-                            
-                            const full = this.grid.every(r=>r.every(c=>c.owner!==0));
-                            if((this.p1Res===0 && this.p2Res===0) || full) {
-                                this.startCombat();
-                            } else {
-                                if(this.p1Res > 0 && !full) this.turn = 1;
-                            }
-                        } else this.startCombat();
-                    } else {
-                        const atk = this.ai==='weak' ? null : AI.getAttack(this);
-                        if(atk) {
-                            this.log(`AI TARGETS [${atk.r},${atk.c}]`, 'p2');
-                            Sound.kill();
-                            const cell = this.grid[atk.r][atk.c];
-                            cell.owner = 0; cell.count = 0; this.passCount = 0;
-                            const el = document.getElementById(`c-${atk.r}-${atk.c}`);
-                            el.className = 'cell'; el.innerText = '';
-                            const rect = el.getBoundingClientRect();
-                            VFX.burst(rect.left+32, rect.top+32, '#ffd700');
-                        } else {
-                            this.passCount++;
-                            this.log("AI PASSED", 'p2');
-                            if(this.passCount >= 2) return this.end();
-                        }
-                        this.turn = 1;
-                    }
-                    document.getElementById('ai-think').style.display = 'none';
-                    this.updateHUD();
-                }, 600);
-            },
+    const fill = new THREE.DirectionalLight(0x103050, 0.4);
+    fill.position.set(-8, 5, -5);
+    this.scene.add(fill);
 
-            updateHUD() {
-                document.getElementById('p1-res').innerText = this.p1Res;
-                document.getElementById('p2-res').innerText = this.p2Res;
-                
-                const p1 = document.getElementById('p1-deck');
-                const p2 = document.getElementById('p2-deck');
-                const ctrls = document.getElementById('controls');
-                
-                p1.className = `sidebar panel p1-side`;
-                p2.className = `sidebar panel p2-side`;
-                ctrls.className = `panel`;
-                
-                if(this.turn === 1) {
-                    p1.classList.add('active');
-                    ctrls.classList.add('p1-turn');
-                    ctrls.classList.remove('p2-turn');
-                } else {
-                    p2.classList.add('active');
-                    ctrls.classList.add('p2-turn');
-                    ctrls.classList.remove('p1-turn');
-                }
+    // Materials
+    this.P1_MAT    = new THREE.MeshStandardMaterial({ color:0x003a4a, emissive:0x001820, roughness:.6, metalness:.4 });
+    this.P2_MAT    = new THREE.MeshStandardMaterial({ color:0x3a0010, emissive:0x1a0008, roughness:.6, metalness:.4 });
+    this.EMPTY_MAT = new THREE.MeshStandardMaterial({ color:0x080a0e, roughness:.9, metalness:.1 });
 
-                let s1=0, s2=0;
-                this.grid.forEach(r => r.forEach(c => { if(c.owner===1)s1++; if(c.owner===2)s2++; }));
-                document.getElementById('p1-score').innerText = s1;
-                document.getElementById('p2-score').innerText = s2;
-            },
+    this.raycaster = new THREE.Raycaster();
+    this.mouse     = new THREE.Vector2(-99, -99);
 
-            log(msg, type='sys') {
-                const w = document.getElementById('console-wrap');
-                const d = document.createElement('div');
-                d.className = `log-entry ln-${type}`;
-                d.innerText = `>> ${msg}`;
-                w.prepend(d);
-            },
+    this.buildCells(rows, cols);
+    this.setupEvents(canvas);
+    this.addGridLines(rows, cols);
+    this.animate();
 
-            end() {
-                this.phase = 'over';
-                let s1 = +document.getElementById('p1-score').innerText;
-                let s2 = +document.getElementById('p2-score').innerText;
-                let w = s1>s2 ? "PLAYER 1" : (s2>s1 ? "PLAYER 2" : "DRAW");
-                Sound.win();
-                Archive.save(w, `${s1} - ${s2}`, this.logData);
-                setTimeout(() => alert(`MISSION END.\nVICTOR: ${w}\nSCORE: ${s1} - ${s2}`), 200);
-            }
-        };
+    window.addEventListener('resize', () => {
+      const w2 = canvas.parentElement.clientWidth;
+      const h2 = canvas.parentElement.clientHeight;
+      canvas.width = w2; canvas.height = h2;
+      if (this.camera.isPerspectiveCamera) {
+        this.camera.aspect = w2/h2; this.camera.updateProjectionMatrix();
+      }
+      this.renderer.setSize(w2, h2);
+    });
+  },
 
-        const AI = {
-            scan(g, r, c) {
-                let f=0, e=0;
-                for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                    if(dr===0&&dc===0)continue;
-                    let nr=r+dr, nc=c+dc;
-                    if(nr>=0&&nr<g.rows&&nc>=0&&nc<g.cols) {
-                        if(g.grid[nr][nc].owner===2) f++;
-                        else if(g.grid[nr][nc].owner===1) e++;
-                    }
-                }
-                return {f, e};
-            },
-            getPlacement(g) {
-                let moves = [];
-                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
-                    if(g.grid[r][c].owner === 0) {
-                        let score = 0; const n = this.scan(g, r, c);
-                        score += (n.f * 10);
-                        if(n.e > 0) score += 15;
-                        let dist = Math.abs(r - g.rows/2) + Math.abs(c - g.cols/2);
-                        score -= dist;
-                        moves.push({r, c, score});
-                    }
-                }
-                moves.sort((a,b) => b.score - a.score);
-                return moves.length ? moves[0] : null;
-            },
-            getAttack(g) {
-                let moves = [];
-                for(let r=0; r<g.rows; r++) for(let c=0; c<g.cols; c++) {
-                    if(g.grid[r][c].owner === 1) {
-                        let p = 0;
-                        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-                            if(dr===0&&dc===0) continue;
-                            let nr=r+dr, nc=c+dc;
-                            if(nr>=0 && nr<g.rows && nc>=0 && nc<g.cols && g.grid[nr][nc].owner===2) p+=g.grid[nr][nc].count;
-                        }
-                        if(p > g.grid[r][c].count) moves.push({r, c, val: g.grid[r][c].count});
-                    }
-                }
-                moves.sort((a,b) => b.val - a.val);
-                return moves.length ? moves[0] : null;
-            }
-        };
-    </script>
+  buildCells(rows, cols) {
+    const step = this.CELL_W + this.CELL_GAP;
+    const ox = -(cols-1)*step/2, oz = -(rows-1)*step/2;
+
+    for (let r=0; r<rows; r++) {
+      this.cells.push([]);
+      this.heatOverlays.push([]);
+      for (let c=0; c<cols; c++) {
+        const elev = State.topo[r][c];
+        const h    = 0.2 + elev * 0.8;
+        const terrain = Topo.classify(elev);
+
+        // Terrain pillar
+        const geo = new THREE.BoxGeometry(this.CELL_W, h, this.CELL_W);
+        const mat = new THREE.MeshStandardMaterial({
+          color: terrain.color, roughness:.85, metalness:.05
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(ox + c*step, h/2, oz + r*step);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData = { r, c, baseH: h, topY: h, baseMat: mat };
+        this.scene.add(mesh);
+        this.cells[r].push(mesh);
+
+        // Heatmap overlay
+        const hmGeo = new THREE.PlaneGeometry(this.CELL_W * 0.95, this.CELL_W * 0.95);
+        const hmMat = new THREE.MeshBasicMaterial({ transparent:true, opacity:.0, depthWrite:false });
+        const hm    = new THREE.Mesh(hmGeo, hmMat);
+        hm.rotation.x = -Math.PI/2;
+        hm.position.set(mesh.position.x, h+0.01, mesh.position.z);
+        hm.visible = false;
+        this.scene.add(hm);
+        this.heatOverlays[r].push(hm);
+      }
+    }
+  },
+
+  addGridLines(rows, cols) {
+    const step = this.CELL_W + this.CELL_GAP;
+    const mat = new THREE.LineBasicMaterial({ color:0x1a2030, transparent:true, opacity:.5 });
+    // Subtle reference plane grid
+    const gridHelper = new THREE.GridHelper(
+      Math.max(rows,cols)*step, Math.max(rows,cols),
+      0x0a1020, 0x0a1020
+    );
+    gridHelper.position.y = -0.05;
+    this.scene.add(gridHelper);
+  },
+
+  refreshCell(r, c) {
+    const cell   = State.grid[r][c];
+    const mesh   = this.cells[r][c];
+    const elev   = State.topo[r][c];
+    const baseH  = mesh.userData.baseH;
+
+    let mat;
+    if (cell.owner === 0) {
+      mat = mesh.userData.baseMat;
+      // Remove troop tower if any
+      if (mesh.userData.tower) { this.scene.remove(mesh.userData.tower); mesh.userData.tower = null; }
+      if (mesh.userData.label3d) { this.scene.remove(mesh.userData.label3d); mesh.userData.label3d = null; }
+    } else {
+      mat = cell.owner === 1 ? this.P1_MAT.clone() : this.P2_MAT.clone();
+      const emissiveColor = cell.owner === 1 ? 0x002030 : 0x200010;
+      mat.emissive.setHex(emissiveColor);
+
+      // Troop tower — height proportional to unit count
+      if (mesh.userData.tower) { this.scene.remove(mesh.userData.tower); }
+      const tH = Math.min(0.1 + cell.count * 0.04, 1.5);
+      const tGeo = new THREE.BoxGeometry(0.55, tH, 0.55);
+      const tMat = new THREE.MeshStandardMaterial({
+        color: cell.owner===1 ? 0x00e5ff : 0xff1744,
+        emissive: cell.owner===1 ? 0x004050 : 0x500010,
+        roughness:.3, metalness:.7
+      });
+      const tower = new THREE.Mesh(tGeo, tMat);
+      tower.position.set(mesh.position.x, baseH + tH/2, mesh.position.z);
+      tower.castShadow = true;
+      this.scene.add(tower);
+      mesh.userData.tower = tower;
+    }
+    mesh.material = mat;
+
+    // Glow point light for owned cells
+    if (mesh.userData.light) { this.scene.remove(mesh.userData.light); mesh.userData.light = null; }
+    if (cell.owner !== 0) {
+      const lightColor = cell.owner === 1 ? 0x00e5ff : 0xff1744;
+      const pl = new THREE.PointLight(lightColor, 0.4, 2.5);
+      pl.position.set(mesh.position.x, baseH+0.5, mesh.position.z);
+      this.scene.add(pl);
+      mesh.userData.light = pl;
+    }
+  },
+
+  refreshAll() {
+    for (let r=0; r<State.rows; r++)
+      for (let c=0; c<State.cols; c++)
+        this.refreshCell(r, c);
+  },
+
+  // Heatmap: color cells by threat level from player 1's perspective
+  updateHeatmap(on) {
+    this.heatmapOn = on;
+    for (let r=0; r<State.rows; r++) {
+      for (let c=0; c<State.cols; c++) {
+        const hm = this.heatOverlays[r][c];
+        hm.visible = on;
+        if (!on) continue;
+        const p1pow = State.getPower(r,c,1);
+        const p2pow = State.getPower(r,c,2);
+        const threat = p2pow / (p1pow + p2pow + 1); // 0=safe, 1=threatened
+        // Color gradient: cyan → gold → red
+        let col;
+        if (threat < 0.5) col = new THREE.Color().lerpColors(new THREE.Color(0x00e5ff), new THREE.Color(0xffab00), threat*2);
+        else              col = new THREE.Color().lerpColors(new THREE.Color(0xffab00), new THREE.Color(0xff1744), (threat-0.5)*2);
+        hm.material.color = col;
+        hm.material.opacity = 0.45;
+        hm.position.y = this.cells[r][c].userData.baseH + 0.02;
+      }
+    }
+  },
+
+  setupEvents(canvas) {
+    const getRC = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const cx = ((event.clientX - rect.left) / rect.width)  * 2 - 1;
+      const cy = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+      this.raycaster.setFromCamera({ x:cx, y:cy }, this.camera);
+      const hits = this.raycaster.intersectObjects(
+        this.cells.flat().concat(this.cells.flat().map(m=>m.userData.tower).filter(Boolean))
+      );
+      if (!hits.length) return null;
+      let obj = hits[0].object;
+      // If hit a tower, go to parent cell
+      for (let r=0;r<State.rows;r++) for(let c=0;c<State.cols;c++) {
+        if(this.cells[r][c]===obj || this.cells[r][c].userData.tower===obj) return {r,c};
+      }
+      return null;
+    };
+
+    canvas.addEventListener('click', e => {
+      const rc = getRC(e);
+      if (rc) Engine.interact(rc.r, rc.c);
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      const rc = getRC(e);
+      UI.showCellHud(rc, e);
+
+      // Orbit drag
+      if (this.orbitState.isDragging && this.viewMode === 'iso') {
+        const dx = e.clientX - this.orbitState.lastX;
+        const dy = e.clientY - this.orbitState.lastY;
+        this.orbitState.azimuth += dx * 0.008;
+        this.orbitState.polar   = Math.max(0.3, Math.min(1.4, this.orbitState.polar + dy * 0.006));
+        this.orbitState.lastX   = e.clientX;
+        this.orbitState.lastY   = e.clientY;
+        this._updateCamera();
+      }
+    });
+
+    canvas.addEventListener('mousedown', e => {
+      if (e.button === 2 || e.button === 1) {
+        this.orbitState.isDragging = true;
+        this.orbitState.lastX = e.clientX;
+        this.orbitState.lastY = e.clientY;
+      }
+    });
+    canvas.addEventListener('mouseup',   () => { this.orbitState.isDragging = false; });
+    canvas.addEventListener('mouseleave',() => { document.getElementById('cell-hud').style.display='none'; });
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    canvas.addEventListener('wheel', e => {
+      this.orbitState.radius = Math.max(5, Math.min(25, this.orbitState.radius + e.deltaY * 0.02));
+      this._updateCamera();
+    });
+  },
+
+  _updateCamera() {
+    const o = this.orbitState;
+    this.camera.position.set(
+      o.radius * Math.sin(o.azimuth) * Math.sin(o.polar),
+      o.radius * Math.cos(o.polar),
+      o.radius * Math.cos(o.azimuth) * Math.sin(o.polar)
+    );
+    this.camera.lookAt(0, 0.5, 0);
+  },
+
+  animate() {
+    requestAnimationFrame(() => this.animate());
+    // Subtle pulse for owned cells
+    const t = performance.now() * 0.001;
+    for (let r=0;r<State.rows;r++) {
+      for (let c=0;c<State.cols;c++) {
+        const tower = this.cells[r][c].userData.tower;
+        if (tower && State.grid[r][c].owner !== 0) {
+          tower.material.emissiveIntensity = 0.4 + Math.sin(t * 2 + r*0.7 + c*0.5) * 0.2;
+        }
+      }
+    }
+    this.renderer.render(this.scene, this.camera);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 4 — ENGINE (GAME LOGIC CONTROLLER)
+// ─────────────────────────────────────────────────────────────────────────────
+const Engine = {
+  worker: null,
+
+  boot() {
+    const rows   = Math.min(12, Math.max(3, +document.getElementById('s-rows').value));
+    const cols   = Math.min(12, Math.max(3, +document.getElementById('s-cols').value));
+    const troops = +document.getElementById('s-troops').value || rows*cols;
+    const ai     = document.getElementById('s-ai').value;
+    const view   = document.getElementById('s-view').value;
+
+    State.init(rows, cols, troops, ai === 'human' ? null : ai);
+
+    document.getElementById('setup').style.display  = 'none';
+    document.getElementById('hdr').style.display    = 'flex';
+    document.getElementById('app').style.display    = 'grid';
+    document.getElementById('p2-name').innerText    = ai==='human' ? 'PLAYER 2' : `AI [${ai.toUpperCase()}]`;
+    if (ai !== 'human') document.getElementById('ai-analysis').style.display = 'block';
+
+    // Boot Three.js
+    Renderer.init(document.getElementById('three-canvas'), rows, cols, view);
+
+    // Boot Web Worker for AI
+    this._initWorker();
+
+    UI.log('NEXUS ENGINE INITIALIZED', 'sys');
+    UI.log(`GRID: ${rows}×${cols} | TROOPS: ${troops} | AI: ${ai}`, 'sys');
+    UI.log(`PLAYER ${State.turn} HAS INITIATIVE`, State.turn===1?'p1':'p2');
+    UI.refresh();
+
+    // Topo stats
+    const flat = State.topo.flat();
+    const avg  = flat.reduce((a,b)=>a+b,0)/flat.length;
+    const max  = Math.max(...flat), min = Math.min(...flat);
+    document.getElementById('topo-stats').innerHTML =
+      `AVG ELEVATION: ${avg.toFixed(2)}<br>RANGE: ${min.toFixed(2)}–${max.toFixed(2)}<br>` +
+      `MOUNTAINS: ${flat.filter(v=>v>=0.75).length} SECTORS<br>VALLEYS: ${flat.filter(v=>v<0.25).length} SECTORS`;
+
+    this.checkAI();
+  },
+
+  _initWorker() {
+    try {
+      const workerCode = document.getElementById('worker-blob').textContent;
+      const blob = new Blob([workerCode], { type:'application/javascript' });
+      this.worker = new Worker(URL.createObjectURL(blob));
+      this.worker.onmessage = e => {
+        const { type, payload } = e.data;
+        if (type === 'MCTS_RESULT') this._applyAIMove(payload.move);
+      };
+    } catch(err) {
+      console.warn('Web Worker init failed, fallback to main thread AI:', err);
+      this.worker = null;
+    }
+  },
+
+  interact(r, c) {
+    if (State.phase === 'over') return;
+    if (State.ai && State.turn === 2) return; // AI's turn
+    if (State.phase === 'placement') {
+      this.place(r, c, +document.getElementById('deploy-val').value || 1);
+    } else {
+      this.attack(r, c);
+    }
+  },
+
+  place(r, c, amt) {
+    const cell = State.grid[r][c];
+    if (cell.owner !== 0) { UI.log('ERROR: SECTOR OCCUPIED', 'sys'); return; }
+    const res  = State.turn === 1 ? State.p1Res : State.p2Res;
+    const actual = Math.min(amt, res);
+    if (actual <= 0) return;
+
+    cell.owner = State.turn;
+    cell.count = actual;
+    if (State.turn===1) State.p1Res -= actual; else State.p2Res -= actual;
+    if (!State.hasMoved) { State.firstMover = State.turn; State.hasMoved = true; }
+
+    Renderer.refreshCell(r, c);
+    if (Renderer.heatmapOn) Renderer.updateHeatmap(true);
+
+    UI.log(`P${State.turn} DEPLOYED ×${actual} → [${r},${c}] (ELEV: ${State.topo[r][c].toFixed(2)})`,
+           State.turn===1?'p1':'p2');
+
+    const full  = State.isBoardFull();
+    const noRes = State.p1Res===0 && State.p2Res===0;
+    if (full || noRes) {
+      this._startCombat();
+    } else {
+      const next    = State.turn===1 ? 2 : 1;
+      const nextRes = next===1 ? State.p1Res : State.p2Res;
+      if (nextRes > 0 && !full) State.turn = next;
+      else UI.log(`P${next} RESERVES DEPLETED — SKIPPING`, 'sys');
+    }
+    UI.refresh();
+    this.checkAI();
+  },
+
+  _startCombat() {
+    State.phase = 'attack';
+    State.turn  = State.firstMover;
+    State.passCount = 0;
+    const pill  = document.getElementById('phase-pill');
+    pill.innerText   = 'COMBAT PHASE';
+    pill.style.color = 'var(--red)';
+    pill.style.borderColor = 'var(--red)';
+    document.getElementById('p1-deploy').style.display  = 'none';
+    document.getElementById('attack-ui').style.display  = 'block';
+    UI.log('PHASE SHIFT: COMBAT INITIATED', 'sys');
+  },
+
+  attack(r, c) {
+    const cell = State.grid[r][c];
+    if (cell.owner===0 || cell.owner===State.turn) {
+      UI.log('INVALID TARGET', 'sys'); return;
+    }
+    const power = State.getPower(r, c, State.turn);
+    const def   = cell.count;
+    const terrain = Topo.classify(State.topo[r][c]);
+    const defBonus = 1 + terrain.defBonus;
+
+    if (power > def * defBonus) {
+      UI.log(`P${State.turn} ELIMINATED [${r},${c}] | PWR:${power.toFixed(1)} vs DEF:${(def*defBonus).toFixed(1)}`,
+             State.turn===1?'p1':'p2');
+      cell.owner = 0; cell.count = 0;
+      State.passCount = 0;
+      Renderer.refreshCell(r, c);
+      if (Renderer.heatmapOn) Renderer.updateHeatmap(true);
+    } else {
+      UI.log(`ATTACK FAILED: PWR:${power.toFixed(1)} vs DEF:${(def*defBonus).toFixed(1)} [${terrain.label}]`, 'sys');
+    }
+    this._nextTurn();
+  },
+
+  pass() {
+    State.passCount++;
+    UI.log(`P${State.turn} PASSED`, State.turn===1?'p1':'p2');
+    if (State.passCount >= 2) { this._end(); return; }
+    this._nextTurn();
+  },
+
+  _nextTurn() {
+    State.turn = State.turn===1 ? 2 : 1;
+    State.turnCount++;
+    UI.refresh();
+    this.checkAI();
+  },
+
+  checkAI() {
+    if (!State.ai || State.turn===1 || State.phase==='over') return;
+    document.getElementById('ai-indicator').style.display = 'block';
+
+    const delay = State.ai === 'mcts' ? 0 : 400;
+
+    setTimeout(() => {
+      if (State.ai === 'mcts' && this.worker) {
+        // Offload to Web Worker
+        const serialized = State.serialize();
+        this.worker.postMessage({
+          type: 'MCTS_MOVE',
+          payload: { stateData: serialized, who: 2, iterations: 350 }
+        });
+      } else {
+        // Greedy fallback (inline)
+        const move = this._greedyMove(State, 2);
+        setTimeout(() => this._applyAIMove(move), 400);
+      }
+    }, delay);
+  },
+
+  _applyAIMove(move) {
+    document.getElementById('ai-indicator').style.display = 'none';
+
+    if (!move || move.type === 'pass') {
+      this.pass(); return;
+    }
+
+    if (move.type === 'place') {
+      // AI placement — replicate place logic
+      const cell = State.grid[move.r][move.c];
+      if (cell.owner !== 0) { this._nextTurn(); return; }
+      const actual = Math.min(move.amt || 1, State.p2Res);
+      cell.owner = 2; cell.count = actual; State.p2Res -= actual;
+      if (!State.hasMoved) { State.firstMover = 2; State.hasMoved = true; }
+      Renderer.refreshCell(move.r, move.c);
+      UI.log(`AI DEPLOYED ×${actual} → [${move.r},${move.c}]`, 'p2');
+
+      const full  = State.isBoardFull();
+      const noRes = State.p1Res===0 && State.p2Res===0;
+      if (full || noRes) this._startCombat();
+      else if (State.p1Res > 0 && !full) State.turn = 1;
+    } else if (move.type === 'attack') {
+      const cell = State.grid[move.r][move.c];
+      const power = State.getPower(move.r, move.c, 2);
+      const terrain = Topo.classify(State.topo[move.r][move.c]);
+      if (power > cell.count * (1 + terrain.defBonus)) {
+        cell.owner = 0; cell.count = 0;
+        State.passCount = 0;
+        Renderer.refreshCell(move.r, move.c);
+        UI.log(`AI ELIMINATED [${move.r},${move.c}]`, 'p2');
+      } else {
+        UI.log('AI ATTACK FAILED', 'sys');
+      }
+      State.turn = 1;
+      State.turnCount++;
+    }
+
+    // AI analysis panel
+    this._updateAIEval();
+    UI.refresh();
+    if (Renderer.heatmapOn) Renderer.updateHeatmap(true);
+  },
+
+  _greedyMove(state, who) {
+    if (state.phase === 'placement') {
+      const res = who===1 ? state.p1Res : state.p2Res;
+      if (res <= 0) return null;
+      let best=null, bestScore=-Infinity;
+      for (let r=0;r<state.rows;r++) for(let c=0;c<state.cols;c++) {
+        if (state.grid[r][c].owner !== 0) continue;
+        let score = 0;
+        for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+          if(!dr&&!dc) continue;
+          const nr=r+dr, nc=c+dc;
+          if(nr>=0&&nr<state.rows&&nc>=0&&nc<state.cols) {
+            if(state.grid[nr][nc].owner===who) score+=3;
+            if(state.grid[nr][nc].owner!==0&&state.grid[nr][nc].owner!==who) score+=5;
+          }
+        }
+        score -= (Math.abs(r-state.rows/2)+Math.abs(c-state.cols/2))*0.5;
+        score += state.topo[r][c]*2;
+        if(score>bestScore){bestScore=score;best={r,c};}
+      }
+      if(!best) return null;
+      const empty = [];
+      for(let r=0;r<state.rows;r++) for(let c=0;c<state.cols;c++) if(!state.grid[r][c].owner) empty.push(1);
+      return {type:'place',r:best.r,c:best.c,amt:Math.min(res,Math.max(1,Math.ceil(res/Math.max(1,empty.length/2))))};
+    } else {
+      let bestMove=null, bestMargin=-Infinity;
+      for(let r=0;r<state.rows;r++) for(let c=0;c<state.cols;c++) {
+        if(state.grid[r][c].owner===1) {
+          const p=state.getPower(r,c,2);
+          const terrain=Topo.classify(state.topo[r][c]);
+          const eff=state.grid[r][c].count*(1+terrain.defBonus);
+          if(p>eff && p-eff>bestMargin){bestMargin=p-eff;bestMove={type:'attack',r,c};}
+        }
+      }
+      return bestMove;
+    }
+  },
+
+  _updateAIEval() {
+    const s1=State.getScore(1), s2=State.getScore(2), total=State.rows*State.cols;
+    const ctrl = total>0 ? (s2/(total)).toFixed(2) : '0.00';
+    let p1Atk=0;
+    for(let r=0;r<State.rows;r++) for(let c=0;c<State.cols;c++) {
+      if(State.grid[r][c].owner===1){const p=State.getPower(r,c,2); if(p>State.grid[r][c].count) p1Atk++;}
+    }
+    document.getElementById('ai-eval-wrap').innerHTML =
+      `// BOARD EVAL<br>TERRITORY CTL: ${ctrl}<br>P1 CELLS: ${s1} | P2 CELLS: ${s2}<br>P1 VULNRBL: ${p1Atk} sectors<br>TURN: ${State.turnCount}`;
+  },
+
+  _end() {
+    State.phase = 'over';
+    const s1=State.getScore(1), s2=State.getScore(2);
+    const w = s1>s2?'PLAYER 1':(s2>s1?'PLAYER 2':'DRAW');
+    Archive.save(w, `${s1}-${s2}`, State.turnCount);
+    UI.log(`MISSION COMPLETE — ${w} (${s1}:${s2})`, 'evt');
+    setTimeout(() => {
+      alert(`⚔ MISSION COMPLETE\n\nVICTOR: ${w}\nSCORE: ${s1} — ${s2}\nTURNS: ${State.turnCount}`);
+    }, 200);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 5 — UI MANAGER
+// ─────────────────────────────────────────────────────────────────────────────
+const UI = {
+  refresh() {
+    document.getElementById('p1-res').innerText   = State.p1Res;
+    document.getElementById('p2-res').innerText   = State.p2Res;
+    document.getElementById('p1-score').innerText = State.getScore(1);
+    document.getElementById('p2-score').innerText = State.getScore(2);
+
+    const l = document.getElementById('sb-left');
+    const r = document.getElementById('sb-right');
+    l.className = 'sidebar' + (State.turn===1?' active-p1':'');
+    r.className = 'sidebar' + (State.turn===2?' active-p2':'');
+  },
+
+  log(msg, type='sys') {
+    const w = document.getElementById('log-wrap');
+    const d = document.createElement('div');
+    d.className = `le le-${type}`;
+    const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    d.innerText = `[${t}] ${msg}`;
+    w.prepend(d);
+    // Cap log length
+    while(w.children.length > 80) w.removeChild(w.lastChild);
+  },
+
+  showCellHud(rc, e) {
+    const hud = document.getElementById('cell-hud');
+    if (!rc || State.phase === 'setup') { hud.style.display='none'; return; }
+    const { r, c } = rc;
+    const cell = State.grid[r][c];
+    const terrain = Topo.classify(State.topo[r][c]);
+
+    document.getElementById('hud-pos').innerText   = `[${r},${c}]`;
+    document.getElementById('hud-elev').innerText  = `${State.topo[r][c].toFixed(3)} — ${terrain.label}`;
+    document.getElementById('hud-owner').innerText = cell.owner===0?'EMPTY':`PLAYER ${cell.owner}`;
+    document.getElementById('hud-units').innerText = cell.count||'—';
+
+    const combatRow = document.getElementById('hud-combat-row');
+    if (State.phase === 'attack' && cell.owner !== 0 && cell.owner !== State.turn) {
+      const atk = State.getPower(r, c, State.turn);
+      const def = cell.count * (1 + terrain.defBonus);
+      document.getElementById('hud-atk').innerText = atk.toFixed(1);
+      document.getElementById('hud-def').innerText = def.toFixed(1);
+      const resultEl = document.getElementById('hud-result');
+      resultEl.innerText = atk > def ? '▶ ATTACK SUCCEEDS' : '▶ ATTACK FAILS';
+      resultEl.style.color = atk > def ? 'var(--emerald)' : 'var(--red)';
+      combatRow.style.display = 'block';
+    } else {
+      combatRow.style.display = 'none';
+    }
+
+    const vp = document.getElementById('viewport').getBoundingClientRect();
+    hud.style.display = 'block';
+    hud.style.left = Math.min(e.clientX - vp.left + 14, vp.width - 220) + 'px';
+    hud.style.top  = Math.min(e.clientY - vp.top  - 10, vp.height - 160) + 'px';
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 6 — SIMULATION DASHBOARD (MULTITHREADED)
+// ─────────────────────────────────────────────────────────────────────────────
+const SimDashboard = {
+  workers: [],
+  NUM_WORKERS: Math.max(2, (navigator.hardwareConcurrency || 4) - 1),
+
+  open()  { document.getElementById('sim-modal').style.display='flex'; },
+  close() { document.getElementById('sim-modal').style.display='none'; },
+
+  run() {
+    const n       = Math.min(10, Math.max(3, +document.getElementById('sim-n').value));
+    const games   = Math.min(5000, Math.max(10, +document.getElementById('sim-games').value));
+    const p1Mode  = document.getElementById('sim-p1').value;
+    const p2Mode  = document.getElementById('sim-p2').value;
+
+    document.getElementById('sim-run-btn').disabled = true;
+    document.getElementById('sim-results').style.display = 'none';
+    document.getElementById('sim-progress-wrap').style.display = 'block';
+    document.getElementById('sim-prog-bar').style.width = '0%';
+    document.getElementById('sim-prog-txt').innerText = 'Spawning workers...';
+
+    // Terminate previous workers
+    this.workers.forEach(w => w.terminate());
+    this.workers = [];
+
+    const nW = Math.min(this.NUM_WORKERS, games);
+    document.getElementById('sim-worker-count').innerText =
+      `// Spawning ${nW} parallel workers across ${navigator.hardwareConcurrency||'?'} logical cores`;
+
+    const perWorker = Math.ceil(games / nW);
+    const allResults = [];
+    let   completedWorkers = 0;
+    let   totalCompleted   = 0;
+
+    const workerCode = document.getElementById('worker-blob').textContent;
+
+    for (let wi = 0; wi < nW; wi++) {
+      const workload = Math.min(perWorker, games - wi * perWorker);
+      if (workload <= 0) { completedWorkers++; continue; }
+
+      const blob   = new Blob([workerCode], { type:'application/javascript' });
+      const worker = new Worker(URL.createObjectURL(blob));
+      this.workers.push(worker);
+
+      worker.onmessage = (e) => {
+        const { type, payload } = e.data;
+        if (type === 'PROGRESS') {
+          totalCompleted += (payload.completed - (worker._lastCompleted||0));
+          worker._lastCompleted = payload.completed;
+          const pct = totalCompleted / games;
+          document.getElementById('sim-prog-bar').style.width = (pct*100).toFixed(1)+'%';
+          document.getElementById('sim-prog-txt').innerText =
+            `Simulating... ${totalCompleted}/${games} games (${(pct*100).toFixed(0)}%)`;
+        }
+        if (type === 'COMPLETE') {
+          allResults.push(payload);
+          completedWorkers++;
+          worker.terminate();
+          if (completedWorkers === nW) this._aggregate(allResults, n, games);
+        }
+      };
+
+      worker.postMessage({
+        type: 'HYPER_SIM',
+        payload: { n, games: workload, p1Mode, p2Mode, batchSize: 25 }
+      });
+    }
+  },
+
+  _aggregate(allResults, n, totalGames) {
+    // Merge per-worker aggregates (weighted average)
+    let p1WR=0, p2WR=0, drawR=0, fma=0, avgT=0;
+    const mergedHeatmap = {};
+
+    for (const r of allResults) {
+      const w = r.total / totalGames;
+      p1WR  += r.p1WinRate * w;
+      p2WR  += r.p2WinRate * w;
+      drawR += r.drawRate  * w;
+      fma   += r.firstMoverAdv * w;
+      avgT  += r.avgTurns  * w;
+      for (const [k,v] of Object.entries(r.heatmap)) {
+        if (!mergedHeatmap[k]) mergedHeatmap[k]={sum:0,count:0};
+        mergedHeatmap[k].sum   += v;
+        mergedHeatmap[k].count += 1;
+      }
+    }
+
+    document.getElementById('r-p1wr').innerText  = (p1WR*100).toFixed(1)+'%';
+    document.getElementById('r-p2wr').innerText  = (p2WR*100).toFixed(1)+'%';
+    document.getElementById('r-draw').innerText  = (drawR*100).toFixed(1)+'%';
+    document.getElementById('r-fma').innerText   = (fma*100).toFixed(1)+'%';
+    document.getElementById('r-turns').innerText = avgT.toFixed(1);
+    document.getElementById('r-total').innerText = totalGames;
+
+    // Heatmap canvas
+    const finalHeatmap = {};
+    for (const [k,v] of Object.entries(mergedHeatmap)) {
+      finalHeatmap[k] = v.sum / v.count;
+    }
+    this._drawHeatmap(finalHeatmap, n);
+
+    document.getElementById('sim-progress-wrap').style.display='none';
+    document.getElementById('sim-results').style.display='block';
+    document.getElementById('sim-run-btn').disabled=false;
+  },
+
+  _drawHeatmap(heatmap, n) {
+    const canvas = document.getElementById('hm-canvas');
+    const cellSize = Math.min(Math.floor(680 / n), 80);
+    canvas.width  = cellSize * n;
+    canvas.height = cellSize * n;
+    const ctx = canvas.getContext('2d');
+
+    for (let r=0; r<n; r++) {
+      for (let c=0; c<n; c++) {
+        const val = heatmap[`${r},${c}`] ?? 0.5;
+        // Color: 0=red (bad start), 0.5=gray, 1=green (good start)
+        const red   = Math.round(255 * (1 - val));
+        const green = Math.round(200 * val);
+        const blue  = 60;
+        ctx.fillStyle = `rgb(${red},${green},${blue})`;
+        ctx.fillRect(c*cellSize, r*cellSize, cellSize-2, cellSize-2);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${Math.floor(cellSize*0.28)}px monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${(val*100).toFixed(0)}%`, c*cellSize+cellSize/2, r*cellSize+cellSize/2);
+      }
+    }
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 7 — ARCHIVE & HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+const Archive = {
+  KEY: 'aggression_nexus_v3',
+  get() { try{return JSON.parse(localStorage.getItem(this.KEY)||'[]');}catch{return [];} },
+  save(winner, score, turns) {
+    const db = this.get();
+    db.unshift({ id:Date.now().toString(36).toUpperCase().slice(-6), date:new Date().toLocaleString(), winner, score, turns });
+    localStorage.setItem(this.KEY, JSON.stringify(db.slice(0,200)));
+  },
+  open() {
+    document.getElementById('archive-modal').style.display='flex';
+    const el = document.getElementById('archive-body');
+    const db = this.get();
+    el.innerHTML = db.length ? db.map(g=>{
+      const c = g.winner.includes('1')?'var(--cyan)':'var(--red)';
+      return `<tr><td style="color:#444;font-family:monospace;">${g.id}</td><td>${g.date}</td><td style="color:${c};font-weight:700;">${g.winner}</td><td>${g.score}</td><td>${g.turns||'?'}</td></tr>`;
+    }).join('') : '<tr><td colspan="5" style="text-align:center;color:#444;padding:20px;">NO MISSIONS ON RECORD</td></tr>';
+  },
+  close() { document.getElementById('archive-modal').style.display='none'; },
+  wipe() { if(prompt('PASSWORD:') === 'ADMIN'){ localStorage.removeItem(this.KEY); this.open(); } else alert('ACCESS DENIED'); }
+};
+
+function changeDeployVal(d) {
+  const el = document.getElementById('deploy-val');
+  el.value = Math.max(1, (+el.value || 1) + d);
+}
+function clampDeploy() {
+  const el = document.getElementById('deploy-val');
+  const max = State.turn===1 ? State.p1Res : State.p2Res;
+  el.value = Math.max(1, Math.min(max||1, +el.value||1));
+}
+function toggleHeatmap() {
+  Renderer.heatmapOn = !Renderer.heatmapOn;
+  Renderer.updateHeatmap(Renderer.heatmapOn);
+  document.getElementById('heatmap-legend').style.display = Renderer.heatmapOn ? 'block' : 'none';
+}
+
+// Auto-set troops from grid size
+(function() {
+  const rEl = document.getElementById('s-rows');
+  const cEl = document.getElementById('s-cols');
+  const tEl = document.getElementById('s-troops');
+  const note = document.getElementById('troop-note');
+  const update = () => {
+    const r = +rEl.value||6, c = +cEl.value||6;
+    tEl.value = r*c;
+    note.innerText = `AUTO: n² = ${r}×${c} = ${r*c} units per side`;
+  };
+  rEl.addEventListener('input', update);
+  cEl.addEventListener('input', update);
+  update();
+})();
+</script>
+
+<!-- Web Worker code embedded as a blob (avoids CORS issues with inline workers) -->
+<script id="worker-blob" type="text/plain">
+'use strict';
+class HeadlessGame{constructor(n,aiMode='mcts'){this.n=n;this.size=n*n;this.grid=new Int16Array(this.size*2);this.topo=new Float32Array(this.size);this.p1Res=this.size;this.p2Res=this.size;this.turn=Math.random()<0.5?1:2;this.firstMover=0;this.phase='placement';this.passCount=0;this.aiMode=aiMode;this._buildTopo();}
+_buildTopo(){const n=this.n;for(let r=0;r<n;r++){for(let c=0;c<n;c++){const nx=c/n,ny=r/n;let v=0;v+=0.50*Math.sin(nx*Math.PI*2+1.3)*Math.cos(ny*Math.PI*2+0.7);v+=0.25*Math.sin(nx*Math.PI*4+2.1)*Math.cos(ny*Math.PI*4+1.5);v+=0.12*Math.sin(nx*Math.PI*8+0.5)*Math.cos(ny*Math.PI*8+3.1);v+=0.06*Math.sin(nx*Math.PI*16)*Math.cos(ny*Math.PI*16);this.topo[r*n+c]=(v+1)/2;}}}
+_idx(r,c){return r*this.n+c;}_owner(r,c){return this.grid[this._idx(r,c)*2];}_count(r,c){return this.grid[this._idx(r,c)*2+1];}
+_set(r,c,owner,count){const i=this._idx(r,c)*2;this.grid[i]=owner;this.grid[i+1]=count;}
+_terrainMod(r,c,attR,attC){const defElev=this.topo[this._idx(r,c)];const attElev=this.topo[this._idx(attR,attC)];return 1+(defElev-attElev)*0.5;}
+getPower(r,c,who){let p=0;for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){if(dr===0&&dc===0)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<this.n&&nc>=0&&nc<this.n&&this._owner(nr,nc)===who){const rawPow=this._count(nr,nc);const mod=this._terrainMod(r,c,nr,nc);p+=rawPow/mod;}}}return p;}
+getEmptyCells(){const e=[];for(let r=0;r<this.n;r++)for(let c=0;c<this.n;c++)if(this._owner(r,c)===0)e.push({r,c});return e;}
+getAttackable(who){const moves=[];const enemy=who===1?2:1;for(let r=0;r<this.n;r++){for(let c=0;c<this.n;c++){if(this._owner(r,c)===enemy){const p=this.getPower(r,c,who);if(p>this._count(r,c))moves.push({r,c,margin:p-this._count(r,c)});}}}return moves;}
+getScore(who){let s=0;for(let i=0;i<this.size;i++)if(this.grid[i*2]===who)s++;return s;}
+isBoardFull(){for(let i=0;i<this.size;i++)if(this.grid[i*2]===0)return false;return true;}
+clone(){const g=new HeadlessGame(this.n,this.aiMode);g.grid.set(this.grid);g.topo.set(this.topo);g.p1Res=this.p1Res;g.p2Res=this.p2Res;g.turn=this.turn;g.firstMover=this.firstMover;g.phase=this.phase;g.passCount=this.passCount;return g;}
+applyPlace(r,c,amt,who){const actual=Math.min(amt,who===1?this.p1Res:this.p2Res);if(actual<=0||this._owner(r,c)!==0)return false;this._set(r,c,who,actual);if(who===1)this.p1Res-=actual;else this.p2Res-=actual;if(!this.firstMover)this.firstMover=who;return true;}
+applyAttack(r,c,who){const p=this.getPower(r,c,who);if(p>this._count(r,c)){this._set(r,c,0,0);this.passCount=0;return true;}return false;}
+checkPhaseTransition(){const full=this.isBoardFull();const noRes=this.p1Res===0&&this.p2Res===0;if((full||noRes)&&this.phase==='placement'){this.phase='attack';this.turn=this.firstMover;}}}
+class MCTSNode{constructor(state,parent=null,move=null){this.state=state;this.parent=parent;this.move=move;this.children=[];this.visits=0;this.wins=0;this.untriedMoves=null;}ucb1(c=1.414){if(this.visits===0)return Infinity;return(this.wins/this.visits)+c*Math.sqrt(Math.log(this.parent.visits)/this.visits);}bestChild(){return this.children.reduce((b,ch)=>ch.ucb1()>b.ucb1()?ch:b);}}
+class MCTS{constructor(iterations=200,who=2){this.iterations=iterations;this.who=who;}
+_getMoves(state){if(state.phase==='placement'){const empty=state.getEmptyCells();if(!empty.length)return[{type:'pass'}];const res=state.turn===1?state.p1Res:state.p2Res;if(res<=0)return[{type:'pass'}];const sample=empty.length>12?_shuffle(empty).slice(0,12):empty;return sample.map(({r,c})=>({type:'place',r,c,amt:Math.min(res,Math.max(1,Math.floor(res/empty.length)+1))}));}else{const atks=state.getAttackable(state.turn);if(!atks.length)return[{type:'pass'}];return atks.map(({r,c,margin})=>({type:'attack',r,c,margin}));}}
+_applyMove(state,move){const s=state.clone();if(move.type==='place'){s.applyPlace(move.r,move.c,move.amt,s.turn);s.checkPhaseTransition();if(s.phase==='placement')s.turn=s.turn===1?2:1;}else if(move.type==='attack'){s.applyAttack(move.r,move.c,s.turn);s.passCount=0;s.turn=s.turn===1?2:1;}else{s.passCount++;s.turn=s.turn===1?2:1;}return s;}
+_rollout(state){let s=state.clone();let depth=0;const MAX_DEPTH=80;while(s.phase!=='over'&&depth++<MAX_DEPTH){if(s.phase==='attack'&&s.passCount>=2)break;const moves=this._getMoves(s);if(!moves.length)break;let move;if(s.phase==='attack'&&moves[0].type==='attack'){const ranked=moves.sort((a,b)=>(b.margin||0)-(a.margin||0));move=Math.random()<0.75?ranked[0]:ranked[Math.floor(Math.random()*ranked.length)];}else{move=moves[Math.floor(Math.random()*moves.length)];}s=this._applyMove(s,move);}const s1=s.getScore(1),s2=s.getScore(2);if(this.who===2)return s2>s1?1:(s2<s1?0:0.5);return s1>s2?1:(s1<s2?0:0.5);}
+search(rootState){const root=new MCTSNode(rootState);root.untriedMoves=this._getMoves(rootState);for(let i=0;i<this.iterations;i++){let node=root;while(node.untriedMoves!==null&&node.untriedMoves.length===0&&node.children.length>0){node=node.bestChild();}if(node.untriedMoves&&node.untriedMoves.length>0){const moveIdx=Math.floor(Math.random()*node.untriedMoves.length);const move=node.untriedMoves.splice(moveIdx,1)[0];const newState=this._applyMove(node.state,move);const child=new MCTSNode(newState,node,move);child.untriedMoves=this._getMoves(newState);node.children.push(child);node=child;}const result=this._rollout(node.state);let n=node;while(n!==null){n.visits++;n.wins+=result;n=n.parent;}}if(!root.children.length)return null;const best=root.children.reduce((b,ch)=>ch.visits>b.visits?ch:b);return best.move;}}
+function greedyMove(state,who){if(state.phase==='placement'){const res=who===1?state.p1Res:state.p2Res;if(res<=0)return null;const empty=state.getEmptyCells();if(!empty.length)return null;let best=null,bestScore=-Infinity;for(const{r,c}of empty){let score=0;for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<state.n&&nc>=0&&nc<state.n){if(state._owner(nr,nc)===who)score+=3;if(state._owner(nr,nc)!==0&&state._owner(nr,nc)!==who)score+=5;}}}score-=(Math.abs(r-state.n/2)+Math.abs(c-state.n/2))*0.5;score+=state.topo[state._idx(r,c)]*2;if(score>bestScore){bestScore=score;best={r,c};}}if(!best)return null;const empty2=state.getEmptyCells();return{type:'place',r:best.r,c:best.c,amt:Math.min(res,Math.max(1,Math.ceil(res/Math.max(1,empty2.length/2))))};}else{let bestMove=null,bestMargin=-Infinity;for(let r=0;r<state.n;r++)for(let c=0;c<state.n;c++){if(state._owner(r,c)===who===1?2:1){const p=state.getPower(r,c,who);if(p>state._count(r,c)&&p-state._count(r,c)>bestMargin){bestMargin=p-state._count(r,c);bestMove={type:'attack',r,c};}}}return bestMove;}}
+function runGame(n,p1Mode='greedy',p2Mode='greedy'){const game=new HeadlessGame(n);const startPositions={1:null,2:null};let turns=0;const MAX_TURNS=n*n*4;while(game.phase!=='over'&&turns++<MAX_TURNS){if(game.phase==='attack'&&game.passCount>=2)break;const who=game.turn;const mode=who===1?p1Mode:p2Mode;let move;if(mode==='mcts'){const mcts=new MCTS(120,who);move=mcts.search(game);}else{move=greedyMove(game,who);}if(!move||move.type==='pass'){game.passCount++;game.turn=who===1?2:1;if(game.passCount>=2)break;continue;}if(move.type==='place'){const ok=game.applyPlace(move.r,move.c,move.amt,who);if(ok&&!startPositions[who])startPositions[who]={r:move.r,c:move.c};game.checkPhaseTransition();if(game.phase==='placement')game.turn=who===1?2:1;}else if(move.type==='attack'){game.applyAttack(move.r,move.c,who);game.passCount=0;game.turn=who===1?2:1;}}const s1=game.getScore(1),s2=game.getScore(2);const winner=s1>s2?1:(s2>s1?2:0);return{winner,score1:s1,score2:s2,turns,firstMover:game.firstMover,n,startPos1:startPositions[1],startPos2:startPositions[2]};}
+function aggregateResults(results){const total=results.length;let p1Wins=0,p2Wins=0,draws=0,firstMoverWins=0,totalTurns=0;const positionWins={};for(const r of results){if(r.winner===1)p1Wins++;else if(r.winner===2)p2Wins++;else draws++;if(r.winner!==0&&r.winner===r.firstMover)firstMoverWins++;totalTurns+=r.turns;const pos=r.startPos1;if(pos){const k=`${pos.r},${pos.c}`;if(!positionWins[k])positionWins[k]={wins:0,total:0};positionWins[k].total++;if(r.winner===1)positionWins[k].wins++;}}const heatmap={};for(const[k,v]of Object.entries(positionWins)){heatmap[k]=v.total>=3?v.wins/v.total:0.5;}return{total,p1WinRate:p1Wins/total,p2WinRate:p2Wins/total,drawRate:draws/total,firstMoverAdv:total>0?firstMoverWins/(total-draws):0,avgTurns:totalTurns/total,heatmap};}
+function _shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+self.onmessage=function(e){const{type,payload}=e.data;if(type==='HYPER_SIM'){const{n,games,p1Mode,p2Mode,batchSize}=payload;const results=[];const BATCH=batchSize||50;let completed=0;const runBatch=()=>{const batchEnd=Math.min(completed+BATCH,games);for(let i=completed;i<batchEnd;i++){results.push(runGame(n,p1Mode||'greedy',p2Mode||'greedy'));}completed=batchEnd;self.postMessage({type:'PROGRESS',payload:{completed,total:games,pct:completed/games}});if(completed<games){setTimeout(runBatch,0);}else{const stats=aggregateResults(results);self.postMessage({type:'COMPLETE',payload:stats});}};runBatch();}if(type==='MCTS_MOVE'){const{stateData,who,iterations}=payload;const state=new HeadlessGame(stateData.n);state.grid.set(stateData.grid);state.topo.set(stateData.topo);state.p1Res=stateData.p1Res;state.p2Res=stateData.p2Res;state.turn=stateData.turn;state.firstMover=stateData.firstMover;state.phase=stateData.phase;state.passCount=stateData.passCount;const mcts=new MCTS(iterations||400,who);const move=mcts.search(state);self.postMessage({type:'MCTS_RESULT',payload:{move}});}};
+</script>
+
 </body>
 </html>
